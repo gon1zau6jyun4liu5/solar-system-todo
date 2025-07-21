@@ -3,7 +3,7 @@ import TodoList from './TodoList';
 import TodoForm from './TodoForm';
 import './TodoManager.css';
 
-// 임의의 Todo 데이터 (우주/태양계 테마)
+// 초기 Todo 데이터 (데드라인 추가)
 const initialTodos = [
   {
     id: 1,
@@ -11,7 +11,8 @@ const initialTodos = [
     category: 'sun',
     completed: false,
     createdAt: new Date('2025-07-20'),
-    priority: 'high'
+    priority: 'high',
+    deadline: new Date('2025-07-25')
   },
   {
     id: 2,
@@ -19,7 +20,8 @@ const initialTodos = [
     category: 'earth',
     completed: true,
     createdAt: new Date('2025-07-19'),
-    priority: 'medium'
+    priority: 'medium',
+    deadline: new Date('2025-07-22')
   },
   {
     id: 3,
@@ -27,7 +29,8 @@ const initialTodos = [
     category: 'mars',
     completed: false,
     createdAt: new Date('2025-07-21'),
-    priority: 'high'
+    priority: 'high',
+    deadline: new Date('2025-07-23')
   },
   {
     id: 4,
@@ -35,7 +38,8 @@ const initialTodos = [
     category: 'jupiter',
     completed: false,
     createdAt: new Date('2025-07-18'),
-    priority: 'low'
+    priority: 'low',
+    deadline: new Date('2025-07-30')
   },
   {
     id: 5,
@@ -43,7 +47,8 @@ const initialTodos = [
     category: 'saturn',
     completed: true,
     createdAt: new Date('2025-07-17'),
-    priority: 'medium'
+    priority: 'medium',
+    deadline: new Date('2025-07-24')
   },
   {
     id: 6,
@@ -51,11 +56,12 @@ const initialTodos = [
     category: 'general',
     completed: false,
     createdAt: new Date('2025-07-21'),
-    priority: 'high'
+    priority: 'high',
+    deadline: new Date('2025-07-22')
   }
 ];
 
-const TodoManager = () => {
+const TodoManager = ({ selectedCategory, onCategoryChange }) => {
   const [todos, setTodos] = useState([]);
   const [editingTodo, setEditingTodo] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -65,7 +71,12 @@ const TodoManager = () => {
   useEffect(() => {
     const savedTodos = localStorage.getItem('solar-system-todos');
     if (savedTodos) {
-      setTodos(JSON.parse(savedTodos));
+      const parsedTodos = JSON.parse(savedTodos).map(todo => ({
+        ...todo,
+        createdAt: new Date(todo.createdAt),
+        deadline: todo.deadline ? new Date(todo.deadline) : null
+      }));
+      setTodos(parsedTodos);
     } else {
       setTodos(initialTodos);
       localStorage.setItem('solar-system-todos', JSON.stringify(initialTodos));
@@ -78,6 +89,15 @@ const TodoManager = () => {
       localStorage.setItem('solar-system-todos', JSON.stringify(todos));
     }
   }, [todos]);
+
+  // 선택된 카테고리가 변경되면 필터 업데이트
+  useEffect(() => {
+    if (selectedCategory) {
+      setFilter('pending'); // 행성 클릭 시 pending만 표시
+    } else {
+      setFilter('all');
+    }
+  }, [selectedCategory]);
 
   // Todo 추가
   const addTodo = (todoData) => {
@@ -126,14 +146,23 @@ const TodoManager = () => {
 
   // Todo 필터링
   const filteredTodos = todos.filter(todo => {
+    // 카테고리 필터
+    const categoryMatch = selectedCategory ? todo.category === selectedCategory : true;
+    
+    // 상태 필터
+    let statusMatch;
     switch (filter) {
       case 'completed':
-        return todo.completed;
+        statusMatch = todo.completed;
+        break;
       case 'pending':
-        return !todo.completed;
+        statusMatch = !todo.completed;
+        break;
       default:
-        return true;
+        statusMatch = true;
     }
+    
+    return categoryMatch && statusMatch;
   });
 
   // 통계 계산
@@ -143,22 +172,54 @@ const TodoManager = () => {
     pending: todos.filter(t => !t.completed).length
   };
 
+  // 선택된 카테고리 통계
+  const categoryStats = selectedCategory ? {
+    total: todos.filter(t => t.category === selectedCategory).length,
+    completed: todos.filter(t => t.category === selectedCategory && t.completed).length,
+    pending: todos.filter(t => t.category === selectedCategory && !t.completed).length
+  } : null;
+
   return (
     <div className="todo-manager">
       <div className="todo-header">
         <h2>🚀 Solar System Mission Control</h2>
+        <div className="version-display">v0.3.0</div>
+        
+        {selectedCategory && (
+          <div className="category-header">
+            <h3>📍 {selectedCategory.toUpperCase()} Missions</h3>
+            <button 
+              className="clear-category-btn"
+              onClick={() => onCategoryChange(null)}
+            >
+              ✕ Show All
+            </button>
+          </div>
+        )}
+        
         <div className="todo-stats">
-          <span>Total: {stats.total}</span>
-          <span>Completed: {stats.completed}</span>
-          <span>Pending: {stats.pending}</span>
+          {categoryStats ? (
+            <>
+              <span>Category Total: {categoryStats.total}</span>
+              <span>Completed: {categoryStats.completed}</span>
+              <span>Pending: {categoryStats.pending}</span>
+            </>
+          ) : (
+            <>
+              <span>Total: {stats.total}</span>
+              <span>Completed: {stats.completed}</span>
+              <span>Pending: {stats.pending}</span>
+            </>
+          )}
         </div>
       </div>
 
       <div className="todo-controls">
         <div className="filter-buttons">
           <button 
-            className={filter === 'all' ? 'active' : ''}
+            className={filter === 'all' && !selectedCategory ? 'active' : ''}
             onClick={() => setFilter('all')}
+            disabled={selectedCategory}
           >
             All Missions
           </button>
