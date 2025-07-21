@@ -1,6 +1,6 @@
 {
   "name": "solar-system-todo",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "dependencies": {
     "@react-three/drei": "^10.5.1",
@@ -24,7 +24,9 @@
     "start:dev": "cross-env NODE_ENV=development GENERATE_SOURCEMAP=true react-scripts start",
     "build:dev": "cross-env NODE_ENV=development react-scripts build",
     "audit-fix": "npm audit fix",
-    "security-check": "npm audit"
+    "security-check": "npm audit",
+    "reinstall": "rm -rf node_modules package-lock.json && npm install",
+    "fresh-install": "npm run reinstall && npm start"
   },
   "eslintConfig": {
     "extends": [
@@ -52,5 +54,8 @@
     "@mediapipe/tasks-vision": {
       "webpack": "^5.64.4"
     }
+  },
+  "resolutions": {
+    "react-scripts": "5.0.1"
   }
 }
