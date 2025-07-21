@@ -1,44 +1,55 @@
 # 🚀 Solar System Todo App v0.3.0
 
-**AI-Powered 3D Solar System Todo App** - Interactive multiple solar systems with comprehensive todo functionality and intelligent animation controls
+**3D Solar System Todo App built with React Three Fiber** - Interactive planetary orbital system with comprehensive todo functionality and deadline management
 
 ![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)
 ![React](https://img.shields.io/badge/React-19.1.0-61dafb.svg)
 ![Three.js](https://img.shields.io/badge/Three.js-0.178.0-black.svg)
 ![Tests](https://img.shields.io/badge/tests-passing-green.svg)
-![Coverage](https://img.shields.io/badge/coverage-80%25-yellow.svg)
+![Coverage](https://img.shields.io/badge/coverage-80%25+-yellow.svg)
 
-## ✨ Features
+## ✨ What's New in v0.3.0
 
-### 🤖 AI-Powered Universe Panel (NEW in v0.3.0)
-- **Smart Control Center** - AI-guided interface with closable panel
-- **Animation Controls** - Play/Pause all planetary motion with one click
-- **Universe Statistics** - Real-time stats of suns, planets, and systems
-- **Navigation Guide** - Interactive help for exploring multiple solar systems
+### 🌌 **Complete Orbital System**
+- **8 Planets with Realistic Orbits** - From Mercury to Neptune
+- **Interactive Planet Clicking** - Click planets with pending tasks to filter todos
+- **Orbital Mechanics** - Each planet has unique orbit radius, speed, and size
+- **Visual Task Indicators** - 3D text showing pending task count above planets
 
-### 🌌 Multiple Solar System Universe (NEW)
-- **Main Solar System** - Complete 8-planet system (Mercury to Neptune)
-- **Binary Star System** - Dual suns with orbiting planets  
-- **Distant Alien System** - Exotic planets with unique colors
-- **Seamless Navigation** - Drag to explore different stellar neighborhoods
+### ⏰ **Advanced Deadline System**
+- **Deadline Setting** - Optional deadline for each mission
+- **Urgency Color Coding** - 5-level system from normal to overdue
+- **Real-time Progress Bars** - Visual time remaining indicators
+- **Critical Animations** - Pulsing effects for urgent and overdue tasks
 
-### 🎯 Complete Todo Management System
-- ✅ **Full CRUD Operations** - Create, Read, Update, Delete todos
-- 🌌 **Space-themed Interface** - Mission control style dark UI
-- 🪐 **Planetary Categories** - Organize todos by solar system objects
-- 🎨 **Priority System** - High/Medium/Low priority with color coding
-- 📊 **Real-time Statistics** - Live count of total, completed, and pending missions
-- 🔍 **Advanced Filtering** - Filter by completion status
-- 💾 **Local Storage** - Automatic data persistence
-- 📱 **Responsive Design** - Optimized for mobile and desktop
+### 🎯 **Enhanced Interactivity**
+- **Smart Planet Visibility** - Only planets with pending tasks are clickable
+- **Category Filtering** - Click planets to focus on specific mission types
+- **Completed Task Hiding** - Finished missions don't clutter planet view
+- **Dynamic Statistics** - Real-time mission counts per planet
 
-### 🌟 Advanced 3D Solar System Scene
-- 🌞 **Multiple Animated Suns** - 3 different star systems with unique characteristics
-- 🪐 **Realistic Planets** - 8 main planets + exotic alien worlds
-- 🌌 **Starfield Background** - 2000+ dynamic stars with depth
-- 🛸 **Orbital Mechanics** - Realistic planetary orbits and rotation
-- 🎮 **Enhanced Controls** - Drag, zoom, and rotate through space
-- ⚡ **Animation Toggle** - Pause/resume all motion instantly
+## 🌟 Core Features
+
+### 🌍 **3D Solar System**
+- **Complete Planetary System** - All 8 planets with accurate relative sizes
+- **Orbital Animations** - Realistic orbital speeds and rotations
+- **Interactive Controls** - Mouse/touch navigation with zoom and pan
+- **Space Environment** - Cosmic background with orbital trail visualization
+
+### 📋 **Advanced Todo Management**
+- **Full CRUD Operations** - Create, Read, Update, Delete missions
+- **Planet-based Categories** - 10 categories including all planets and sun
+- **Priority System** - High/Medium/Low with color coding
+- **Deadline Management** - Optional deadlines with urgency tracking
+- **Smart Filtering** - Filter by status, category, or planet selection
+- **Local Storage** - Automatic data persistence
+
+### 🎨 **Urgency Visualization System**
+- **🟢 Normal (51-100%)** - Plenty of time remaining
+- **🟡 Warning (26-50%)** - Approaching deadline
+- **🟠 Urgent (11-25%)** - Time running short
+- **🔴 Critical (1-10%)** - Very urgent with pulsing animation
+- **⚫ Overdue (0%)** - Past deadline with alert animation
 
 ## 🚀 Quick Start
 
@@ -64,7 +75,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the app in your brow
 # Run tests
 npm test
 
-# Run tests with coverage
+# Run tests with coverage (80%+ target)
 npm run test:coverage
 
 # Build for production
@@ -73,212 +84,161 @@ npm run build
 
 ## 🎮 How to Use
 
-### Exploring the Universe
-- **🖱️ Mouse Controls:** Left-click + drag to rotate view
-- **🌌 Navigation:** Right-click + drag to pan between solar systems  
-- **🔍 Zoom:** Mouse wheel to zoom in/out (5x to 300x range)
-- **📱 Touch:** Full mobile gesture support
+### **Creating Missions**
+1. Click the "+ New Mission" button
+2. Enter your mission description
+3. Select a planet category (Mercury through Neptune)
+4. Choose priority level (Low/Medium/High)
+5. Optionally set a deadline for urgency tracking
+6. Click "Launch Mission"
 
-### AI Control Panel
-- **🤖 Toggle Panel:** Click "✕" to close, "🤖 Show AI Panel" to reopen
-- **⏯️ Animation:** Use Play/Pause button to control all planetary motion
-- **📊 Statistics:** View real-time universe statistics
-- **🧭 Help:** Built-in navigation guidance
+### **Planet Interaction**
+- **Click planets** with pending tasks to filter missions
+- **Task counters** appear above planets with active missions
+- **Completed missions** automatically hide from planet view
+- Use **"Show All"** button to return to full mission view
 
-### Todo Management  
-- **➕ New Mission:** Click "+ New Mission" to add todos
-- **🏷️ Categories:** Choose from 10+ space-themed categories
-- **⭐ Priority:** Set High/Medium/Low priority levels
-- **🔍 Filter:** View All/Pending/Completed missions
-- **✏️ Edit:** Click edit button to modify existing todos
-- **🗑️ Delete:** Remove todos with confirmation dialog
+### **Deadline Management**
+- Set deadlines when creating or editing missions
+- Watch **color-coded progress bars** show time remaining
+- **Critical missions** pulse red when time is running out
+- **Overdue missions** flash to grab attention
+
+## 📊 Planet Categories
+
+| Planet | Category | Icon | Orbit | Color |
+|--------|----------|------|--------|-------|
+| Sun | `sun` | ☀️ | Center | Yellow |
+| Mercury | `mercury` | 🌑 | Innermost | Gray-Brown |
+| Venus | `venus` | 💛 | 2nd | Golden |
+| Earth | `earth` | 🌍 | 3rd | Blue |
+| Mars | `mars` | 🔴 | 4th | Red |
+| Jupiter | `jupiter` | 🪐 | 5th | Tan |
+| Saturn | `saturn` | 🪐 | 6th | Pale Gold |
+| Uranus | `uranus` | 🔵 | 7th | Cyan |
+| Neptune | `neptune` | 🔷 | Outermost | Deep Blue |
 
 ## 🏗️ Project Structure
 
 ```
 src/
 ├── components/
-│   ├── AIPanel.js            # NEW: AI control panel
-│   ├── Planet.js             # NEW: Individual planet component
-│   ├── SolarSystem.js        # NEW: Solar system container
-│   ├── Scene.js              # Updated: Multi-system 3D scene
+│   ├── Scene.js              # 3D environment setup
+│   ├── SolarSystem.js        # Planet system manager
+│   ├── Planet.js             # Individual planet component
+│   ├── Sun.js                # Central sun component
 │   ├── TodoManager.js        # Todo state management
 │   ├── TodoList.js           # Todo list renderer
-│   ├── TodoItem.js           # Individual todo item
-│   ├── TodoForm.js           # Add/edit todo form
-│   └── __tests__/            # Comprehensive unit tests
-├── App.js                    # Updated: Animation controls
-├── App.css                   # Updated: Version display
-└── index.js                  # App entry point
+│   ├── TodoItem.js           # Individual todo with urgency
+│   ├── TodoForm.js           # Create/edit form with deadline
+│   ├── TodoManager.css       # Enhanced styling
+│   └── __tests__/            # Comprehensive test suite
+├── App.js                    # Root component with state
+├── App.css                   # Global styles
+└── index.js                  # Application entry point
 ```
 
 ## 🛠️ Technology Stack
 
 - **Frontend Framework:** React 19.1.0
-- **3D Graphics:** Three.js 0.178.0 + React Three Fiber 9.2.0  
-- **3D Utilities:** React Three Drei 10.5.1 (Stars, OrbitControls)
+- **3D Graphics:** Three.js 0.178.0 + React Three Fiber 9.2.0
+- **3D Utilities:** React Three Drei 10.5.1 (Text, OrbitControls)
 - **Testing:** Jest + React Testing Library
 - **Build Tool:** Create React App 5.0.1
 - **State Management:** React Hooks
-- **Data Persistence:** Local Storage
+- **Data Persistence:** Local Storage API
 
-## 🌌 Solar System Data
+## 📋 Sample Mission Data
 
-### Main Solar System
-| Planet | Orbit Radius | Size | Speed | Color |
-|--------|-------------|------|-------|-------|
-| ☀️ Sun | 0 | 2.0 | Static | #ffff00 |
-| ☿️ Mercury | 3 | 0.4 | 0.04 | #8c7853 |
-| ♀️ Venus | 4.5 | 0.6 | 0.03 | #ffa500 |
-| 🌍 Earth | 6 | 0.7 | 0.025 | #6b93d6 |
-| ♂️ Mars | 8 | 0.5 | 0.02 | #cd5c5c |
-| ♃ Jupiter | 12 | 1.5 | 0.015 | #d8ca9d |
-| ♄ Saturn | 16 | 1.2 | 0.01 | #fab27b |
-| ♅ Uranus | 20 | 0.9 | 0.008 | #4fd0e4 |
-| ♆ Neptune | 24 | 0.9 | 0.006 | #4b70dd |
+The app includes 6 pre-loaded space missions with deadlines:
 
-### Binary Star System
-- **Twin Suns** - Counter-rotating binary stars
-- **Exotic Planets** - 2 unique worlds orbiting the binary pair
+1. **태양의 표면 온도 조사하기** (Solar research, high priority, due 2025-07-25)
+2. **지구의 자전축 기울기 23.5도 확인** (Earth studies, completed, was due 2025-07-22)
+3. **화성 탐사 로버 데이터 분석** (Mars exploration, high priority, due 2025-07-23)
+4. **목성의 대적점 관측 일지 작성** (Jupiter research, low priority, due 2025-07-30)
+5. **토성 고리의 구성 물질 연구** (Saturn analysis, completed, was due 2025-07-24)
+6. **혜성 궤도 계산 프로그램 완성하기** (General mission, high priority, due 2025-07-22)
 
-### Distant Alien System  
-- **Red Giant Star** - Distant stellar system
-- **Alien Worlds** - 3 planets with exotic purple, green, yellow colors
-
-## 📋 Sample Space Missions
-
-The app comes with 6 pre-loaded space missions:
-
-1. **태양의 표면 온도 조사하기** ☀️ (Solar research, high priority)
-2. **지구의 자전축 기울기 23.5도 확인** 🌍 (Earth studies, completed)
-3. **화성 탐사 로버 데이터 분석** 🔴 (Mars exploration, high priority)  
-4. **목성의 대적점 관측 일지 작성** 🪐 (Jupiter research, low priority)
-5. **토성 고리의 구성 물질 연구** 🪐 (Saturn analysis, completed)
-6. **혜성 궤도 계산 프로그램 완성하기** 🚀 (General mission, high priority)
-
-## 🧪 Test Coverage (v0.3.0)
+## 🧪 Test Coverage
 
 The application maintains 80%+ test coverage including:
 
-### Core Components
-- ✅ **AIPanel** - Panel controls, animation toggle, statistics display
-- ✅ **Planet** - 3D rendering, orbital motion, solar emissive effects  
-- ✅ **SolarSystem** - Multiple system configurations, planet management
-- ✅ **Scene** - 3D environment, camera controls, lighting systems
-- ✅ **App** - Animation state management, version display, integration
+- ✅ Planet orbital mechanics and rendering
+- ✅ Todo CRUD operations with deadlines
+- ✅ Urgency calculation algorithms
+- ✅ Planet click interactions
+- ✅ Category filtering logic
+- ✅ Local storage integration
+- ✅ Form validation and deadline handling
+- ✅ Component rendering and user interactions
 
-### Todo System  
-- ✅ Todo state management and CRUD operations
-- ✅ Local storage integration and data persistence
-- ✅ Form validation and user interactions
-- ✅ Filter functionality and component rendering
+## 🚀 Development Workflow
 
-## 🚀 Performance Optimizations
+1. **Branch Creation:** Feature branches for all changes (`feature/feature-name-v0.X.X`)
+2. **Test-Driven Development:** Write tests for new functionality
+3. **Quality Assurance:** All tests must pass before PR
+4. **Documentation:** Update specifications after testing
+5. **Version Management:** Increment version with each release and display on screen
 
-- **🎯 Selective Animation** - Only animate when needed based on play/pause state
-- **🧠 Smart Rendering** - Independent solar system rendering
-- **💾 Memory Management** - Direct object references with useRef
-- **📱 Mobile Optimized** - Touch-friendly controls and responsive design
-- **⚡ Frame Rate** - 60 FPS target with 15+ simultaneous celestial bodies
+## 🔮 Upcoming Features (v0.4.0)
 
-## 📱 Responsive Design
+### **Productivity Enhancements**
+- 🔔 **Browser Notifications** - Deadline reminders
+- 📊 **Analytics Dashboard** - Productivity metrics and charts
+- 🏷️ **Mission Templates** - Reusable mission patterns
+- 🔍 **Advanced Search** - Find missions by text content
+- 📱 **PWA Support** - Offline functionality
 
-### Desktop (1200px+)
-- AI Panel: 300px fixed left sidebar
-- 3D Scene: Full center area with enhanced controls
-- Todo Manager: 400px fixed right sidebar
+### **3D System Expansion**
+- 🌙 **Moon System** - Add major moons to planets
+- ☄️ **Asteroid Belt** - Interactive asteroid field
+- 🚀 **Space Stations** - 3D mission hubs
+- 🌌 **Star Field** - Dynamic background stars
 
-### Tablet (768px - 1199px)  
-- AI Panel: Collapsible top section
-- 3D Scene: Full background with touch support
-- Todo Manager: Bottom slide-up panel
+## ⚡ Performance Features
 
-### Mobile (767px and below)
-- AI Panel: Full-width, minimized by default
-- 3D Scene: Full-screen with optimized touch gestures
-- Todo Manager: Full-width scrollable sections
+- **Optimized Rendering:** 60fps target with efficient Three.js usage
+- **Smart Re-rendering:** React hooks for minimal updates
+- **Memory Management:** Proper cleanup of 3D resources
+- **Responsive Design:** Mobile and desktop optimized
+- **Local Storage:** Instant load times with cached data
 
-## 🔮 Version History & Roadmap
+## 🌐 Browser Support
 
-### v0.3.0 (Current) - AI-Powered Universe
-- 🤖 AI control panel with closable interface
-- ⏯️ Global animation play/pause controls  
-- 🌌 Multiple solar systems (3 different star systems)
-- 🪐 Complete 8-planet main solar system + exotic worlds
-- 🎮 Enhanced camera controls with pan/zoom
-- 📊 Real-time universe statistics
-- 🧪 Comprehensive test coverage for new features
+- **Chrome:** 90+ (Recommended)
+- **Firefox:** 88+
+- **Safari:** 14+
+- **Edge:** 90+
+- **Mobile:** iOS Safari 14+, Chrome Mobile 90+
 
-### v0.2.0 - Todo Management System  
-- ✅ Complete CRUD todo functionality
-- 🎨 Space-themed UI with mission control aesthetics
-- 💾 Local storage data persistence
-- 📱 Responsive design for all devices
+## 📄 License
 
-### v0.1.0 - 3D Foundation
-- 🌞 Basic rotating sun component
-- 🎮 OrbitControls navigation
-- 🌌 Full-screen space background
-
-## 🔮 Upcoming Features (v0.4.0+)
-
-### v0.4.0 - Todo Universe Integration
-- 🔗 **Todo-Planet Connection** - Link todos to specific planets
-- 📏 **Priority Scaling** - Planet size reflects todo priority
-- 🛰️ **Satellite System** - Completed todos become moons
-- 🏷️ **Auto Solar Systems** - Generate systems based on todo categories
-
-### v0.5.0 - Advanced Physics  
-- 🌍 **Realistic Orbits** - Elliptical orbital mechanics
-- 🌕 **Moon Systems** - Earth's moon, Jupiter's moons, etc.
-- ☄️ **Asteroid Belts** - Dynamic asteroid fields
-- ⚖️ **Gravitational Effects** - Planet-to-planet interactions
-
-### v1.0.0 - TodoVerse Pro
-- 🌐 **Real-time Collaboration** - Multi-user todo sharing
-- 🥽 **VR/AR Support** - Immersive space productivity
-- 🔊 **3D Audio** - Spatial sound effects and ambient space sounds
-- 🏆 **Gamification** - Achievement system for productivity goals
-
-## 📊 Performance Benchmarks
-
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| **Frame Rate** | 60 FPS | ~58 FPS | ✅ Excellent |
-| **Initial Load** | <3s | ~2.1s | ✅ Great |
-| **Memory Usage** | <200MB | ~150MB | ✅ Optimal |
-| **Mobile Performance** | 30+ FPS | ~35 FPS | ✅ Good |
+This project is licensed under the MIT License.
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes and add tests
-4. Ensure all tests pass: `npm test`  
+4. Ensure all tests pass (`npm run test:coverage`)
 5. Update documentation if needed
-6. Commit your changes: `git commit -m 'Add amazing feature'`
-7. Push to the branch: `git push origin feature/amazing-feature`
-8. Submit a Pull Request
+6. Commit your changes (`git commit -m 'Add amazing feature'`)
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
 
-## 📄 License
+## 📞 Contact
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+For questions or suggestions, please open an issue on GitHub.
 
 ## 🙏 Acknowledgments
 
-- **NASA** - For inspiring planetary data and imagery
-- **Three.js Community** - For the amazing 3D web framework
-- **React Three Fiber** - For bridging React and Three.js seamlessly
-- **Space Enthusiasts** - For believing in the power of cosmic productivity
-
-## 📞 Support
-
-- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/gon1zau6jyun4liu5/solar-system-todo/issues)
-- 💡 **Feature Requests:** [GitHub Discussions](https://github.com/gon1zau6jyun4liu5/solar-system-todo/discussions)
-- 📧 **Contact:** Create an issue for questions or suggestions
+- **Three.js Community** - For the amazing 3D library
+- **React Three Fiber** - For seamless React/Three.js integration
+- **NASA** - For planetary data inspiration
+- **Space Exploration Enthusiasts** - For motivation
 
 ---
 
-**Made with 🚀, ❤️, and ☕ for space exploration enthusiasts and productivity geeks everywhere**
+**Made with 🚀 and ❤️ for space exploration and productivity**
 
-*"Organize your tasks among the stars, and watch your productivity reach cosmic heights!" ✨*
+**Current Status:** Production-ready v0.3.0 with complete orbital mechanics, deadline management, and interactive planet system.
