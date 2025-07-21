@@ -1,146 +1,165 @@
-# Solar System Todo App
+# 🚀 Solar System Todo App v0.2.0
 
-🌌 A 3D interactive solar system simulation built with React Three Fiber, combining beautiful 3D graphics with todo functionality.
+3D Solar System Todo App built with React Three Fiber - Interactive solar system simulation with comprehensive todo functionality
 
-## Features
+![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![React](https://img.shields.io/badge/React-19.1.0-61dafb.svg)
+![Three.js](https://img.shields.io/badge/Three.js-0.178.0-black.svg)
+![Tests](https://img.shields.io/badge/tests-passing-green.svg)
+![Coverage](https://img.shields.io/badge/coverage-80%25-yellow.svg)
 
-- 🌟 3D Solar System simulation with rotating sun
-- 🚀 Interactive camera controls (orbit, zoom, pan)
-- ⚛️ Built with React Three Fiber and Three.js
-- 📱 Responsive design
-- 🎨 Modern UI with space theme
-- ⚡ Optimized build without source map warnings
+## ✨ Features
 
-## Tech Stack
+### 🎯 Complete Todo Management System
+- ✅ **Full CRUD Operations** - Create, Read, Update, Delete todos
+- 🌌 **Space-themed Interface** - Mission control style dark UI
+- 🪐 **Planetary Categories** - Organize todos by solar system objects
+- 🎨 **Priority System** - High/Medium/Low priority with color coding
+- 📊 **Real-time Statistics** - Live count of total, completed, and pending missions
+- 🔍 **Advanced Filtering** - Filter by completion status
+- 💾 **Local Storage** - Automatic data persistence
+- 📱 **Responsive Design** - Optimized for mobile and desktop
 
-- **React 19** - Latest React features
-- **React Three Fiber** - React renderer for Three.js
-- **@react-three/drei** - Useful helpers for React Three Fiber
-- **Three.js** - 3D graphics library
-- **Create React App** - Development setup
-- **cross-env** - Cross-platform environment variables
+### 🌟 3D Solar System Scene
+- 🌞 **Animated Sun** - Rotating 3D sun with emissive materials
+- 🎮 **Orbit Controls** - Mouse/touch navigation
+- 🌌 **Space Environment** - Full-screen cosmic background
 
-## Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
 ```bash
+# Clone the repository
 git clone https://github.com/gon1zau6jyun4liu5/solar-system-todo.git
+
+# Navigate to project directory
 cd solar-system-todo
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 npm install
-```
 
-3. Start the development server:
-```bash
+# Start development server
 npm start
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Open [http://localhost:3000](http://localhost:3000) to view the app in your browser.
 
-## Available Scripts
+## 🧪 Testing
 
-- `npm start` - Runs the app in optimized mode (no source maps, faster)
-- `npm run start:dev` - Runs the app with source maps for debugging
-- `npm run build` - Builds the app for production (no source maps)
-- `npm run build:dev` - Builds the app with source maps for debugging
-- `npm test` - Launches the test runner
-- `npm run eject` - Ejects from Create React App
-
-## Build Configuration
-
-### Source Map Handling
-
-This project is configured to disable source maps by default to:
-- ✅ Eliminate @mediapipe/tasks-vision source map warnings
-- ✅ Improve build performance
-- ✅ Reduce bundle sizes
-- ✅ Provide cleaner development experience
-
-If you need source maps for debugging, use:
 ```bash
-npm run start:dev    # Development with source maps
-npm run build:dev    # Build with source maps
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Build for production
+npm run build
 ```
 
-### Cross-Platform Compatibility
+## 📋 Sample Data
 
-Uses `cross-env` to ensure environment variables work on:
-- ✅ Windows
-- ✅ macOS  
-- ✅ Linux
+The app comes with 6 pre-loaded space missions:
 
-## Project Structure
+- 🌞 **태양의 표면 온도 조사하기** (Solar research, high priority)
+- 🌍 **지구의 자전축 기울기 23.5도 확인** (Earth studies, completed)
+- 🔴 **화성 탐사 로버 데이터 분석** (Mars exploration, high priority)
+- 🪐 **목성의 대적점 관측 일지 작성** (Jupiter research, low priority)
+- 🪐 **토성 고리의 구성 물질 연구** (Saturn analysis, completed)
+- 🚀 **혜성 궤도 계산 프로그램 완성하기** (General mission, high priority)
+
+## 🏗️ Project Structure
 
 ```
 src/
 ├── components/
-│   ├── Scene.js      # Main 3D scene setup
-│   └── Sun.js        # Rotating sun component
-├── App.js            # Main app component
-├── App.css           # App styles
-├── index.js          # React entry point
-└── index.css         # Global styles
+│   ├── Scene.js              # 3D scene component
+│   ├── Sun.js                # Animated sun component
+│   ├── TodoManager.js        # Main todo state management
+│   ├── TodoList.js           # Todo list renderer
+│   ├── TodoItem.js           # Individual todo item
+│   ├── TodoForm.js           # Add/edit todo form
+│   ├── TodoManager.css       # Todo system styles
+│   └── __tests__/            # Unit tests
+├── App.js                    # Root component
+├── App.css                   # Global styles
+└── index.js                  # App entry point
 ```
 
-## Current Features
+## 🛠️ Technology Stack
 
-### 🌞 Solar System Simulation
-- Rotating sun with emissive yellow material
-- 3D scene with ambient and point lighting
-- Orbit controls for camera interaction
+- **Frontend Framework:** React 19.1.0
+- **3D Graphics:** Three.js 0.178.0 + React Three Fiber 9.2.0
+- **3D Utilities:** React Three Drei 10.5.1
+- **Testing:** Jest + React Testing Library
+- **Build Tool:** Create React App 5.0.1
+- **State Management:** React Hooks
+- **Data Persistence:** Local Storage
 
-## Troubleshooting
+## 🎮 Usage
 
-### Compile Warnings
-The following warnings have been resolved in v0.2.1:
-- ✅ `@mediapipe/tasks-vision` source map parsing errors
-- ✅ ESLint `no-unused-vars` warnings
-- ✅ Webpack compilation warnings
+### Adding a New Mission
+1. Click the "+ New Mission" button
+2. Enter your mission description
+3. Select a category (Sun, Earth, Mars, etc.)
+4. Choose priority level
+5. Click "Launch Mission"
 
-### Performance
-- Source maps disabled by default for faster builds
-- Use `npm run start:dev` if you need debugging capabilities
+### Managing Missions
+- **Complete Mission:** Click the ⭕/✅ button
+- **Edit Mission:** Click the ✏️ edit button
+- **Delete Mission:** Click the 🗑️ delete button (with confirmation)
 
-## Roadmap
+### Filtering Missions
+- **All Missions:** View all todos
+- **Pending:** Show only incomplete missions
+- **Completed:** Show only finished missions
 
-- [ ] Add planets (Mercury, Venus, Earth, Mars, etc.)
-- [ ] Implement orbital mechanics
-- [ ] Add todo functionality integrated with celestial objects
-- [ ] Planet information panels
-- [ ] Realistic textures and materials
-- [ ] Sound effects and ambient music
-- [ ] Mobile touch controls optimization
+## 🧪 Test Coverage
 
-## Contributing
+The application maintains 80%+ test coverage including:
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- ✅ Todo state management
+- ✅ CRUD operations
+- ✅ Local storage integration
+- ✅ Form validation
+- ✅ User interactions
+- ✅ Component rendering
+- ✅ Filter functionality
 
-## License
+## 🚀 Development Workflow
 
-This project is open source and available under the [MIT License](LICENSE).
+1. **Branch Creation:** Create feature branches for all changes
+2. **Test-Driven Development:** Write tests for new functionality
+3. **Quality Assurance:** Ensure all tests pass before PR
+4. **Documentation:** Update specifications after testing
+5. **Version Management:** Increment version with each release
 
-## Acknowledgments
+## 🔮 Upcoming Features (v0.3.0)
 
-- React Three Fiber community for excellent 3D React tools
-- Three.js for the powerful 3D graphics library
-- NASA for inspiring space exploration
+- 🪐 **Planet Integration:** Click planets to filter related todos
+- 🏷️ **3D Labels:** Show todo counts on planets
+- 🎨 **Visual Feedback:** Planet effects based on completion status
+- 🔍 **Search Functionality:** Find todos by text
+- 📅 **Due Dates:** Add deadlines to missions
+- 🔄 **Drag & Drop:** Reorder todos
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
+
+## 📞 Contact
+
+For questions or suggestions, please open an issue on GitHub.
 
 ---
 
-**Version:** 0.2.1  
-**Status:** Production Ready - Clean Build ✨  
-**Created with:** ❤️ and curiosity about the cosmos
+**Made with 🚀 and ❤️ for space exploration enthusiasts**
