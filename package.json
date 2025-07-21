@@ -13,13 +13,16 @@
     "react-dom": "^19.1.0",
     "react-scripts": "5.0.1",
     "three": "^0.178.0",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "cross-env": "^7.0.3"
   },
   "scripts": {
-    "start": "GENERATE_SOURCEMAP=false react-scripts start",
-    "build": "GENERATE_SOURCEMAP=false react-scripts build",
+    "start": "cross-env GENERATE_SOURCEMAP=false react-scripts start",
+    "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "start:dev": "cross-env NODE_ENV=development GENERATE_SOURCEMAP=true react-scripts start",
+    "build:dev": "cross-env NODE_ENV=development react-scripts build",
     "audit-fix": "npm audit fix",
     "security-check": "npm audit"
   },
