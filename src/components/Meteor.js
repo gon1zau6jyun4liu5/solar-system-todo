@@ -1,216 +1,202 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 /**
- * Meteor Component - AI Action Suggestions v0.3.1
- * Represents urgent AI suggestions that rush toward relevant todos
- * - Appears when deadlines approach
- * - Targets specific todos/planets/satellites
- * - Collision effects when not handled in time
- * - Trail effects for visual impact
+ * Meteor component for AI action suggestions
+ * - Appears when AI suggests urgent actions
+ * - Moves toward target planet/satellite
+ * - Collision effect if not handled in time
  */
-const Meteor = ({
-  meteorData,
-  targetTodos = [],
-  isAnimationPlaying = true,
-  onCollision
+const Meteor = ({ 
+  targetPosition = [0, 0, 0],
+  aiSuggestion = null,
+  onCollision = null,
+  onInteraction = null,
+  isAnimationPlaying = true 
 }) => {
   const meshRef = useRef();
   const trailRef = useRef();
-  const [isVisible, setIsVisible] = useState(true);
+  const [position, setPosition] = useState([
+    (Math.random() - 0.5) * 100,
+    (Math.random() - 0.5) * 50 + 25,
+    (Math.random() - 0.5) * 100
+  ]);
   const [hasCollided, setHasCollided] = useState(false);
+  const [lifespan, setLifespan] = useState(30); // 30 seconds to reach target
 
-  // Find target todo position
-  const targetTodo = targetTodos.find(todo => todo.id === meteorData.targetTodoId);
-  const targetPosition = useMemo(() => {
-    if (!targetTodo) return [0, 0, 0];
-    
-    // Calculate approximate position based on todo hierarchy
-    if (targetTodo.hierarchyType === 'sun') {
-      return [0, 0, 0]; // Sun is at center
-    } else if (targetTodo.hierarchyType === 'planet') {
-      // Approximate planet orbit position
-      const angle = Math.random() * Math.PI * 2;
-      const radius = 12 + Math.random() * 16;
-      return [
-        Math.cos(angle) * radius,
-        0,
-        Math.sin(angle) * radius
-      ];
-    } else {
-      // Satellite position
-      const angle = Math.random() * Math.PI * 2;
-      const radius = 8 + Math.random() * 8;
-      return [
-        Math.cos(angle) * radius,
-        Math.random() * 4 - 2,
-        Math.sin(angle) * radius
-      ];
-    }
-  }, [targetTodo]);
-
-  // Meteor properties
+  // Calculate direction and speed toward target
   const meteorProps = useMemo(() => {
-    const urgencyLevel = meteorData.todoData?.visualProperties?.daysUntilDeadline || 5;
+    const direction = new THREE.Vector3(
+      targetPosition[0] - position[0],
+      targetPosition[1] - position[1],
+      targetPosition[2] - position[2]
+    ).normalize();
+    
+    const distance = Math.sqrt(
+      Math.pow(targetPosition[0] - position[0], 2) +
+      Math.pow(targetPosition[1] - position[1], 2) +
+      Math.pow(targetPosition[2] - position[2], 2)
+    );
+    
+    const speed = distance / lifespan; // Reach target in lifespan seconds
     
     return {
-      size: 0.3 + (5 - urgencyLevel) * 0.1, // Larger for more urgent
-      speed: meteorData.speed || (0.5 + (5 - urgencyLevel) * 0.2),
-      color: urgencyLevel <= 1 ? '#ff0000' : 
-             urgencyLevel <= 2 ? '#ff4400' : '#ffaa00',
-      glowIntensity: Math.max(0.5, (5 - urgencyLevel) * 0.3)
+      direction,
+      speed,
+      distance,
+      size: 0.3 + Math.random() * 0.2,
+      rotationSpeed: 0.1 + Math.random() * 0.1
     };
-  }, [meteorData]);
+  }, [position, targetPosition, lifespan]);
 
-  // Movement towards target
-  const position = useRef(new THREE.Vector3(...meteorData.startPosition));
-  const targetVec = useRef(new THREE.Vector3(...targetPosition));
-  const direction = useRef(new THREE.Vector3());
-
+  // Animation loop
   useFrame((state, delta) => {
     if (!meshRef.current || !isAnimationPlaying || hasCollided) return;
 
-    // Calculate direction to target
-    direction.current.subVectors(targetVec.current, position.current).normalize();
-    
-    // Move towards target
-    const moveDistance = meteorProps.speed * delta * 60; // 60fps normalized
-    position.current.add(direction.current.multiplyScalar(moveDistance));
-    
-    // Update mesh position
-    meshRef.current.position.copy(position.current);
-    
-    // Rotation for spinning effect
-    meshRef.current.rotation.x += 0.1;
-    meshRef.current.rotation.y += 0.15;
-    meshRef.current.rotation.z += 0.05;
-    
-    // Check for collision (within 2 units of target)
-    const distanceToTarget = position.current.distanceTo(targetVec.current);
-    if (distanceToTarget < 2) {
-      handleCollision();
+    // Move toward target
+    const moveDistance = meteorProps.speed * delta;
+    meshRef.current.position.x += meteorProps.direction.x * moveDistance;
+    meshRef.current.position.y += meteorProps.direction.y * moveDistance;
+    meshRef.current.position.z += meteorProps.direction.z * moveDistance;
+
+    // Rotation animation
+    meshRef.current.rotation.x += meteorProps.rotationSpeed * delta;
+    meshRef.current.rotation.y += meteorProps.rotationSpeed * delta * 0.7;
+    meshRef.current.rotation.z += meteorProps.rotationSpeed * delta * 0.3;
+
+    // Check collision with target
+    const currentDistance = meshRef.current.position.distanceTo(
+      new THREE.Vector3(...targetPosition)
+    );
+
+    if (currentDistance < 1.0) {
+      setHasCollided(true);
+      onCollision?.(aiSuggestion);
     }
-    
-    // Check if meteor went too far (cleanup)
-    if (distanceToTarget > 200) {
-      setIsVisible(false);
-    }
-    
+
     // Update trail effect
     if (trailRef.current) {
-      trailRef.current.lookAt(direction.current.clone().negate().add(position.current));
+      const trailOpacity = Math.max(0, 0.8 - (30 - lifespan) / 30);
+      trailRef.current.material.opacity = trailOpacity;
     }
+
+    // Countdown lifespan
+    setLifespan(prev => Math.max(0, prev - delta));
   });
 
-  const handleCollision = () => {
-    if (!hasCollided) {
-      setHasCollided(true);
-      onCollision?.(meteorData.id, meteorData.targetTodoId);
-      
-      // Collision effect - meteor disappears with explosion effect
-      setTimeout(() => {
-        setIsVisible(false);
-      }, 500);
+  // Remove meteor if lifespan expires
+  useEffect(() => {
+    if (lifespan <= 0 && !hasCollided) {
+      onCollision?.(aiSuggestion);
     }
-  };
+  }, [lifespan, hasCollided, aiSuggestion, onCollision]);
 
-  // Meteor material with glow
+  // Meteor material with glowing effect
   const meteorMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-    color: meteorProps.color,
-    emissive: meteorProps.color,
-    emissiveIntensity: meteorProps.glowIntensity,
-    roughness: 0.8,
+    color: '#ff6600',
+    emissive: '#ff3300',
+    emissiveIntensity: 0.8,
+    roughness: 0.7,
     metalness: 0.3
-  }), [meteorProps.color, meteorProps.glowIntensity]);
+  }), []);
 
   // Trail material
   const trailMaterial = useMemo(() => new THREE.MeshBasicMaterial({
-    color: meteorProps.color,
+    color: '#ffaa00',
     transparent: true,
     opacity: 0.6,
-    side: THREE.DoubleSide
-  }), [meteorProps.color]);
+    side: THREE.BackSide
+  }), []);
 
-  // Explosion effect on collision
-  const explosionMaterial = useMemo(() => new THREE.MeshBasicMaterial({
-    color: '#ffffff',
-    transparent: true,
-    opacity: hasCollided ? 0.8 : 0,
-    side: THREE.DoubleSide
-  }), [hasCollided]);
-
-  if (!isVisible) return null;
+  if (hasCollided) {
+    // Explosion effect
+    return (
+      <group position={targetPosition}>
+        {/* Explosion particles */}
+        {Array.from({ length: 8 }, (_, i) => (
+          <mesh key={i} position={[
+            (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 2
+          ]}>
+            <sphereGeometry args={[0.1, 4, 4]} />
+            <meshBasicMaterial color="#ff3300" transparent opacity={0.8} />
+          </mesh>
+        ))}
+        
+        {/* Shockwave */}
+        <mesh>
+          <ringGeometry args={[0.5, 2, 16]} />
+          <meshBasicMaterial color="#ff6600" transparent opacity={0.3} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+    );
+  }
 
   return (
     <group>
       {/* Main meteor body */}
       <mesh 
         ref={meshRef}
+        position={position}
         material={meteorMaterial}
-        position={meteorData.startPosition}
+        onClick={(e) => {
+          e.stopPropagation();
+          onInteraction?.(aiSuggestion);
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = 'default';
+        }}
       >
         <sphereGeometry args={[meteorProps.size, 8, 8]} />
       </mesh>
 
-      {/* Meteor trail */}
+      {/* Glowing trail */}
       <mesh 
         ref={trailRef}
+        position={[
+          position[0] - meteorProps.direction.x * 2,
+          position[1] - meteorProps.direction.y * 2,
+          position[2] - meteorProps.direction.z * 2
+        ]}
         material={trailMaterial}
-        position={meteorData.startPosition}
       >
-        <coneGeometry args={[meteorProps.size * 0.5, meteorProps.size * 3, 6]} />
+        <sphereGeometry args={[meteorProps.size * 1.5, 6, 6]} />
       </mesh>
 
-      {/* Glow effect */}
-      <mesh 
-        position={meteorData.startPosition}
-        material={new THREE.MeshBasicMaterial({
-          color: meteorProps.color,
-          transparent: true,
-          opacity: 0.3,
-          side: THREE.BackSide
-        })}
-      >
-        <sphereGeometry args={[meteorProps.size * 1.5, 8, 8]} />
-      </mesh>
-
-      {/* Collision explosion effect */}
-      {hasCollided && (
-        <mesh material={explosionMaterial}>
-          <sphereGeometry args={[meteorProps.size * 3, 16, 16]} />
-        </mesh>
-      )}
-
-      {/* Particle trail points */}
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={20}
-            array={new Float32Array(Array.from({ length: 60 }, () => 
-              (Math.random() - 0.5) * meteorProps.size * 4
-            ))}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <pointsMaterial 
-          color={meteorProps.color}
-          size={0.1}
-          transparent
-          opacity={0.7}
-        />
-      </points>
-
-      {/* Warning indicator for target */}
-      <group position={targetPosition}>
+      {/* Warning indicator */}
+      <group position={[
+        position[0],
+        position[1] + meteorProps.size + 0.5,
+        position[2]
+      ]}>
         <mesh>
-          <ringGeometry args={[1, 1.2, 16]} />
+          <planeGeometry args={[1.5, 0.3]} />
           <meshBasicMaterial 
-            color="#ff0000"
-            transparent
-            opacity={0.5}
-            side={THREE.DoubleSide}
+            color="#ff0000" 
+            transparent 
+            opacity={0.8} 
+          />
+        </mesh>
+      </group>
+
+      {/* Countdown timer */}
+      <group position={[
+        position[0],
+        position[1] - meteorProps.size - 0.5,
+        position[2]
+      ]}>
+        <mesh>
+          <planeGeometry args={[1, 0.2]} />
+          <meshBasicMaterial 
+            color="#ffffff" 
+            transparent 
+            opacity={0.7} 
           />
         </mesh>
       </group>

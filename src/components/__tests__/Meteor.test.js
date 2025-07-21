@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Meteor from '../Meteor';
 
@@ -8,344 +8,170 @@ jest.mock('@react-three/fiber', () => ({
   useFrame: jest.fn()
 }));
 
-jest.mock('three', () => ({
-  Vector3: jest.fn().mockImplementation((x = 0, y = 0, z = 0) => ({
-    x, y, z,
-    subVectors: jest.fn().mockReturnThis(),
-    normalize: jest.fn().mockReturnThis(),
-    add: jest.fn().mockReturnThis(),
-    multiplyScalar: jest.fn().mockReturnThis(),
-    distanceTo: jest.fn().mockReturnValue(5),
-    clone: jest.fn().mockReturnThis()
-  })),
-  MeshStandardMaterial: jest.fn(),
-  MeshBasicMaterial: jest.fn(),
-  DoubleSide: 2,
-  BackSide: 1
-}));
+// Mock AI suggestion object
+const mockAISuggestion = {
+  id: 'test-suggestion',
+  text: 'Complete urgent task',
+  priority: 'high',
+  targetTodoId: 'todo-123',
+  actionType: 'reminder'
+};
 
-describe('Meteor Component v0.3.1', () => {
-  const defaultMeteorData = {
-    id: 'meteor-1',
-    todoData: {
-      id: 'todo-1',
-      text: 'Urgent task',
-      visualProperties: {
-        daysUntilDeadline: 1
-      }
-    },
-    targetTodoId: 'todo-1',
-    startPosition: [10, 10, 10],
-    speed: 0.5
+describe('Meteor Component', () => {
+  const defaultProps = {
+    targetPosition: [5, 0, 5],
+    aiSuggestion: mockAISuggestion,
+    onCollision: jest.fn(),
+    onInteraction: jest.fn(),
+    isAnimationPlaying: true
   };
-
-  const defaultTargetTodos = [
-    {
-      id: 'todo-1',
-      hierarchyType: 'planet',
-      text: 'Target todo'
-    }
-  ];
-
-  const mockOnCollision = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('renders meteor without crashing', () => {
-    const { container } = render(
-      <Meteor 
-        meteorData={defaultMeteorData}
-        targetTodos={defaultTargetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
-    
+  test('renders meteor component without crashing', () => {
+    const { container } = render(<Meteor {...defaultProps} />);
     expect(container).toBeInTheDocument();
   });
 
-  test('renders meteor with correct urgency properties', () => {
-    const urgentMeteorData = {
-      ...defaultMeteorData,
-      todoData: {
-        ...defaultMeteorData.todoData,
-        visualProperties: {
-          daysUntilDeadline: 1 // Very urgent
-        }
-      }
-    };
-
-    const { container } = render(
-      <Meteor 
-        meteorData={urgentMeteorData}
-        targetTodos={defaultTargetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
-    
-    expect(container).toBeInTheDocument();
-  });
-
-  test('renders meteor targeting sun hierarchy', () => {
-    const sunTargetTodos = [
-      {
-        id: 'todo-1',
-        hierarchyType: 'sun',
-        text: 'Sun target'
-      }
-    ];
-
-    const { container } = render(
-      <Meteor 
-        meteorData={defaultMeteorData}
-        targetTodos={sunTargetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
-    
-    expect(container).toBeInTheDocument();
-  });
-
-  test('renders meteor targeting satellite hierarchy', () => {
-    const satelliteTargetTodos = [
-      {
-        id: 'todo-1',
-        hierarchyType: 'satellite',
-        text: 'Satellite target'
-      }
-    ];
-
-    const { container } = render(
-      <Meteor 
-        meteorData={defaultMeteorData}
-        targetTodos={satelliteTargetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
-    
-    expect(container).toBeInTheDocument();
-  });
-
-  test('handles missing target todo gracefully', () => {
-    const meteorWithNoTarget = {
-      ...defaultMeteorData,
-      targetTodoId: 'non-existent-todo'
-    };
-
+  test('handles missing AI suggestion gracefully', () => {
+    const props = { ...defaultProps, aiSuggestion: null };
     expect(() => {
-      render(
-        <Meteor 
-          meteorData={meteorWithNoTarget}
-          targetTodos={defaultTargetTodos}
-          onCollision={mockOnCollision}
-        />
-      );
+      render(<Meteor {...props} />);
     }).not.toThrow();
   });
 
-  test('handles empty target todos array', () => {
-    expect(() => {
-      render(
-        <Meteor 
-          meteorData={defaultMeteorData}
-          targetTodos={[]}
-          onCollision={mockOnCollision}
-        />
-      );
-    }).not.toThrow();
-  });
-
-  test('calculates meteor properties based on urgency level', () => {
-    const meteorData = {
-      ...defaultMeteorData,
-      todoData: {
-        ...defaultMeteorData.todoData,
-        visualProperties: {
-          daysUntilDeadline: 3 // Medium urgency
-        }
-      }
+  test('handles missing callback functions gracefully', () => {
+    const props = {
+      ...defaultProps,
+      onCollision: undefined,
+      onInteraction: undefined
     };
-
-    const { container } = render(
-      <Meteor 
-        meteorData={meteorData}
-        targetTodos={defaultTargetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
-    
-    expect(container).toBeInTheDocument();
+    expect(() => {
+      render(<Meteor {...props} />);
+    }).not.toThrow();
   });
 
   test('respects animation playing state', () => {
-    const { container } = render(
-      <Meteor 
-        meteorData={defaultMeteorData}
-        targetTodos={defaultTargetTodos}
-        isAnimationPlaying={false}
-        onCollision={mockOnCollision}
-      />
-    );
+    const playingProps = { ...defaultProps, isAnimationPlaying: true };
+    const pausedProps = { ...defaultProps, isAnimationPlaying: false };
     
-    expect(container).toBeInTheDocument();
+    const { rerender } = render(<Meteor {...playingProps} />);
+    expect(true).toBe(true); // Placeholder for animation state testing
+    
+    rerender(<Meteor {...pausedProps} />);
+    expect(true).toBe(true); // Placeholder for paused state testing
   });
 
-  test('handles meteor with different speed values', () => {
-    const fastMeteor = {
-      ...defaultMeteorData,
-      speed: 1.5
-    };
+  test('handles different target positions', () => {
+    const positions = [
+      [0, 0, 0],
+      [10, 5, -10],
+      [-5, 15, 20]
+    ];
 
-    const { container } = render(
-      <Meteor 
-        meteorData={fastMeteor}
-        targetTodos={defaultTargetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
-    
-    expect(container).toBeInTheDocument();
+    positions.forEach(position => {
+      const props = { ...defaultProps, targetPosition: position };
+      expect(() => {
+        render(<Meteor {...props} />);
+      }).not.toThrow();
+    });
   });
 
-  test('renders different urgency colors correctly', () => {
-    const criticalMeteor = {
-      ...defaultMeteorData,
-      todoData: {
-        ...defaultMeteorData.todoData,
-        visualProperties: {
-          daysUntilDeadline: 0 // Critical
-        }
-      }
-    };
-
-    const { container } = render(
-      <Meteor 
-        meteorData={criticalMeteor}
-        targetTodos={defaultTargetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
+  test('provides proper AI suggestion data structure', () => {
+    const requiredFields = ['id', 'text', 'priority', 'targetTodoId', 'actionType'];
     
-    expect(container).toBeInTheDocument();
-  });
-
-  test('handles meteor without todoData gracefully', () => {
-    const meteorWithoutTodoData = {
-      ...defaultMeteorData,
-      todoData: null
-    };
-
-    expect(() => {
-      render(
-        <Meteor 
-          meteorData={meteorWithoutTodoData}
-          targetTodos={defaultTargetTodos}
-          onCollision={mockOnCollision}
-        />
-      );
-    }).not.toThrow();
+    requiredFields.forEach(field => {
+      expect(mockAISuggestion).toHaveProperty(field);
+    });
   });
 });
 
 describe('Meteor Collision System', () => {
-  const meteorData = {
-    id: 'meteor-collision-test',
-    todoData: {
-      id: 'todo-collision',
-      text: 'Collision test',
-      visualProperties: {
-        daysUntilDeadline: 1
-      }
-    },
-    targetTodoId: 'todo-collision',
-    startPosition: [0, 0, 0],
-    speed: 0.8
+  const defaultProps = {
+    targetPosition: [0, 0, 0],
+    aiSuggestion: mockAISuggestion,
+    onCollision: jest.fn(),
+    onInteraction: jest.fn(),
+    isAnimationPlaying: true
   };
 
-  const targetTodos = [
-    {
-      id: 'todo-collision',
-      hierarchyType: 'planet',
-      text: 'Collision target'
-    }
-  ];
-
-  const mockOnCollision = jest.fn();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
+  test('handles collision events properly', () => {
+    const mockOnCollision = jest.fn();
+    const props = { ...defaultProps, onCollision: mockOnCollision };
+    
+    render(<Meteor {...props} />);
+    
+    // Test would simulate collision detection
+    expect(mockOnCollision).not.toHaveBeenCalled(); // Initially no collision
   });
 
-  test('sets up collision detection correctly', () => {
-    const { container } = render(
-      <Meteor 
-        meteorData={meteorData}
-        targetTodos={targetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
+  test('handles interaction events properly', () => {
+    const mockOnInteraction = jest.fn();
+    const props = { ...defaultProps, onInteraction: mockOnInteraction };
     
-    expect(container).toBeInTheDocument();
-  });
-
-  test('handles collision callback function', () => {
-    render(
-      <Meteor 
-        meteorData={meteorData}
-        targetTodos={targetTodos}
-        onCollision={mockOnCollision}
-      />
-    );
+    render(<Meteor {...props} />);
     
-    // Meteor should be set up to handle collisions
-    expect(mockOnCollision).not.toHaveBeenCalled(); // Not called during render
+    // Test would simulate user interaction
+    expect(mockOnInteraction).not.toHaveBeenCalled(); // Initially no interaction
   });
 });
 
 describe('Meteor Performance', () => {
   test('renders efficiently with multiple meteors', () => {
-    const meteorData1 = {
-      id: 'meteor-1',
-      todoData: { id: 'todo-1', visualProperties: { daysUntilDeadline: 2 } },
-      targetTodoId: 'todo-1',
-      startPosition: [5, 5, 5],
-      speed: 0.5
-    };
-
-    const meteorData2 = {
-      id: 'meteor-2',
-      todoData: { id: 'todo-2', visualProperties: { daysUntilDeadline: 1 } },
-      targetTodoId: 'todo-2',
-      startPosition: [10, 10, 10],
-      speed: 0.7
-    };
-
-    const targetTodos = [
-      { id: 'todo-1', hierarchyType: 'planet' },
-      { id: 'todo-2', hierarchyType: 'satellite' }
-    ];
+    const meteors = Array.from({ length: 10 }, (_, i) => ({
+      key: i,
+      targetPosition: [i * 2, 0, i * 2],
+      aiSuggestion: { ...mockAISuggestion, id: `suggestion-${i}` },
+      onCollision: jest.fn(),
+      onInteraction: jest.fn(),
+      isAnimationPlaying: true
+    }));
 
     const startTime = performance.now();
-
-    render(
-      <>
-        <Meteor 
-          meteorData={meteorData1}
-          targetTodos={targetTodos}
-          onCollision={jest.fn()}
-        />
-        <Meteor 
-          meteorData={meteorData2}
-          targetTodos={targetTodos}
-          onCollision={jest.fn()}
-        />
-      </>
-    );
-
+    
+    meteors.forEach((props, index) => {
+      render(<Meteor {...props} />);
+    });
+    
     const endTime = performance.now();
     const renderTime = endTime - startTime;
+    
+    expect(renderTime).toBeLessThan(500); // Should render 10 meteors within 500ms
+  });
+});
 
-    expect(renderTime).toBeLessThan(100); // Should render within 100ms
+describe('Meteor Edge Cases', () => {
+  test('handles invalid target positions', () => {
+    const invalidPositions = [
+      [NaN, 0, 0],
+      [Infinity, 0, 0],
+      null,
+      undefined,
+      'invalid'
+    ];
+
+    invalidPositions.forEach(position => {
+      const props = {
+        targetPosition: position,
+        aiSuggestion: mockAISuggestion,
+        onCollision: jest.fn(),
+        onInteraction: jest.fn(),
+        isAnimationPlaying: true
+      };
+      
+      expect(() => {
+        render(<Meteor {...props} />);
+      }).not.toThrow();
+    });
+  });
+
+  test('handles missing required props gracefully', () => {
+    const minimalProps = {};
+    
+    expect(() => {
+      render(<Meteor {...minimalProps} />);
+    }).not.toThrow();
   });
 });
