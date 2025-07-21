@@ -9,6 +9,7 @@
 - ⚛️ Built with React Three Fiber and Three.js
 - 📱 Responsive design
 - 🎨 Modern UI with space theme
+- ⚡ Optimized build without source map warnings
 
 ## Tech Stack
 
@@ -17,6 +18,7 @@
 - **@react-three/drei** - Useful helpers for React Three Fiber
 - **Three.js** - 3D graphics library
 - **Create React App** - Development setup
+- **cross-env** - Cross-platform environment variables
 
 ## Getting Started
 
@@ -47,10 +49,35 @@ npm start
 
 ## Available Scripts
 
-- `npm start` - Runs the app in development mode
+- `npm start` - Runs the app in optimized mode (no source maps, faster)
+- `npm run start:dev` - Runs the app with source maps for debugging
+- `npm run build` - Builds the app for production (no source maps)
+- `npm run build:dev` - Builds the app with source maps for debugging
 - `npm test` - Launches the test runner
-- `npm run build` - Builds the app for production
 - `npm run eject` - Ejects from Create React App
+
+## Build Configuration
+
+### Source Map Handling
+
+This project is configured to disable source maps by default to:
+- ✅ Eliminate @mediapipe/tasks-vision source map warnings
+- ✅ Improve build performance
+- ✅ Reduce bundle sizes
+- ✅ Provide cleaner development experience
+
+If you need source maps for debugging, use:
+```bash
+npm run start:dev    # Development with source maps
+npm run build:dev    # Build with source maps
+```
+
+### Cross-Platform Compatibility
+
+Uses `cross-env` to ensure environment variables work on:
+- ✅ Windows
+- ✅ macOS  
+- ✅ Linux
 
 ## Project Structure
 
@@ -71,6 +98,18 @@ src/
 - Rotating sun with emissive yellow material
 - 3D scene with ambient and point lighting
 - Orbit controls for camera interaction
+
+## Troubleshooting
+
+### Compile Warnings
+The following warnings have been resolved in v0.2.1:
+- ✅ `@mediapipe/tasks-vision` source map parsing errors
+- ✅ ESLint `no-unused-vars` warnings
+- ✅ Webpack compilation warnings
+
+### Performance
+- Source maps disabled by default for faster builds
+- Use `npm run start:dev` if you need debugging capabilities
 
 ## Roadmap
 
@@ -102,5 +141,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-**Version:** 0.1.0  
+**Version:** 0.2.1  
+**Status:** Production Ready - Clean Build ✨  
 **Created with:** ❤️ and curiosity about the cosmos
