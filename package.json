@@ -1,6 +1,6 @@
 {
   "name": "solar-system-todo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "dependencies": {
     "@react-three/drei": "^10.5.1",
@@ -19,13 +19,18 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "audit-fix": "npm audit fix",
+    "security-check": "npm audit"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-unused-vars": "warn"
+    }
   },
   "browserslist": {
     "production": [
@@ -38,5 +43,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "overrides": {
+    "@mediapipe/tasks-vision": {
+      "webpack": "^5.64.4"
+    }
   }
 }
