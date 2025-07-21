@@ -1,166 +1,154 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SolarSystem from '../SolarSystem';
 
 // Mock Planet component
 jest.mock('../Planet', () => {
-  return function MockPlanet({ position, size, color, name }) {
+  return function Planet({ name, pendingTasks, isClickable, onClick }) {
     return (
       <div 
         data-testid={`planet-${name}`}
-        data-position={position.join(',')}
-        data-size={size}
-        data-color={color}
+        data-pending-tasks={pendingTasks}
+        data-clickable={isClickable}
+        onClick={() => onClick && onClick(name)}
       >
-        {name}
+        {name} - {pendingTasks} tasks
       </div>
     );
   };
 });
 
-describe('SolarSystem', () => {
-  const defaultProps = {
-    position: [0, 0, 0],
-    isAnimationPlaying: true,
-    systemName: 'main'
+// Mock Sun component
+jest.mock('../Sun', () => {
+  return function Sun() {
+    return <div data-testid="sun">Sun Component</div>;
   };
+});
 
-  test('renders main solar system with all planets', () => {
-    const { getByTestId } = render(<SolarSystem {...defaultProps} />);
-    
-    // Check for sun
-    expect(getByTestId('planet-sun')).toBeInTheDocument();
-    
-    // Check for inner planets
-    expect(getByTestId('planet-mercury')).toBeInTheDocument();
-    expect(getByTestId('planet-venus')).toBeInTheDocument();
-    expect(getByTestId('planet-earth')).toBeInTheDocument();
-    expect(getByTestId('planet-mars')).toBeInTheDocument();
-    
-    // Check for outer planets
-    expect(getByTestId('planet-jupiter')).toBeInTheDocument();
-    expect(getByTestId('planet-saturn')).toBeInTheDocument();
-    expect(getByTestId('planet-uranus')).toBeInTheDocument();
-    expect(getByTestId('planet-neptune')).toBeInTheDocument();
+describe('SolarSystem Component', () => {
+  const mockTodos = [
+    {
+      id: 1,
+      category: 'earth',
+      completed: false,
+      text: 'Earth mission 1'
+    },
+    {
+      id: 2,
+      category: 'mars',
+      completed: false,
+      text: 'Mars mission 1'
+    },
+    {
+      id: 3,
+      category: 'earth',
+      completed: true,
+      text: 'Earth mission 2 (completed)'
+    },
+    {
+      id: 4,
+      category: 'jupiter',
+      completed: false,
+      text: 'Jupiter mission 1'
+    }
+  ];
+
+  const mockOnPlanetClick = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test('renders binary solar system correctly', () => {
-    const binaryProps = {
-      ...defaultProps,
-      systemName: 'binary'
-    };
+  test('renders sun component', () => {
+    render(
+      <SolarSystem 
+        todos={[]} 
+        selectedCategory={null} 
+        onPlanetClick={mockOnPlanetClick} 
+      />
+    );
     
-    const { container } = render(<SolarSystem {...binaryProps} />);
-    
-    // Should have two suns and two planets
-    const planets = container.querySelectorAll('[data-testid^="planet-"]');
-    expect(planets).toHaveLength(4);
+    expect(screen.getByTestId('sun')).toBeInTheDocument();
   });
 
-  test('renders distant solar system correctly', () => {
-    const distantProps = {
-      ...defaultProps,
-      systemName: 'distant'
-    };
+  test('renders all 8 planets', () => {
+    render(
+      <SolarSystem 
+        todos={[]} 
+        selectedCategory={null} 
+        onPlanetClick={mockOnPlanetClick} 
+      />
+    );
     
-    const { container } = render(<SolarSystem {...distantProps} />);
-    
-    // Should have one sun and three planets
-    const planets = container.querySelectorAll('[data-testid^="planet-"]');
-    expect(planets).toHaveLength(4);
+    const planets = ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
+    planets.forEach(planet => {
+      expect(screen.getByTestId(`planet-${planet}`)).toBeInTheDocument();
+    });
   });
 
-  test('handles unknown system name gracefully', () => {
-    const unknownProps = {
-      ...defaultProps,
-      systemName: 'unknown'
-    };
+  test('calculates correct pending tasks for each planet', () => {
+    render(
+      <SolarSystem 
+        todos={mockTodos} 
+        selectedCategory={null} 
+        onPlanetClick={mockOnPlanetClick} 
+      />
+    );
     
-    const { container } = render(<SolarSystem {...unknownProps} />);
+    expect(screen.getByText('earth - 1 tasks')).toBeInTheDocument(); // 1 pending out of 2
+    expect(screen.getByText('mars - 1 tasks')).toBeInTheDocument(); // 1 pending
+    expect(screen.getByText('jupiter - 1 tasks')).toBeInTheDocument(); // 1 pending
+    expect(screen.getByText('mercury - 0 tasks')).toBeInTheDocument(); // no tasks
+  });
+
+  test('marks planets as clickable only when they have pending tasks', () => {
+    render(
+      <SolarSystem 
+        todos={mockTodos} 
+        selectedCategory={null} 
+        onPlanetClick={mockOnPlanetClick} 
+      />
+    );
     
-    // Should render no planets for unknown system
-    const planets = container.querySelectorAll('[data-testid^="planet-"]');
-    expect(planets).toHaveLength(0);
+    // Planets with pending tasks should be clickable
+    expect(screen.getByTestId('planet-earth')).toHaveAttribute('data-clickable', 'true');
+    expect(screen.getByTestId('planet-mars')).toHaveAttribute('data-clickable', 'true');
+    expect(screen.getByTestId('planet-jupiter')).toHaveAttribute('data-clickable', 'true');
+    
+    // Planets without pending tasks should not be clickable
+    expect(screen.getByTestId('planet-mercury')).toHaveAttribute('data-clickable', 'false');
+    expect(screen.getByTestId('planet-venus')).toHaveAttribute('data-clickable', 'false');
+  });
+
+  test('handles empty todos array', () => {
+    render(
+      <SolarSystem 
+        todos={[]} 
+        selectedCategory={null} 
+        onPlanetClick={mockOnPlanetClick} 
+      />
+    );
+    
+    // All planets should have 0 tasks and be non-clickable
+    const planets = ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
+    planets.forEach(planet => {
+      expect(screen.getByText(`${planet} - 0 tasks`)).toBeInTheDocument();
+      expect(screen.getByTestId(`planet-${planet}`)).toHaveAttribute('data-clickable', 'false');
+    });
   });
 
   test('passes correct props to Planet components', () => {
-    const { getByTestId } = render(<SolarSystem {...defaultProps} />);
+    render(
+      <SolarSystem 
+        todos={mockTodos} 
+        selectedCategory={null} 
+        onPlanetClick={mockOnPlanetClick} 
+      />
+    );
     
-    const earth = getByTestId('planet-earth');
-    expect(earth).toHaveAttribute('data-position', '6,0,0');
-    expect(earth).toHaveAttribute('data-size', '0.7');
-    expect(earth).toHaveAttribute('data-color', '#6b93d6');
-  });
-
-  test('sun has correct properties in main system', () => {
-    const { getByTestId } = render(<SolarSystem {...defaultProps} />);
-    
-    const sun = getByTestId('planet-sun');
-    expect(sun).toHaveAttribute('data-position', '0,0,0');
-    expect(sun).toHaveAttribute('data-size', '2');
-    expect(sun).toHaveAttribute('data-color', '#ffff00');
-  });
-
-  test('renders with animation playing', () => {
-    expect(() => {
-      render(<SolarSystem {...defaultProps} />);
-    }).not.toThrow();
-  });
-
-  test('renders with animation paused', () => {
-    const pausedProps = {
-      ...defaultProps,
-      isAnimationPlaying: false
-    };
-    
-    expect(() => {
-      render(<SolarSystem {...pausedProps} />);
-    }).not.toThrow();
-  });
-
-  test('renders at different positions', () => {
-    const customPositionProps = {
-      ...defaultProps,
-      position: [100, 50, -25]
-    };
-    
-    expect(() => {
-      render(<SolarSystem {...customPositionProps} />);
-    }).not.toThrow();
-  });
-
-  test('binary system has correct planet configuration', () => {
-    const binaryProps = {
-      ...defaultProps,
-      systemName: 'binary'
-    };
-    
-    const { container } = render(<SolarSystem {...binaryProps} />);
-    
-    // Check that we have the expected number of planets
-    const suns = container.querySelectorAll('[data-testid="planet-sun"]');
-    const planets = container.querySelectorAll('[data-testid^="planet-planet"]');
-    
-    expect(suns).toHaveLength(2);
-    expect(planets).toHaveLength(2);
-  });
-
-  test('distant system has unique planet colors', () => {
-    const distantProps = {
-      ...defaultProps,
-      systemName: 'distant'
-    };
-    
-    const { getByTestId } = render(<SolarSystem {...distantProps} />);
-    
-    const planet1 = getByTestId('planet-planet1');
-    expect(planet1).toHaveAttribute('data-color', '#dda0dd');
-    
-    const planet2 = getByTestId('planet-planet2');
-    expect(planet2).toHaveAttribute('data-color', '#98fb98');
-    
-    const planet3 = getByTestId('planet-planet3');
-    expect(planet3).toHaveAttribute('data-color', '#f0e68c');
+    const earthPlanet = screen.getByTestId('planet-earth');
+    expect(earthPlanet).toHaveAttribute('data-pending-tasks', '1');
+    expect(earthPlanet).toHaveAttribute('data-clickable', 'true');
   });
 });
