@@ -1,0 +1,377 @@
+.todo-manager {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 400px;
+  max-height: 80vh;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #444;
+  border-radius: 15px;
+  padding: 20px;
+  color: white;
+  font-family: 'Arial', sans-serif;
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
+}
+
+.todo-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.todo-header h2 {
+  margin: 0 0 10px 0;
+  color: #00aaff;
+  font-size: 1.4em;
+  text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+}
+
+.todo-stats {
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.9em;
+  margin-top: 10px;
+}
+
+.todo-stats span {
+  background: rgba(0, 170, 255, 0.2);
+  padding: 5px 10px;
+  border-radius: 15px;
+  border: 1px solid rgba(0, 170, 255, 0.3);
+}
+
+.todo-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.filter-buttons button {
+  background: rgba(68, 68, 68, 0.8);
+  color: white;
+  border: 1px solid #666;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-buttons button:hover {
+  background: rgba(0, 170, 255, 0.3);
+  border-color: #00aaff;
+}
+
+.filter-buttons button.active {
+  background: #00aaff;
+  border-color: #00aaff;
+  color: white;
+}
+
+.add-todo-btn {
+  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);
+}
+
+.add-todo-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5);
+}
+
+.add-todo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.todo-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.todo-item {
+  background: rgba(68, 68, 68, 0.6);
+  border: 1px solid #666;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  padding: 15px;
+  transition: all 0.3s ease;
+  border-left: 4px solid #00aaff;
+}
+
+.todo-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 5px 15px rgba(0, 170, 255, 0.3);
+}
+
+.todo-item.completed {
+  opacity: 0.7;
+  border-left-color: #4caf50;
+}
+
+.todo-item.priority-high {
+  border-left-color: #ff4444;
+}
+
+.todo-item.priority-medium {
+  border-left-color: #ffaa00;
+}
+
+.todo-item.priority-low {
+  border-left-color: #4caf50;
+}
+
+.todo-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.todo-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.todo-checkbox {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 2px;
+}
+
+.todo-info {
+  flex: 1;
+}
+
+.todo-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 1em;
+  line-height: 1.4;
+}
+
+.category-icon {
+  font-size: 1.1em;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.todo-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8em;
+  opacity: 0.8;
+  flex-wrap: wrap;
+}
+
+.todo-meta span {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.category {
+  color: #00aaff;
+  text-transform: capitalize;
+}
+
+.priority {
+  text-transform: capitalize;
+}
+
+.todo-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+.edit-btn,
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 1.1em;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+  background: rgba(0, 170, 255, 0.3);
+}
+
+.delete-btn:hover {
+  background: rgba(255, 68, 68, 0.3);
+}
+
+.empty-todos {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.empty-message {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.empty-message p {
+  margin: 10px 0 0 0;
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+/* Todo Form Styles */
+.todo-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.todo-form {
+  background: rgba(30, 30, 30, 0.95);
+  border: 2px solid #00aaff;
+  border-radius: 15px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  color: white;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 40px rgba(0, 170, 255, 0.4);
+}
+
+.todo-form h3 {
+  margin: 0 0 25px 0;
+  text-align: center;
+  color: #00aaff;
+  font-size: 1.5em;
+  text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #ccc;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  background: rgba(68, 68, 68, 0.8);
+  border: 1px solid #666;
+  border-radius: 8px;
+  color: white;
+  font-size: 1em;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #00aaff;
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+}
+
+.form-group input::placeholder {
+  color: #999;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.cancel-btn,
+.submit-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn {
+  background: rgba(68, 68, 68, 0.8);
+  color: white;
+  border: 1px solid #666;
+}
+
+.cancel-btn:hover {
+  background: rgba(100, 100, 100, 0.8);
+}
+
+.submit-btn {
+  background: linear-gradient(45deg, #00aaff, #0088cc);
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 170, 255, 0.3);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 170, 255, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .todo-manager {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    max-width: none;
+    margin: 20px;
+    max-height: none;
+  }
+  
+  .todo-controls {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .filter-buttons {
+    justify-content: center;
+  }
+}
