@@ -2,33 +2,38 @@ import React, { useState } from 'react';
 import './App.css';
 import Scene from './components/Scene';
 import TodoManager from './components/TodoManager';
-import AIPanel from './components/AIPanel';
 
 function App() {
-  const [isAnimationPlaying, setIsAnimationPlaying] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [todos, setTodos] = useState([]);
 
-  const handleAnimationToggle = () => {
-    setIsAnimationPlaying(!isAnimationPlaying);
+  // Todo 목록이 변경될 때 업데이트
+  const handleTodosChange = (newTodos) => {
+    setTodos(newTodos);
+  };
+
+  // 행성 클릭 핸들러
+  const handlePlanetClick = (planetName) => {
+    setSelectedCategory(planetName);
+  };
+
+  // 카테고리 변경 핸들러
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
   };
 
   return (
     <div className="App">
-      {/* 버전 정보 표시 */}
-      <div className="version-info">
-        Solar System Todo v0.3.0
-      </div>
-      
-      {/* AI 패널 */}
-      <AIPanel 
-        onAnimationToggle={handleAnimationToggle}
-        isAnimationPlaying={isAnimationPlaying}
+      <Scene 
+        todos={todos}
+        selectedCategory={selectedCategory}
+        onPlanetClick={handlePlanetClick}
       />
-      
-      {/* 3D Scene */}
-      <Scene isAnimationPlaying={isAnimationPlaying} />
-      
-      {/* Todo Manager */}
-      <TodoManager />
+      <TodoManager 
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
+        onTodosChange={handleTodosChange}
+      />
     </div>
   );
 }
