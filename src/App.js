@@ -1,39 +1,55 @@
 import React, { useState } from 'react';
 import './App.css';
-import Scene from './components/Scene';
-import TodoManager from './components/TodoManager';
+import MultiSolarSystemScene from './components/MultiSolarSystemScene';
+import AITodoManager from './components/AITodoManager';
+import AIPanel from './components/AIPanel';
 
 function App() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [todos, setTodos] = useState([]);
+  const [selectedTodoId, setSelectedTodoId] = useState(null);
+  const [todoData, setTodoData] = useState([]);
+  const [isAnimationPlaying, setIsAnimationPlaying] = useState(true);
 
-  // Todo 목록이 변경될 때 업데이트
-  const handleTodosChange = (newTodos) => {
-    setTodos(newTodos);
+  // Handle todo data changes from AITodoManager
+  const handleTodoDataChange = (newTodoData) => {
+    setTodoData(newTodoData);
   };
 
-  // 행성 클릭 핸들러
-  const handlePlanetClick = (planetName) => {
-    setSelectedCategory(planetName);
+  // Handle celestial body clicks in 3D scene
+  const handleCelestialBodyClick = (clickedTodo) => {
+    setSelectedTodoId(clickedTodo.id);
+    console.log('Clicked celestial body:', clickedTodo);
   };
 
-  // 카테고리 변경 핸들러
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
+  // Handle animation toggle
+  const handleAnimationToggle = () => {
+    setIsAnimationPlaying(!isAnimationPlaying);
   };
 
   return (
     <div className="App">
-      <Scene 
-        todos={todos}
-        selectedCategory={selectedCategory}
-        onPlanetClick={handlePlanetClick}
+      {/* AI Control Panel */}
+      <AIPanel 
+        onAnimationToggle={handleAnimationToggle}
+        isAnimationPlaying={isAnimationPlaying}
       />
-      <TodoManager 
-        selectedCategory={selectedCategory}
-        onCategoryChange={handleCategoryChange}
-        onTodosChange={handleTodosChange}
+      
+      {/* 3D Solar System Scene */}
+      <MultiSolarSystemScene 
+        todoData={todoData}
+        onCelestialBodyClick={handleCelestialBodyClick}
+        selectedTodoId={selectedTodoId}
+        isAnimationPlaying={isAnimationPlaying}
       />
+      
+      {/* AI Todo Manager */}
+      <AITodoManager 
+        onTodoDataChange={handleTodoDataChange}
+      />
+      
+      {/* Version Info */}
+      <div className="version-info">
+        Solar System Todo v0.3.1
+      </div>
     </div>
   );
 }
