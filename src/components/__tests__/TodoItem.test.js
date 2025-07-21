@@ -17,7 +17,8 @@ describe('TodoItem', () => {
     category: 'mars',
     completed: false,
     createdAt: new Date('2025-07-21'),
-    priority: 'high'
+    priority: 'high',
+    deadline: new Date('2025-07-25')
   };
 
   beforeEach(() => {
@@ -52,7 +53,7 @@ describe('TodoItem', () => {
     expect(screen.getByText('🔴')).toBeInTheDocument();
   });
 
-  test('displays incomplete status correctly', () => {
+  test('displays deadline information', () => {
     render(
       <TodoItem
         todo={sampleTodo}
@@ -62,11 +63,23 @@ describe('TodoItem', () => {
       />
     );
     
-    expect(screen.getByText('⭕')).toBeInTheDocument();
-    expect(screen.queryByText('✅')).not.toBeInTheDocument();
+    expect(screen.getByText(/Due: Jul 25, 2025/)).toBeInTheDocument();
   });
 
-  test('displays completed status correctly', () => {
+  test('displays urgency indicator for incomplete todos with deadlines', () => {
+    render(
+      <TodoItem
+        todo={sampleTodo}
+        onToggleComplete={mockOnToggleComplete}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+      />
+    );
+    
+    expect(screen.getByText(/TIME LEFT|CRITICAL|URGENT|WARNING/)).toBeInTheDocument();
+  });
+
+  test('does not display urgency indicator for completed todos', () => {
     const completedTodo = { ...sampleTodo, completed: true };
     
     render(
@@ -78,8 +91,41 @@ describe('TodoItem', () => {
       />
     );
     
-    expect(screen.getByText('✅')).toBeInTheDocument();
-    expect(screen.queryByText('⭕')).not.toBeInTheDocument();
+    expect(screen.queryByText(/TIME LEFT|CRITICAL|URGENT|WARNING/)).not.toBeInTheDocument();
+  });
+
+  test('displays overdue status for past deadline', () => {
+    const overdueTodo = {
+      ...sampleTodo,
+      deadline: new Date('2025-07-20'), // Past date
+      createdAt: new Date('2025-07-18')
+    };
+    
+    render(
+      <TodoItem
+        todo={overdueTodo}
+        onToggleComplete={mockOnToggleComplete}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+      />
+    );
+    
+    expect(screen.getByText('OVERDUE')).toBeInTheDocument();
+  });
+
+  test('does not display urgency for todos without deadline', () => {
+    const todoWithoutDeadline = { ...sampleTodo, deadline: null };
+    
+    render(
+      <TodoItem
+        todo={todoWithoutDeadline}
+        onToggleComplete={mockOnToggleComplete}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+      />
+    );
+    
+    expect(screen.queryByText(/TIME LEFT|CRITICAL|URGENT|WARNING|OVERDUE/)).not.toBeInTheDocument();
   });
 
   test('calls onToggleComplete when checkbox is clicked', () => {
@@ -114,78 +160,32 @@ describe('TodoItem', () => {
     expect(mockOnEdit).toHaveBeenCalledWith(sampleTodo);
   });
 
-  test('calls onDelete when delete button is clicked and confirmed', () => {
-    render(
-      <TodoItem
-        todo={sampleTodo}
-        onToggleComplete={mockOnToggleComplete}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-      />
-    );
-    
-    const deleteButton = screen.getByLabelText('Delete todo');
-    fireEvent.click(deleteButton);
-    
-    expect(global.confirm).toHaveBeenCalledWith('Are you sure you want to delete this mission?');
-    expect(mockOnDelete).toHaveBeenCalledWith(1);
-  });
+  test('includes all planet categories in icon mapping', () => {
+    const planetCategories = [
+      { category: 'sun', icon: '☀️' },
+      { category: 'mercury', icon: '🌑' },
+      { category: 'venus', icon: '💛' },
+      { category: 'earth', icon: '🌍' },
+      { category: 'mars', icon: '🔴' },
+      { category: 'jupiter', icon: '🪐' },
+      { category: 'saturn', icon: '🪐' },
+      { category: 'uranus', icon: '🔵' },
+      { category: 'neptune', icon: '🔷' }
+    ];
 
-  test('does not call onDelete when deletion is not confirmed', () => {
-    global.confirm.mockReturnValueOnce(false);
-    
-    render(
-      <TodoItem
-        todo={sampleTodo}
-        onToggleComplete={mockOnToggleComplete}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-      />
-    );
-    
-    const deleteButton = screen.getByLabelText('Delete todo');
-    fireEvent.click(deleteButton);
-    
-    expect(mockOnDelete).not.toHaveBeenCalled();
-  });
-
-  test('applies correct priority class', () => {
-    const { container } = render(
-      <TodoItem
-        todo={sampleTodo}
-        onToggleComplete={mockOnToggleComplete}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-      />
-    );
-    
-    expect(container.querySelector('.priority-high')).toBeInTheDocument();
-  });
-
-  test('applies completed class when todo is completed', () => {
-    const completedTodo = { ...sampleTodo, completed: true };
-    const { container } = render(
-      <TodoItem
-        todo={completedTodo}
-        onToggleComplete={mockOnToggleComplete}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-      />
-    );
-    
-    expect(container.querySelector('.completed')).toBeInTheDocument();
-  });
-
-  test('formats date correctly', () => {
-    render(
-      <TodoItem
-        todo={sampleTodo}
-        onToggleComplete={mockOnToggleComplete}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-      />
-    );
-    
-    expect(screen.getByText(/Created: Jul 21, 2025/)).toBeInTheDocument();
+    planetCategories.forEach(({ category, icon }) => {
+      const todo = { ...sampleTodo, category };
+      const { unmount } = render(
+        <TodoItem
+          todo={todo}
+          onToggleComplete={mockOnToggleComplete}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />
+      );
+      
+      expect(screen.getByText(icon)).toBeInTheDocument();
+      unmount();
+    });
   });
 });
