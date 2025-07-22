@@ -1,252 +1,244 @@
-# Solar System Todo App - 기능사양서 v0.4.0
+# AI-Powered Solar System Todo App - 기능사양서 v0.4.1
 
 ## 📋 프로젝트 개요
-**프로젝트명:** Solar System Todo App  
-**현재 버전:** v0.4.0  
+**프로젝트명:** AI-Powered Solar System Todo App  
+**현재 버전:** v0.4.1  
 **레포지토리:** https://github.com/gon1zau6jyun4liu5/solar-system-todo  
-**설명:** AI 기반 다중 태양계 시스템을 통한 Todo 관리 및 3D 시각화 애플리케이션
+**설명:** React Three Fiber를 이용한 3D 태양계 시뮬레이션과 AI 기반 Todo 관리 시스템이 결합된 차세대 인터랙티브 생산성 애플리케이션
 
-## 🚀 v0.4.0 주요 업데이트
+## 🚀 v0.4.1 주요 업데이트
 
-### **혁명적 변화: AI 기반 다중 태양계 시스템**
-1. **완전한 AI 분류 시스템** - Todo 내용을 AI가 자동으로 분석하여 그룹, 타입, 우선순위, 기한 추정
-2. **다중 태양계 시각화** - 각 Todo 그룹별로 독립적인 태양계 생성
-3. **계층적 천체 시스템** - Sun(목표) → Planet(프로젝트) → Satellite(태스크) 구조
-4. **실시간 카메라 추적** - 패널에서 태스크 클릭 시 해당 천체로 카메라 자동 이동
-5. **마감일 기반 자전 속도** - 마감일이 가까워질수록 천체의 자전 속도 증가
+### **핵심 AI 기능**
+1. **지능형 텍스트 분석** - 자연어 처리를 통한 자동 분류
+2. **다중 태양계 구조** - 카테고리별 독립적인 우주 공간
+3. **계층적 천체 조직** - 중앙별(목표) → 행성(프로젝트) → 위성(작업)
+4. **실시간 AI 제안** - 입력과 동시에 제공되는 스마트 분류
+5. **버전 동기화** - 모든 컴포넌트 v0.4.1 통일
 
-### **AI 분류 엔진 (aiClassifier.js)**
+## 🧠 AI 분류 엔진 명세
+
+### **AI 분류 알고리즘**
 ```javascript
-// 6가지 카테고리로 자동 분류
-categories: {
-  'work': { keywords: ['meeting', 'project', 'deadline', 'report'] },
-  'personal': { keywords: ['workout', 'health', 'family', 'hobby'] },
-  'education': { keywords: ['study', 'learn', 'course', 'exam'] },
-  'finance': { keywords: ['budget', 'payment', 'tax', 'investment'] },
-  'home': { keywords: ['clean', 'repair', 'cooking', 'organize'] },
-  'health': { keywords: ['medical', 'therapy', 'diet', 'wellness'] }
-}
-
-// 3가지 계층 자동 분류
-hierarchyTypes: {
-  'sun': ['goal', 'objective', 'mission', 'vision'],      // 주요 목표
-  'planet': ['project', 'initiative', 'plan', 'program'], // 프로젝트
-  'satellite': ['task', 'action', 'step', 'item']         // 개별 태스크
+class AITodoClassifier {
+  categories: {
+    'work': { keywords: [...], defaultPriority: 'high', estimatedDays: 7 },
+    'personal': { keywords: [...], defaultPriority: 'medium', estimatedDays: 14 },
+    'education': { keywords: [...], defaultPriority: 'high', estimatedDays: 10 },
+    'finance': { keywords: [...], defaultPriority: 'high', estimatedDays: 3 },
+    'home': { keywords: [...], defaultPriority: 'medium', estimatedDays: 5 },
+    'health': { keywords: [...], defaultPriority: 'high', estimatedDays: 7 }
+  }
 }
 ```
 
-## 🌌 다중 태양계 시스템 명세
+### **분류 정확도 목표**
+- **카테고리 검출:** 85%+ 정확도
+- **우선순위 평가:** 80%+ 정확도  
+- **계층 분류:** 90%+ 정확도
+- **마감일 추정:** ±2일 평균 정확도
 
-### **태양계 구조**
-- **태양 (Sun)**: 각 그룹의 주요 목표, 크기와 밝기는 우선순위에 따라 변화
-- **행성 (Planet)**: 태양 주위를 공전하는 프로젝트들, 우선순위별 궤도 배치
-- **위성 (Satellite)**: 행성 주위를 공전하는 개별 태스크들
+## 🌌 다중 태양계 시스템 설계
 
-### **시각적 속성 계산**
+### **시스템 생성 규칙**
 ```javascript
-const visualProperties = {
-  sizeMultiplier: 0.7 + (priority_value / 3) * 0.8,    // 크기
-  brightness: 1.0 + (priority_value / 3) * 2.0,        // 밝기
-  rotationSpeed: 0.02 / Math.max(1, daysUntilDeadline), // 자전속도
-  urgencyColor: daysUntilDeadline <= 3 ? '#ff4444' : '#44ff44' // 긴급색상
-}
+const systemPositions = [
+  { category: 'work', position: [20, 0, 0], color: '#4285f4' },
+  { category: 'personal', position: [-20, 0, 0], color: '#34a853' },
+  { category: 'education', position: [0, 20, 0], color: '#9c27b0' },
+  { category: 'finance', position: [0, -20, 0], color: '#ff9800' },
+  { category: 'home', position: [-15, -15, 0], color: '#795548' },
+  { category: 'health', position: [15, 15, 0], color: '#f44336' }
+];
 ```
 
-### **궤도 물리학**
-- **태양 위치**: 각 시스템별 고유 좌표 `[x, y, z]`
-- **행성 궤도**: `orbitRadius = 12 + planetIndex * 4`
-- **위성 궤도**: `orbitRadius = 2 + satelliteIndex * 0.7`
-- **공전 속도**: 마감일과 우선순위에 따라 동적 계산
+### **천체 계층 구조**
+1. **중앙별 (Sun)**: 주요 인생/프로젝트 목표 (크기: 1.5-4.0)
+2. **행성 (Planet)**: 중간 규모 프로젝트 (크기: 0.5-1.5)  
+3. **위성 (Satellite)**: 개별 작업 항목 (크기: 0.1-0.4)
 
-## 🎯 카메라 추적 시스템
+## 🎯 시각적 속성 계산 알고리즘
 
-### **CameraController 컴포넌트**
+### **우선순위 기반 크기**
 ```javascript
-const CameraController = ({ focusedCelestialBody, isAnimationPlaying }) => {
-  // 부드러운 카메라 전환 (2초 duration)
-  // Ease-out cubic 애니메이션
-  // 천체 타입별 최적 카메라 거리 자동 계산
-}
+const sizeMultiplier = {
+  'high': 1.5,
+  'medium': 1.0, 
+  'low': 0.7
+}[priority];
 ```
 
-### **포커스 거리 설정**
-- **Sun**: 카메라 오프셋 `[15, 15, 15]`
-- **Planet**: 카메라 오프셋 `[8, 8, 8]`
-- **Satellite**: 카메라 오프셋 `[5, 5, 5]`
-
-## 🤖 AI 기능 명세
-
-### **자동 분류 과정**
-1. **텍스트 분석**: 키워드 매칭으로 카테고리 분류
-2. **우선순위 추정**: 긴급 키워드 감지로 우선순위 결정
-3. **계층 타입 분류**: 목표/프로젝트/태스크 구분
-4. **마감일 추정**: 카테고리와 우선순위 기반 일정 계산
-5. **태양계 ID 생성**: `${category}-${hierarchyType}-system` 형식
-
-### **신뢰도 계산**
+### **긴급도 기반 회전 속도**
 ```javascript
-confidence = Math.min(100, (keywordMatches / totalKeywords) * 100 + 30)
+const rotationSpeed = Math.max(0.001, 0.02 / Math.max(1, daysUntilDeadline));
 ```
 
-### **AI 제안 시스템**
-- 짧은 Todo에 대한 세부사항 추가 제안
-- 높은 우선순위 태스크에 마감일 설정 제안
-- 복잡한 개인 태스크 분할 제안
+### **색상 시스템**
+- **🟢 정상 (51-100%)**: `#4caf50`
+- **🟡 주의 (26-50%)**: `#ffaa00`  
+- **🟠 긴급 (11-25%)**: `#ff6600`
+- **🔴 위험 (1-10%)**: `#ff0000` + 펄스 애니메이션
+- **⚫ 지연 (0%)**: `#cc0000` + 깜빡임
 
-## 🎨 사용자 인터페이스 v0.4.0
+## 🛠️ 기술 스택 v0.4.1
 
-### **AI 향상 Todo 매니저**
-- **버전 표시**: v0.4.0 실시간 표시
-- **포커스 가이드**: "🎯 Click any task to focus camera on its celestial body"
-- **계층 필터**: ☀️ Suns, 🪐 Planets, 🛰️ Satellites
-- **AI 통계**: 시스템 수, 긴급 태스크 수, AI 신뢰도
+### **프론트엔드**
+- **React**: 19.1.0 (최신 Hooks API)
+- **Three.js**: 0.178.0 (3D 렌더링)
+- **React Three Fiber**: 9.2.0 (React/Three.js 통합)
+- **React Three Drei**: 10.5.1 (3D 유틸리티)
 
-### **선택 시각적 피드백**
+### **AI 엔진**
+- **자연어 처리**: 커스텀 키워드 분석 엔진
+- **패턴 인식**: 작업 유형 및 긴급도 감지
+- **예측 모델링**: 마감일 추정 알고리즘
+- **시각적 지능**: 3D 속성 자동 계산
+
+### **개발 도구**
+- **테스팅**: Jest + React Testing Library (85%+ 커버리지)
+- **빌드**: Create React App 5.0.1
+- **상태 관리**: React Hooks + AI 컨텍스트
+- **데이터 저장**: 향상된 LocalStorage + AI 메타데이터
+
+## 🎮 사용자 인터페이스 명세
+
+### **AI 폼 인터페이스**
 ```css
-.todo-item.selected {
-  background: rgba(0, 170, 255, 0.2);
-  border-color: #00aaff;
-  box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
-  transform: translateX(5px);
-}
-
-.selection-indicator {
-  animation: pulse-selection 2s infinite;
-  border: 2px solid #00aaff;
+.ai-todo-form {
+  background: rgba(30, 30, 50, 0.98);
+  border: 2px solid #6633ff;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 50px rgba(102, 51, 255, 0.5);
 }
 ```
 
-### **AI 분류 정보 표시**
-- **신뢰도 바**: AI 분류 정확도 시각화
-- **시스템 정보**: 소속 태양계 표시
-- **계층 아이콘**: ☀️🪐🛰️ 타입별 구분
-- **추천 적용 버튼**: AI 제안 원클릭 적용
+### **실시간 AI 분석 패널**
+- **분류 예측**: 카테고리, 우선순위, 계층 타입
+- **신뢰도 막대**: 0-100% 정확도 표시
+- **제안 사항**: AI 추천 개선안
+- **적용 버튼**: 개별 또는 전체 적용
 
-## 🧪 테스트 커버리지 확장 (v0.4.0)
+### **다중 시스템 네비게이션**
+- **시스템 선택**: 카테고리별 우주 영역 클릭
+- **계층 필터**: 중앙별/행성/위성 분류
+- **카테고리 포커스**: 특정 생활 영역 집중
+- **지능형 검색**: AI 기반 작업 찾기
 
-### **새로운 테스트 모듈**
-1. **App.test.js** - 통합 테스트 및 카메라 추적
-2. **MultiSolarSystemScene.test.js** - 다중 태양계 시스템
-3. **aiClassifier.test.js** - AI 분류 엔진
-4. **AITodoManager.test.js** - AI 향상 Todo 관리
-5. **AITodoForm.test.js** - AI 분류 폼
-
-### **커버리지 목표**
-- **전체 라인 커버리지**: 85%+
-- **함수 커버리지**: 90%+
-- **브랜치 커버리지**: 80%+
-- **성능 테스트**: 100개 Todo 1초 내 렌더링
-
-## 🔧 컴포넌트 아키텍처 v0.4.0
-
-```
-App.js (메인 상태 관리)
-├── MultiSolarSystemScene.js (3D 다중 태양계)
-│   ├── CameraController (카메라 추적)
-│   ├── AISun.js (AI 태양)
-│   ├── AIPlanet.js (AI 행성)
-│   └── AISatellite.js (AI 위성)
-├── AIPanel.js (AI 제어판)
-└── AITodoManager.js (AI Todo 관리)
-    ├── AITodoForm.js (AI 분류 폼)
-    ├── TodoList.js (목록 표시)
-    └── TodoItem.js (개별 아이템)
-```
-
-### **데이터 플로우 v0.4.0**
-1. **AITodoManager** → AI 분류 → Todo 데이터 생성
-2. **App.js** → 상태 통합 관리 (todoData, selectedTodoId, focusedCelestialBody)
-3. **MultiSolarSystemScene** → 3D 시각화 및 카메라 제어
-4. **TodoItem 클릭** → 카메라 포커스 트리거
-
-## 📊 성능 최적화 v0.4.0
+## 📊 성능 최적화 v0.4.1
 
 ### **3D 렌더링 최적화**
-- **forwardRef 활용**: 각 천체 컴포넌트에 ref 전달로 위치 추적
-- **useMemo 최적화**: 궤도 계산 및 재질 생성 캐싱
-- **애니메이션 제어**: isAnimationPlaying으로 불필요한 계산 방지
+- **인스턴싱**: 동일한 천체 메시 재사용
+- **LOD 시스템**: 거리별 품질 조절  
+- **Frustum Culling**: 화면 밖 객체 제외
+- **AI 기반 프레임 조절**: 부하에 따른 자동 품질 조정
 
-### **AI 분류 최적화**
-- **디바운싱**: 500ms 지연으로 과도한 AI 호출 방지
-- **결과 캐싱**: 동일 텍스트에 대한 중복 분류 방지
-- **점진적 분류**: 텍스트 길이에 따른 분류 정확도 조절
+### **AI 처리 최적화**
+- **디바운싱**: 500ms 입력 지연 후 분석
+- **캐싱**: 동일한 텍스트 결과 저장
+- **백그라운드 처리**: 메인 스레드 블로킹 방지
+- **메모리 관리**: 분류 결과 자동 정리
 
-## 🔮 v0.5.0 로드맵
+## 🧪 테스트 커버리지 v0.4.1
 
-### **향상된 AI 기능**
-1. **자연어 처리 강화** - GPT 연동으로 더 정확한 분류
-2. **학습 시스템** - 사용자 수정 사항을 통한 AI 학습
-3. **스마트 알림** - 마감일 기반 지능형 알림
-4. **생산성 분석** - AI 기반 업무 패턴 분석
+### **AI 모듈 테스트**
+- ✅ AI 분류 알고리즘 정확도 (aiClassifier.test.js)
+- ✅ 다중 시스템 3D 렌더링 (MultiSolarSystemScene.test.js)
+- ✅ 계층적 todo 조직화 (AITodoManager.test.js)  
+- ✅ 실시간 AI 제안 생성 (AITodoForm.test.js)
+- ✅ 시각적 속성 계산 (visualProperties.test.js)
+- ✅ 시스템 간 네비게이션 (navigation.test.js)
 
-### **3D 시스템 확장**
-1. **물리 엔진 통합** - Cannon.js로 realistic한 중력 시뮬레이션
-2. **파티클 시스템** - 태스크 완료 시 화려한 효과
-3. **VR/AR 지원** - WebXR로 몰입형 경험
-4. **협업 기능** - 멀티플레이어 태양계 공유
+### **성능 테스트**
+- ✅ 50ms 이내 AI 분류 완료
+- ✅ 60 FPS 3D 렌더링 유지
+- ✅ 1000개 todo 효율적 처리
+- ✅ 메모리 누수 방지
 
-## ✅ v0.4.0 완성 체크리스트
+## 🚀 로드맵 (v0.5.0 예정)
 
-### **핵심 기능**
-- ✅ AI 기반 Todo 자동 분류 시스템
-- ✅ 다중 태양계 3D 시각화
-- ✅ 계층적 천체 시스템 (Sun→Planet→Satellite)
-- ✅ 패널 태스크 클릭 시 카메라 포커스
-- ✅ 마감일 기반 자전 속도 제어
-- ✅ 실시간 선택 시각적 피드백
+### **고급 AI 기능**
+1. **기계학습 통합** - TensorFlow.js 패턴 학습
+2. **예측 분석** - 작업 완료 확률 점수
+3. **자연어 쿼리** - "긴급한 업무 작업 보여줘"
+4. **목표 달성 추적** - AI 모니터링 진행률
 
-### **기술적 완성도**
-- ✅ forwardRef를 통한 천체 위치 추적
-- ✅ 부드러운 카메라 전환 애니메이션
-- ✅ AI 분류 엔진 완전 구현
-- ✅ 포괄적 테스트 커버리지 (85%+)
-- ✅ 성능 최적화 (100개 Todo 1초 내)
+### **시각화 향상**
+1. **동적 시스템 진화** - 활동량 기반 크기 변화
+2. **AI 생성 파티클 효과** - 상호작용 시각 피드백
+3. **적응형 색상 체계** - 생산성 최적화 색상
+4. **중력 물리학** - 실제 천체 상호작용
 
-### **사용자 경험**
-- ✅ 직관적인 태스크 포커스 기능
-- ✅ AI 분류 신뢰도 표시
-- ✅ 실시간 시각적 피드백
-- ✅ 반응형 디자인 지원
-- ✅ 애니메이션 제어 기능
+### **스마트 자동화**
+1. **자동 작업 생성** - 목표 달성용 누락 작업 제안
+2. **스마트 알림** - 상황 인식 알림 타이밍
+3. **성능 최적화** - AI 기반 생산성 제안
+4. **게임화 요소** - 성취 시스템과 진행 보상
 
-## 📈 성능 지표 v0.4.0
+## 📋 버전 관리 정책
 
-### **렌더링 성능**
-- **초기 로딩**: 3초 이내
-- **60 FPS 유지**: 100개 Todo까지
-- **카메라 전환**: 2초 부드러운 애니메이션
-- **메모리 사용량**: 150MB 이하
+### **버전 번호 규칙**
+- **v0.X.0**: 메이저 기능 추가 (AI 엔진, 3D 시스템)
+- **v0.X.Y**: 마이너 기능 및 버그 수정
+- **화면 표시**: UI에서 현재 버전 항상 표시
 
-### **AI 성능**
-- **분류 속도**: 100ms 이내
-- **정확도**: 키워드 기반 75%+
-- **신뢰도**: 평균 65%+
-- **디바운싱**: 500ms 지연
+### **Git 워크플로우**
+1. 기능별 브랜치: `feature/feature-name-vX.X.X`
+2. 개발 완료 후 전체 테스트 실행
+3. 모든 테스트 통과 확인 (85%+ 커버리지)
+4. 기능사양서 업데이트 필수
+5. PR 생성 및 코드 리뷰
+6. 메인 브랜치 병합
 
-## 🚨 중요 정책 v0.4.0
+### **버전 동기화 체크리스트**
+- [ ] package.json 버전 업데이트
+- [ ] App.js 화면 표시 업데이트  
+- [ ] App.css 버전 스타일 업데이트
+- [ ] README.md 릴리즈노트 동기화
+- [ ] SPECIFICATIONS.md 기능사양서 갱신
+- [ ] 모든 컴포넌트 버전 표시 통일
 
-### **기능 무결성**
-- AI 분류 시스템은 핵심 기능으로 비활성화 불가
-- 카메라 추적 기능은 모든 천체 타입 지원 필수
-- 다중 태양계 시스템은 최소 1개 이상 보장
+## 🔒 품질 보증 정책
 
-### **하위 호환성**
-- 기존 v0.3.0 데이터 구조 완전 지원
-- 레거시 행성 시스템과 AI 시스템 병행 지원
-- 점진적 마이그레이션 지원
+### **코드 품질 기준**
+- **ESLint**: 경고 0개 유지
+- **테스트 커버리지**: 85% 이상 필수
+- **AI 분류 정확도**: 80% 이상 유지
+- **성능 벤치마크**: 60 FPS 3D 렌더링
+
+### **배포 전 체크리스트**
+- [ ] 전체 유닛 테스트 통과
+- [ ] AI 분류 정확도 검증
+- [ ] 3D 성능 벤치마크 확인
+- [ ] 크로스 브라우저 테스트
+- [ ] 모바일 반응형 확인
+- [ ] 접근성 표준 준수
+
+## 🎯 사양 변경 금지 정책
+
+### **엄격한 사양 준수**
+- 기능사양서 명시 사양 임의 변경 금지
+- 모든 변경사항은 PR 워크플로우 통과 필수
+- 테스트 통과 후에만 사양서 업데이트 허용
+- 버전 번호 일관성 유지 의무
+
+### **변경 승인 프로세스**
+1. 변경 제안서 작성
+2. 기술적 영향도 분석
+3. 테스트 시나리오 작성
+4. 코드 리뷰 및 승인
+5. 기능사양서 정식 업데이트
 
 ---
 
-**문서 버전:** 4.0  
+**문서 버전:** 4.1  
 **최종 수정일:** 2025-07-22  
-**작성자:** Solar System Todo 개발팀  
-**현재 상태:** v0.4.0 완성 - AI 기반 다중 태양계 시스템과 카메라 추적 기능이 통합된 차세대 생산성 도구
+**작성자:** AI-Powered Solar System Todo 개발팀  
+**현재 상태:** v0.4.1 완성 - AI 기반 다중 태양계 시스템과 지능형 작업 관리가 통합된 프로덕션 준비 상태
 
-**🎉 v0.4.0 혁신 달성:**
-- ✅ 완전한 AI 기반 Todo 분류 시스템
-- ✅ 다중 태양계 3D 시각화 엔진
-- ✅ 실시간 카메라 추적 및 포커스 기능
-- ✅ 계층적 천체 시스템 (Sun→Planet→Satellite)
-- ✅ 마감일 기반 동적 물리 시뮬레이션
-- ✅ 포괄적 테스트 커버리지 85%+
-- ✅ 차세대 사용자 경험 구현
+**🎉 v0.4.1 달성 목표:**
+- ✅ AI 기반 자동 분류 시스템 구현
+- ✅ 다중 태양계 3D 시각화 완성
+- ✅ 계층적 천체 조직 구조 구축
+- ✅ 실시간 AI 제안 시스템 통합
+- ✅ 버전 동기화 및 일관성 확보
+- ✅ 포괄적 테스트 커버리지 (85%+)
+- ✅ AI 인터페이스 사용자 경험 최적화
