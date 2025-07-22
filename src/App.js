@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Scene from './components/Scene';
-import AIPanel from './components/AIPanel';
 import AITodoManager from './components/AITodoManager';
 import EnhancedMissionControl from './components/EnhancedMissionControl';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
@@ -450,17 +449,7 @@ function App() {
         onSolarSystemClick={handleSolarSystemClick}
         onAsteroidClick={(asteroidId) => console.log('소행성 클릭:', asteroidId)}
       />
-      
-      {/* AI 제어 패널 */}
-      <AIPanel 
-        onAnimationToggle={handleAnimationToggle}
-        isAnimationPlaying={isAnimationPlaying}
-        aiGroupingActive={aiGroupingActive}
-        onAIGroupingToggle={toggleAIGrouping}
-        solarSystemsCount={solarSystems.length}
-        asteroidsCount={asteroids.length}
-      />
-      
+
       {/* UI 모드 토글 버튼 */}
       <button 
         className="ui-mode-toggle"
@@ -486,6 +475,15 @@ function App() {
         title={`AI 그룹핑 ${aiGroupingActive ? '비활성화' : '활성화'}`}
       >
         🤖 AI {aiGroupingActive ? 'ON' : 'OFF'}
+      </button>
+
+      {/* 애니메이션 토글 */}
+      <button
+        className="animation-toggle"
+        onClick={handleAnimationToggle}
+        title={`Animation ${isAnimationPlaying ? 'Pause' : 'Play'}`}
+      >
+        {isAnimationPlaying ? '⏸️ Pause' : '▶️ Play'} Solar System
       </button>
 
       {/* 조건부 UI 렌더링 */}
@@ -527,9 +525,9 @@ function App() {
         onAsteroidAction={handleAsteroidAction}
       />
       
-      {/* 버전 정보 표시 - v0.4.8로 업데이트 */}
+      {/* 버전 정보 표시 - v0.5.0으로 업데이트 */}
       <div className="version-info">
-        AI Dynamic Solar System Todo v0.4.8
+        AI Dynamic Solar System Todo v0.5.0
       </div>
 
       {/* 새 기능 배지 */}
