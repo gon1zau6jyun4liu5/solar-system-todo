@@ -184,7 +184,7 @@ function App() {
   const [aiGroupingActive, setAiGroupingActive] = useState(true);
   const [currentView, setCurrentView] = useState('all'); // 'all', 'system-{id}'
 
-  // v0.5.2 수정: 기본 태스크 데이터 추가 (태양계를 3개 표시하기 위해)
+  // v0.5.4 수정: 기본 태스크 데이터 추가 (태양계를 3개 표시하기 위해)
   const initializeDefaultTasks = () => {
     const defaultTasks = [
       {
@@ -265,10 +265,10 @@ function App() {
     ];
 
     setTodos(defaultTasks);
-    console.log('🎯 v0.5.2: 기본 태스크 데이터 로드 완료 (서브태스크 포함, 태양계 표현 개선)');
+    console.log('🎯 v0.5.4: 기본 태스크 데이터 로드 완료 (UI 버튼 복원, 서브태스크 포함)');
   };
 
-  // v0.5.2 수정: AI 그룹핑 및 태양계 생성 (태스크가 있을 때만, 서브태스크 고려)
+  // v0.5.4 수정: AI 그룹핑 및 태양계 생성 (태스크가 있을 때만, 서브태스크 고려)
   const updateSolarSystems = useCallback(async () => {
     // 🔧 BUG FIX: 태스크가 없거나 AI 그룹핑이 비활성화되면 태양계 제거
     if (!aiGroupingActive || todos.length === 0) {
@@ -283,7 +283,7 @@ function App() {
       const analysis = await AIEngine.analyzeTasks(todos);
       const groups = await AIEngine.createGroups(analysis);
       
-      // v0.5.2 수정: 다중 태양계 생성 (서브태스크를 위성으로 표현)
+      // v0.5.4 수정: 다중 태양계 생성 (서브태스크를 위성으로 표현)
       const newSolarSystems = groups.map((group, index) => ({
         id: group.id,
         name: group.name,
@@ -300,7 +300,7 @@ function App() {
             id: task.taskId,
             name: extractTaskKeyword(task),
             task: fullTask,
-            // v0.5.2: 서브태스크가 있을 때만 위성 생성
+            // v0.5.4: 서브태스크가 있을 때만 위성 생성
             satellites: fullTask?.subtasks?.length > 0 ? getSatellitesForTask(task.taskId, todos) : []
           };
         }).filter(planet => planet.task), // 유효한 태스크가 있는 행성만 포함
@@ -308,7 +308,7 @@ function App() {
         priority: group.priority
       }));
 
-      console.log('🌌 v0.5.2: 생성된 태양계:', newSolarSystems.length, '개 (서브태스크 기반 위성 시스템)');
+      console.log('🌌 v0.5.4: 생성된 태양계:', newSolarSystems.length, '개 (UI 버튼 복원, 서브태스크 기반 위성 시스템)');
       setSolarSystems(newSolarSystems);
       
       // 소행성 시스템 업데이트
@@ -339,7 +339,7 @@ function App() {
     return words.find(word => word.length > 2) || 'Task';
   };
 
-  // v0.5.2 수정: 위성(서브태스크) 가져오기 - 서브태스크가 있을 때만
+  // v0.5.4 수정: 위성(서브태스크) 가져오기 - 서브태스크가 있을 때만
   const getSatellitesForTask = (taskId, todoList) => {
     const task = todoList.find(t => t.id === taskId);
     if (!task?.subtasks?.length) return [];
@@ -409,7 +409,7 @@ function App() {
     ];
   };
 
-  // v0.5.2: 초기 로드 시 기본 태스크 설정 (서브태스크 포함)
+  // v0.5.4: 초기 로드 시 기본 태스크 설정 (서브태스크 포함)
   useEffect(() => {
     if (todos.length === 0) {
       initializeDefaultTasks();
@@ -483,7 +483,7 @@ function App() {
       id: generateId(),
       text: newTodo.text || 'New Task',
       category: newTodo.category || 'general',
-      priority: newTodo.priority || 'medium', // v0.5.2: 기본 priority 설정
+      priority: newTodo.priority || 'medium', // v0.5.4: 기본 priority 설정
       completed: false,
       createdAt: Date.now(),
       deadline: newTodo.deadline,
@@ -558,7 +558,7 @@ function App() {
         data-testid="scene"
       />
 
-      {/* UI 모드 토글 버튼 */}
+      {/* 🔧 v0.5.4 복원: UI 모드 토글 버튼 */}
       <button 
         className="ui-mode-toggle"
         onClick={toggleUIMode}
@@ -568,7 +568,7 @@ function App() {
         {useEnhancedUI ? '🎨' : '🚀'} {useEnhancedUI ? 'Enhanced' : 'Classic'}
       </button>
 
-      {/* 분석 대시보드 토글 */}
+      {/* 🔧 v0.5.4 복원: 분석 대시보드 토글 */}
       <button 
         className="analytics-toggle"
         onClick={toggleAnalyticsDashboard}
@@ -578,7 +578,7 @@ function App() {
         📊 Analytics
       </button>
 
-      {/* AI 그룹핑 상태 표시 */}
+      {/* 🔧 v0.5.4 복원: AI 그룹핑 상태 표시 */}
       <button
         className="ai-grouping-toggle"
         onClick={toggleAIGrouping}
@@ -588,7 +588,7 @@ function App() {
         🤖 AI {aiGroupingActive ? 'ON' : 'OFF'}
       </button>
 
-      {/* 애니메이션 토글 */}
+      {/* 🔧 v0.5.4 복원: 애니메이션 토글 */}
       <button
         className="animation-toggle"
         onClick={handleAnimationToggle}
@@ -641,17 +641,17 @@ function App() {
         data-testid="asteroid-action-system"
       />
       
-      {/* v0.5.2 버전 정보 업데이트 */}
+      {/* 🔧 v0.5.4 버전 정보 업데이트 */}
       <div className="version-info" data-testid="version-info">
-        AI Dynamic Solar System Todo v0.5.2
+        AI Dynamic Solar System Todo v0.5.4
       </div>
 
-      {/* v0.5.2 새 기능 배지 */}
+      {/* 🔧 v0.5.4 새 기능 배지 */}
       <div className="feature-badge" data-testid="feature-badge">
-        🎨 NEW: UI Improvements & Solar System Logic
+        🔧 FIXED: UI Buttons Restored & Complete Interface
       </div>
 
-      {/* 시스템 상태 표시 (왼쪽 하단 버전 정보만 유지) */}
+      {/* 🔧 v0.5.4 복원: 시스템 상태 표시 */}
       <div className="system-status" data-testid="system-status">
         🌌 {solarSystems.length} Systems | ☄️ {asteroids.length} Asteroids
       </div>

@@ -20,7 +20,7 @@ body {
   overflow: hidden;
 }
 
-/* 버전 정보 표시 - 유일하게 유지되는 UI 요소 */
+/* 버전 정보 표시 - 유지되는 UI 요소 */
 .version-info {
   position: fixed;
   bottom: 20px;
@@ -47,6 +47,149 @@ body {
     box-shadow: 0 0 30px rgba(0, 170, 255, 0.8);
     border-color: rgba(0, 170, 255, 0.8);
   }
+}
+
+/* 🔧 복원: UI Mode Toggle Button (우상단) */
+.ui-mode-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #00aaff;
+  border: 2px solid rgba(0, 170, 255, 0.4);
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.ui-mode-toggle:hover {
+  background: rgba(0, 170, 255, 0.2);
+  border-color: rgba(0, 170, 255, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 170, 255, 0.3);
+}
+
+/* 🔧 복원: Analytics Toggle Button */
+.analytics-toggle {
+  position: fixed;
+  top: 20px;
+  right: 180px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #ff9800;
+  border: 2px solid rgba(255, 152, 0, 0.4);
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.analytics-toggle:hover {
+  background: rgba(255, 152, 0, 0.2);
+  border-color: rgba(255, 152, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+}
+
+/* 🔧 복원: AI Grouping Toggle Button */
+.ai-grouping-toggle {
+  position: fixed;
+  top: 20px;
+  right: 320px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #4caf50;
+  border: 2px solid rgba(76, 175, 80, 0.4);
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.ai-grouping-toggle:hover {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: rgba(76, 175, 80, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* 🔧 복원: Animation Toggle Button */
+.animation-toggle {
+  position: fixed;
+  top: 20px;
+  right: 460px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #e91e63;
+  border: 2px solid rgba(233, 30, 99, 0.4);
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.animation-toggle:hover {
+  background: rgba(233, 30, 99, 0.2);
+  border-color: rgba(233, 30, 99, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(233, 30, 99, 0.3);
+}
+
+/* 🔧 복원: Feature Badge */
+.feature-badge {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: rgba(156, 39, 176, 0.9);
+  color: #ffffff;
+  padding: 8px 15px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  font-weight: bold;
+  border: 2px solid rgba(156, 39, 176, 0.6);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  animation: featureBadgeGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes featureBadgeGlow {
+  from {
+    box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(156, 39, 176, 0.8);
+  }
+}
+
+/* 🔧 복원: System Status Display */
+.system-status {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #00aaff;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: bold;
+  border: 2px solid rgba(0, 170, 255, 0.4);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  text-shadow: 0 0 5px rgba(0, 170, 255, 0.7);
 }
 
 /* Loading and Transition Effects */
@@ -96,6 +239,48 @@ body {
     left: 10px;
     font-size: 0.8em;
     padding: 8px 15px;
+  }
+
+  .ui-mode-toggle {
+    top: 10px;
+    right: 10px;
+    font-size: 0.8em;
+    padding: 8px 12px;
+  }
+
+  .analytics-toggle {
+    top: 10px;
+    right: 120px;
+    font-size: 0.8em;
+    padding: 8px 12px;
+  }
+
+  .ai-grouping-toggle {
+    top: 10px;
+    right: 200px;
+    font-size: 0.8em;
+    padding: 8px 12px;
+  }
+
+  .animation-toggle {
+    top: 60px;
+    right: 10px;
+    font-size: 0.8em;
+    padding: 8px 12px;
+  }
+
+  .feature-badge {
+    top: 60px;
+    right: 120px;
+    font-size: 0.75em;
+    padding: 6px 12px;
+  }
+
+  .system-status {
+    bottom: 10px;
+    right: 10px;
+    font-size: 0.75em;
+    padding: 6px 12px;
   }
 }
 
