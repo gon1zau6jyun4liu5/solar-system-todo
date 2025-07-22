@@ -184,10 +184,82 @@ function App() {
   const [aiGroupingActive, setAiGroupingActive] = useState(true);
   const [currentView, setCurrentView] = useState('all'); // 'all', 'system-{id}'
 
-  // AI 그룹핑 및 태양계 생성
+  // v0.5.1 수정: 기본 태스크 데이터 추가 (태양계를 3개 표시하기 위해)
+  const initializeDefaultTasks = () => {
+    const defaultTasks = [
+      {
+        id: 'task-1',
+        text: '프로젝트 기획서 작성',
+        category: 'work',
+        priority: 'high',
+        completed: false,
+        createdAt: Date.now(),
+        deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3일 후
+        visualProperties: { daysUntilDeadline: 3 }
+      },
+      {
+        id: 'task-2',
+        text: '장보기 목록 작성',
+        category: 'personal',
+        priority: 'medium',
+        completed: false,
+        createdAt: Date.now(),
+        deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1일 후
+        visualProperties: { daysUntilDeadline: 1 }
+      },
+      {
+        id: 'task-3',
+        text: 'React 강의 수강하기',
+        category: 'study',
+        priority: 'medium',
+        completed: false,
+        createdAt: Date.now(),
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
+        visualProperties: { daysUntilDeadline: 7 }
+      },
+      {
+        id: 'task-4',
+        text: '친구와 카페 약속',
+        category: 'social',
+        priority: 'low',
+        completed: false,
+        createdAt: Date.now(),
+        deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5일 후
+        visualProperties: { daysUntilDeadline: 5 }
+      },
+      {
+        id: 'task-5',
+        text: '업무 회의 준비',
+        category: 'work',
+        priority: 'high',
+        completed: false,
+        createdAt: Date.now(),
+        deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2일 후
+        visualProperties: { daysUntilDeadline: 2 }
+      },
+      {
+        id: 'task-6',
+        text: '운동하기',
+        category: 'personal',
+        priority: 'medium',
+        completed: false,
+        createdAt: Date.now(),
+        deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1일 후
+        visualProperties: { daysUntilDeadline: 1 }
+      }
+    ];
+
+    setTodos(defaultTasks);
+    console.log('🎯 v0.5.1: 기본 태스크 데이터 로드 완료 (태양계 3개 표시용)');
+  };
+
+  // v0.5.1 수정: AI 그룹핑 및 태양계 생성 (태스크가 있을 때만)
   const updateSolarSystems = useCallback(async () => {
+    // 🔧 BUG FIX: 태스크가 없거나 AI 그룹핑이 비활성화되면 태양계 제거
     if (!aiGroupingActive || todos.length === 0) {
       setSolarSystems([]);
+      setAsteroids([]);
+      console.log('🌌 태양계 시스템 정리: 태스크 없음 또는 AI 비활성화');
       return;
     }
 
@@ -315,6 +387,13 @@ function App() {
     ];
   };
 
+  // v0.5.1: 초기 로드 시 기본 태스크 설정
+  useEffect(() => {
+    if (todos.length === 0) {
+      initializeDefaultTasks();
+    }
+  }, []);
+
   // 태스크 변경 시 AI 재분석
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
@@ -377,14 +456,20 @@ function App() {
     ));
   };
 
-  const handleTodoAdd = (newTodo) => {
+  const handleTodoAdd = (newTodo = {}) => {
     const todo = {
       id: generateId(),
       text: newTodo.text || 'New Task',
+      category: newTodo.category || 'general',
+      priority: newTodo.priority || 'medium', // v0.5.1: 기본 priority 설정
       completed: false,
       createdAt: Date.now(),
       deadline: newTodo.deadline,
-      subtasks: []
+      subtasks: [],
+      visualProperties: {
+        daysUntilDeadline: newTodo.deadline ? 
+          Math.ceil((new Date(newTodo.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : 30
+      }
     };
     
     setTodos(prev => [...prev, todo]);
@@ -525,14 +610,14 @@ function App() {
         onAsteroidAction={handleAsteroidAction}
       />
       
-      {/* 버전 정보 표시 - v0.5.0으로 업데이트 */}
+      {/* v0.5.1 버전 정보 업데이트 */}
       <div className="version-info">
-        AI Dynamic Solar System Todo v0.5.0
+        AI Dynamic Solar System Todo v0.5.1
       </div>
 
       {/* 새 기능 배지 */}
       <div className="feature-badge">
-        🤖 NEW: AI Grouping Engine & Multi Solar Systems
+        🐛 NEW: Bug Fixes & Default Task Data
       </div>
 
       {/* 시스템 상태 표시 */}
