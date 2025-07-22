@@ -184,7 +184,7 @@ function App() {
   const [aiGroupingActive, setAiGroupingActive] = useState(true);
   const [currentView, setCurrentView] = useState('all'); // 'all', 'system-{id}'
 
-  // v0.5.1 수정: 기본 태스크 데이터 추가 (태양계를 3개 표시하기 위해)
+  // v0.5.2 수정: 기본 태스크 데이터 추가 (태양계를 3개 표시하기 위해)
   const initializeDefaultTasks = () => {
     const defaultTasks = [
       {
@@ -195,6 +195,10 @@ function App() {
         completed: false,
         createdAt: Date.now(),
         deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3일 후
+        subtasks: [
+          { id: 'subtask-1-1', text: '요구사항 분석', completed: false },
+          { id: 'subtask-1-2', text: '기술 스택 선정', completed: false }
+        ],
         visualProperties: { daysUntilDeadline: 3 }
       },
       {
@@ -205,6 +209,7 @@ function App() {
         completed: false,
         createdAt: Date.now(),
         deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1일 후
+        subtasks: [],
         visualProperties: { daysUntilDeadline: 1 }
       },
       {
@@ -215,6 +220,11 @@ function App() {
         completed: false,
         createdAt: Date.now(),
         deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
+        subtasks: [
+          { id: 'subtask-3-1', text: 'Hook 개념 익히기', completed: false },
+          { id: 'subtask-3-2', text: '프로젝트 실습', completed: false },
+          { id: 'subtask-3-3', text: '복습 노트 정리', completed: false }
+        ],
         visualProperties: { daysUntilDeadline: 7 }
       },
       {
@@ -225,6 +235,7 @@ function App() {
         completed: false,
         createdAt: Date.now(),
         deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5일 후
+        subtasks: [],
         visualProperties: { daysUntilDeadline: 5 }
       },
       {
@@ -235,6 +246,9 @@ function App() {
         completed: false,
         createdAt: Date.now(),
         deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2일 후
+        subtasks: [
+          { id: 'subtask-5-1', text: '발표 자료 준비', completed: false }
+        ],
         visualProperties: { daysUntilDeadline: 2 }
       },
       {
@@ -245,15 +259,16 @@ function App() {
         completed: false,
         createdAt: Date.now(),
         deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1일 후
+        subtasks: [],
         visualProperties: { daysUntilDeadline: 1 }
       }
     ];
 
     setTodos(defaultTasks);
-    console.log('🎯 v0.5.1: 기본 태스크 데이터 로드 완료 (태양계 3개 표시용)');
+    console.log('🎯 v0.5.2: 기본 태스크 데이터 로드 완료 (서브태스크 포함, 태양계 표현 개선)');
   };
 
-  // v0.5.1 수정: AI 그룹핑 및 태양계 생성 (태스크가 있을 때만)
+  // v0.5.2 수정: AI 그룹핑 및 태양계 생성 (태스크가 있을 때만, 서브태스크 고려)
   const updateSolarSystems = useCallback(async () => {
     // 🔧 BUG FIX: 태스크가 없거나 AI 그룹핑이 비활성화되면 태양계 제거
     if (!aiGroupingActive || todos.length === 0) {
@@ -268,7 +283,7 @@ function App() {
       const analysis = await AIEngine.analyzeTasks(todos);
       const groups = await AIEngine.createGroups(analysis);
       
-      // 다중 태양계 생성
+      // v0.5.2 수정: 다중 태양계 생성 (서브태스크를 위성으로 표현)
       const newSolarSystems = groups.map((group, index) => ({
         id: group.id,
         name: group.name,
@@ -279,17 +294,21 @@ function App() {
           theme: group.theme,
           tasks: group.tasks
         },
-        planets: group.tasks.map(task => ({
-          id: task.taskId,
-          name: extractTaskKeyword(task),
-          task: todos.find(t => t.id === task.taskId),
-          satellites: getSatellitesForTask(task.taskId, todos)
-        })),
+        planets: group.tasks.map(task => {
+          const fullTask = todos.find(t => t.id === task.taskId);
+          return {
+            id: task.taskId,
+            name: extractTaskKeyword(task),
+            task: fullTask,
+            // v0.5.2: 서브태스크가 있을 때만 위성 생성
+            satellites: fullTask?.subtasks?.length > 0 ? getSatellitesForTask(task.taskId, todos) : []
+          };
+        }).filter(planet => planet.task), // 유효한 태스크가 있는 행성만 포함
         theme: group.theme,
         priority: group.priority
       }));
 
-      console.log('🌌 생성된 태양계:', newSolarSystems.length, '개');
+      console.log('🌌 v0.5.2: 생성된 태양계:', newSolarSystems.length, '개 (서브태스크 기반 위성 시스템)');
       setSolarSystems(newSolarSystems);
       
       // 소행성 시스템 업데이트
@@ -320,14 +339,17 @@ function App() {
     return words.find(word => word.length > 2) || 'Task';
   };
 
-  // 위성(서브태스크) 가져오기
+  // v0.5.2 수정: 위성(서브태스크) 가져오기 - 서브태스크가 있을 때만
   const getSatellitesForTask = (taskId, todoList) => {
     const task = todoList.find(t => t.id === taskId);
-    return task?.subtasks?.map(subtask => ({
+    if (!task?.subtasks?.length) return [];
+    
+    return task.subtasks.map(subtask => ({
       id: subtask.id,
       name: subtask.text.substring(0, 10) + '...',
-      subtask: subtask
-    })) || [];
+      subtask: subtask,
+      completed: subtask.completed
+    }));
   };
 
   // 소행성 생성 (AI 액션 제안)
@@ -387,7 +409,7 @@ function App() {
     ];
   };
 
-  // v0.5.1: 초기 로드 시 기본 태스크 설정
+  // v0.5.2: 초기 로드 시 기본 태스크 설정 (서브태스크 포함)
   useEffect(() => {
     if (todos.length === 0) {
       initializeDefaultTasks();
@@ -461,11 +483,11 @@ function App() {
       id: generateId(),
       text: newTodo.text || 'New Task',
       category: newTodo.category || 'general',
-      priority: newTodo.priority || 'medium', // v0.5.1: 기본 priority 설정
+      priority: newTodo.priority || 'medium', // v0.5.2: 기본 priority 설정
       completed: false,
       createdAt: Date.now(),
       deadline: newTodo.deadline,
-      subtasks: [],
+      subtasks: newTodo.subtasks || [],
       visualProperties: {
         daysUntilDeadline: newTodo.deadline ? 
           Math.ceil((new Date(newTodo.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : 30
@@ -533,6 +555,7 @@ function App() {
         currentView={currentView}
         onSolarSystemClick={handleSolarSystemClick}
         onAsteroidClick={(asteroidId) => console.log('소행성 클릭:', asteroidId)}
+        data-testid="scene"
       />
 
       {/* UI 모드 토글 버튼 */}
@@ -540,6 +563,7 @@ function App() {
         className="ui-mode-toggle"
         onClick={toggleUIMode}
         title={`Switch to ${useEnhancedUI ? 'Classic' : 'Enhanced'} UI`}
+        data-testid="ui-mode-toggle"
       >
         {useEnhancedUI ? '🎨' : '🚀'} {useEnhancedUI ? 'Enhanced' : 'Classic'}
       </button>
@@ -549,6 +573,7 @@ function App() {
         className="analytics-toggle"
         onClick={toggleAnalyticsDashboard}
         title="Open Advanced Analytics Dashboard"
+        data-testid="analytics-toggle"
       >
         📊 Analytics
       </button>
@@ -558,6 +583,7 @@ function App() {
         className="ai-grouping-toggle"
         onClick={toggleAIGrouping}
         title={`AI 그룹핑 ${aiGroupingActive ? '비활성화' : '활성화'}`}
+        data-testid="ai-grouping-toggle"
       >
         🤖 AI {aiGroupingActive ? 'ON' : 'OFF'}
       </button>
@@ -567,6 +593,7 @@ function App() {
         className="animation-toggle"
         onClick={handleAnimationToggle}
         title={`Animation ${isAnimationPlaying ? 'Pause' : 'Play'}`}
+        data-testid="animation-toggle"
       >
         {isAnimationPlaying ? '⏸️ Pause' : '▶️ Play'} Solar System
       </button>
@@ -584,6 +611,7 @@ function App() {
           onCategoryChange={handleCategoryChange}
           onAsteroidAction={handleAsteroidAction}
           currentView={currentView}
+          data-testid="enhanced-mission-control"
         />
       ) : (
         <AITodoManager 
@@ -591,6 +619,7 @@ function App() {
           selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
           aiGroupingActive={aiGroupingActive}
+          data-testid="ai-todo-manager"
         />
       )}
 
@@ -601,6 +630,7 @@ function App() {
         asteroids={asteroids}
         isVisible={showAnalyticsDashboard}
         onClose={closeAnalyticsDashboard}
+        data-testid="analytics-dashboard"
       />
 
       {/* 소행성 액션 시스템 */}
@@ -608,20 +638,21 @@ function App() {
         asteroids={asteroids}
         solarSystems={solarSystems}
         onAsteroidAction={handleAsteroidAction}
+        data-testid="asteroid-action-system"
       />
       
-      {/* v0.5.1 버전 정보 업데이트 */}
-      <div className="version-info">
-        AI Dynamic Solar System Todo v0.5.1
+      {/* v0.5.2 버전 정보 업데이트 */}
+      <div className="version-info" data-testid="version-info">
+        AI Dynamic Solar System Todo v0.5.2
       </div>
 
-      {/* 새 기능 배지 */}
-      <div className="feature-badge">
-        🐛 NEW: Bug Fixes & Default Task Data
+      {/* v0.5.2 새 기능 배지 */}
+      <div className="feature-badge" data-testid="feature-badge">
+        🎨 NEW: UI Improvements & Solar System Logic
       </div>
 
-      {/* 시스템 상태 표시 */}
-      <div className="system-status">
+      {/* 시스템 상태 표시 (왼쪽 하단 버전 정보만 유지) */}
+      <div className="system-status" data-testid="system-status">
         🌌 {solarSystems.length} Systems | ☄️ {asteroids.length} Asteroids
       </div>
     </div>
