@@ -1,6 +1,14 @@
 import React from 'react';
 
-const TodoItem = ({ todo, onToggleComplete, onEdit, onDelete }) => {
+const TodoItem = ({ 
+  todo, 
+  onToggleComplete, 
+  onEdit, 
+  onDelete, 
+  onTaskClick,
+  isSelected = false,
+  aiMode = false 
+}) => {
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
@@ -10,6 +18,20 @@ const TodoItem = ({ todo, onToggleComplete, onEdit, onDelete }) => {
   };
 
   const getCategoryIcon = (category) => {
+    if (aiMode) {
+      // AI mode category icons
+      const aiIcons = {
+        work: '💼',
+        personal: '🏠',
+        education: '📚',
+        finance: '💰',
+        home: '🏡',
+        health: '⚕️'
+      };
+      return aiIcons[category] || '🔧';
+    }
+    
+    // Legacy planet-based icons
     const icons = {
       sun: '☀️',
       mercury: '🌑',
@@ -25,17 +47,26 @@ const TodoItem = ({ todo, onToggleComplete, onEdit, onDelete }) => {
     return icons[category] || '🚀';
   };
 
+  const getHierarchyIcon = (hierarchyType) => {
+    const hierarchyIcons = {
+      sun: '☀️',
+      planet: '🪐',
+      satellite: '🛰️'
+    };
+    return hierarchyIcons[hierarchyType] || '🔧';
+  };
+
   const getPriorityClass = (priority) => {
     return `priority-${priority}`;
   };
 
   // 데드라인 긴급도 계산
   const getUrgencyInfo = () => {
-    if (!todo.deadline) return null;
+    if (!todo.deadline && !todo.estimatedDeadline) return null;
 
     const now = new Date();
     const created = new Date(todo.createdAt);
-    const deadline = new Date(todo.deadline);
+    const deadline = new Date(todo.deadline || todo.estimatedDeadline);
     
     const totalTime = deadline.getTime() - created.getTime();
     const remainingTime = deadline.getTime() - now.getTime();
@@ -82,13 +113,28 @@ const TodoItem = ({ todo, onToggleComplete, onEdit, onDelete }) => {
 
   const urgencyInfo = getUrgencyInfo();
 
+  // Handle task click for 3D focusing
+  const handleTaskClick = (e) => {
+    // Don't trigger if clicking on interactive elements
+    if (e.target.closest('button')) return;
+    
+    onTaskClick?.(todo);
+  };
+
   return (
-    <div className={`todo-item ${todo.completed ? 'completed' : ''} ${getPriorityClass(todo.priority)} ${urgencyInfo ? urgencyInfo.urgencyClass : ''}`}>
+    <div 
+      className={`todo-item ${todo.completed ? 'completed' : ''} ${getPriorityClass(todo.priority)} ${urgencyInfo ? urgencyInfo.urgencyClass : ''} ${isSelected ? 'selected' : ''} ${aiMode ? 'ai-enhanced' : ''}`}
+      onClick={handleTaskClick}
+      style={{ cursor: onTaskClick ? 'pointer' : 'default' }}
+    >
       <div className="todo-content">
         <div className="todo-main">
           <button
             className="todo-checkbox"
-            onClick={() => onToggleComplete(todo.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleComplete(todo.id);
+            }}
             aria-label={todo.completed ? 'Mark as incomplete' : 'Mark as complete'}
           >
             {todo.completed ? '✅' : '⭕'}
@@ -97,9 +143,19 @@ const TodoItem = ({ todo, onToggleComplete, onEdit, onDelete }) => {
           <div className="todo-info">
             <div className="todo-text">
               <span className="category-icon">{getCategoryIcon(todo.category)}</span>
+              {aiMode && (
+                <span className="hierarchy-icon" title={`${todo.hierarchyType} in solar system`}>
+                  {getHierarchyIcon(todo.hierarchyType)}
+                </span>
+              )}
               <span className={todo.completed ? 'strikethrough' : ''}>
                 {todo.text}
               </span>
+              {onTaskClick && (
+                <span className="focus-hint" title="Click to focus camera on this celestial body">
+                  🎯
+                </span>
+              )}
             </div>
             
             {/* 긴급도 표시 */}
@@ -118,27 +174,50 @@ const TodoItem = ({ todo, onToggleComplete, onEdit, onDelete }) => {
             <div className="todo-meta">
               <span className="category">{todo.category}</span>
               <span className="priority">{todo.priority} priority</span>
+              {aiMode && (
+                <span className="hierarchy">{todo.hierarchyType}</span>
+              )}
               <span className="date">Created: {formatDate(todo.createdAt)}</span>
-              {todo.deadline && (
+              {(todo.deadline || todo.estimatedDeadline) && (
                 <span className="deadline">
-                  Due: {formatDate(todo.deadline)}
+                  Due: {formatDate(todo.deadline || todo.estimatedDeadline)}
+                  {todo.estimatedDeadline && !todo.deadline && ' (AI estimated)'}
                 </span>
               )}
             </div>
+
+            {/* AI 정보 표시 */}
+            {aiMode && todo.visualProperties && (
+              <div className="ai-classification-info">
+                <span className="classification-tag">
+                  🤖 AI: {Math.round(todo.confidence || 0)}% confidence
+                </span>
+                {todo.solarSystemId && (
+                  <span className="classification-tag">
+                    🌌 System: {todo.solarSystemId.split('-')[0]}
+                  </span>
+                )}
+                <span className={`urgency-indicator ${todo.visualProperties.daysUntilDeadline <= 3 ? 'high' : todo.visualProperties.daysUntilDeadline <= 7 ? 'medium' : 'low'}`}></span>
+              </div>
+            )}
           </div>
         </div>
         
         <div className="todo-actions">
           <button
             className="edit-btn"
-            onClick={() => onEdit(todo)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(todo);
+            }}
             aria-label="Edit todo"
           >
             ✏️
           </button>
           <button
             className="delete-btn"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (window.confirm('Are you sure you want to delete this mission?')) {
                 onDelete(todo.id);
               }
@@ -149,6 +228,14 @@ const TodoItem = ({ todo, onToggleComplete, onEdit, onDelete }) => {
           </button>
         </div>
       </div>
+
+      {/* Selection indicator */}
+      {isSelected && (
+        <div className="selection-indicator">
+          <div className="selection-pulse"></div>
+          <span className="selection-text">🎯 Focused in 3D</span>
+        </div>
+      )}
     </div>
   );
 };
