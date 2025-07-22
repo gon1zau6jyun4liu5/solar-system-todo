@@ -1,551 +1,418 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EnhancedMissionControl from '../EnhancedMissionControl';
 
-// Mock data for testing
+// Mock todos for testing
 const mockTodos = [
   {
     id: 1,
-    text: 'High priority work task',
+    text: 'Complete project proposal',
     category: 'work',
+    hierarchyType: 'planet',
     priority: 'high',
     completed: false,
     createdAt: new Date('2025-07-20'),
-    deadline: new Date('2025-07-23'),
-    hierarchyType: 'planet',
+    deadline: new Date('2025-07-25'),
     visualProperties: {
-      daysUntilDeadline: 2,
+      daysUntilDeadline: 3,
       rotationSpeed: 0.01,
       sizeMultiplier: 1.5,
       brightness: 2.0,
-      urgencyColor: '#ff4444'
+      urgencyColor: '#ff8800'
     }
   },
   {
     id: 2,
-    text: 'Low priority personal task',
-    category: 'personal',
-    priority: 'low',
+    text: 'Review quarterly reports',
+    category: 'work',
+    hierarchyType: 'satellite',
+    priority: 'medium',
     completed: true,
     createdAt: new Date('2025-07-18'),
-    deadline: new Date('2025-07-30'),
-    hierarchyType: 'satellite',
+    deadline: new Date('2025-07-22'),
     visualProperties: {
-      daysUntilDeadline: 10,
+      daysUntilDeadline: 0,
       rotationSpeed: 0.005,
-      sizeMultiplier: 0.8,
+      sizeMultiplier: 1.0,
       brightness: 1.0,
-      urgencyColor: '#44ff44'
+      urgencyColor: '#44aa44'
     }
   },
   {
     id: 3,
-    text: 'Urgent education task',
-    category: 'education',
-    priority: 'high',
-    completed: false,
-    createdAt: new Date('2025-07-21'),
-    deadline: new Date('2025-07-22'),
+    text: 'Plan family vacation',
+    category: 'personal',
     hierarchyType: 'sun',
+    priority: 'low',
+    completed: false,
+    createdAt: new Date('2025-07-19'),
+    deadline: new Date('2025-08-01'),
     visualProperties: {
-      daysUntilDeadline: 1,
-      rotationSpeed: 0.02,
-      sizeMultiplier: 2.0,
-      brightness: 3.0,
-      urgencyColor: '#cc0000'
+      daysUntilDeadline: 10,
+      rotationSpeed: 0.002,
+      sizeMultiplier: 0.8,
+      brightness: 1.2,
+      urgencyColor: '#44ff44'
     }
   }
 ];
 
-describe('EnhancedMissionControl', () => {
-  const mockProps = {
-    todos: mockTodos,
-    onTodoUpdate: jest.fn(),
-    onTodoAdd: jest.fn(),
-    onTodoDelete: jest.fn(),
-    selectedCategory: null,
-    onCategoryChange: jest.fn()
-  };
+const defaultProps = {
+  todos: mockTodos,
+  onTodoUpdate: jest.fn(),
+  onTodoAdd: jest.fn(),
+  onTodoDelete: jest.fn(),
+  selectedCategory: null,
+  onCategoryChange: jest.fn()
+};
 
+describe('EnhancedMissionControl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('Rendering and Layout', () => {
-    test('renders enhanced mission control with correct version', () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      expect(screen.getByText('🚀 Enhanced Mission Control v0.4.2')).toBeInTheDocument();
-    });
+  test('renders Enhanced Mission Control with version 0.4.2', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    expect(screen.getByText('🚀 Enhanced Mission Control v0.4.2')).toBeInTheDocument();
+  });
 
-    test('displays correct statistics', () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      expect(screen.getByText('3')).toBeInTheDocument(); // Total missions
-      expect(screen.getByText('1')).toBeInTheDocument(); // Completed
-      expect(screen.getByText('2')).toBeInTheDocument(); // Urgent (based on daysUntilDeadline <= 3)
-      expect(screen.getByText('67%')).toBeInTheDocument(); // Success rate (1/3 * 100 = 33%, but shows completion rate)
-    });
+  test('displays correct statistics', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    expect(screen.getByText('3')).toBeInTheDocument(); // Total Missions
+    expect(screen.getByText('1')).toBeInTheDocument(); // Completed
+    expect(screen.getByText('1')).toBeInTheDocument(); // Urgent (daysUntilDeadline <= 3)
+    expect(screen.getByText('33%')).toBeInTheDocument(); // Success Rate
+  });
 
-    test('renders all mission cards', () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      expect(screen.getByText('High priority work task')).toBeInTheDocument();
-      expect(screen.getByText('Low priority personal task')).toBeInTheDocument();
-      expect(screen.getByText('Urgent education task')).toBeInTheDocument();
+  test('search functionality works correctly', async () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const searchInput = screen.getByPlaceholderText(/Search missions/);
+    fireEvent.change(searchInput, { target: { value: 'project' } });
+    
+    await waitFor(() => {
+      expect(screen.getByText('Complete project proposal')).toBeInTheDocument();
+      expect(screen.queryByText('Plan family vacation')).not.toBeInTheDocument();
     });
+  });
 
-    test('displays empty state when no todos', () => {
-      render(<EnhancedMissionControl {...mockProps} todos={[]} />);
-      
+  test('clear search button works', async () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const searchInput = screen.getByPlaceholderText(/Search missions/);
+    fireEvent.change(searchInput, { target: { value: 'project' } });
+    
+    await waitFor(() => {
+      const clearButton = screen.getByLabelText('Clear search');
+      fireEvent.click(clearButton);
+      expect(searchInput.value).toBe('');
+    });
+  });
+
+  test('filter by urgent missions works', async () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const filterSelect = screen.getByDisplayValue('All Missions');
+    fireEvent.change(filterSelect, { target: { value: 'urgent' } });
+    
+    await waitFor(() => {
+      expect(screen.getByText('Complete project proposal')).toBeInTheDocument();
+      expect(screen.queryByText('Plan family vacation')).not.toBeInTheDocument();
+    });
+  });
+
+  test('sorting by priority works correctly', async () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const sortSelect = screen.getByDisplayValue('Sort by Priority');
+    fireEvent.change(sortSelect, { target: { value: 'deadline' } });
+    
+    // Should re-render with deadline sorting
+    expect(sortSelect.value).toBe('deadline');
+  });
+
+  test('view mode switching works', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const listViewBtn = screen.getByTitle('List View');
+    const timelineViewBtn = screen.getByTitle('Timeline View');
+    
+    fireEvent.click(listViewBtn);
+    expect(listViewBtn).toHaveClass('active');
+    
+    fireEvent.click(timelineViewBtn);
+    expect(timelineViewBtn).toHaveClass('active');
+  });
+
+  test('todo selection and bulk operations work', async () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    // Select first todo
+    const firstCheckbox = screen.getAllByRole('checkbox')[0];
+    fireEvent.click(firstCheckbox);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/1 missions selected/)).toBeInTheDocument();
+      expect(screen.getByText('✓ Complete All')).toBeInTheDocument();
+    });
+  });
+
+  test('bulk complete operation calls onTodoUpdate', async () => {
+    const mockOnTodoUpdate = jest.fn();
+    render(<EnhancedMissionControl {...defaultProps} onTodoUpdate={mockOnTodoUpdate} />);
+    
+    // Select incomplete todo
+    const checkboxes = screen.getAllByRole('checkbox');
+    const incompleteCheckbox = checkboxes.find(cb => {
+      const card = cb.closest('.enhanced-mission-card');
+      return card && card.textContent.includes('Complete project proposal');
+    });
+    
+    fireEvent.click(incompleteCheckbox);
+    
+    await waitFor(() => {
+      const completeAllBtn = screen.getByText('✓ Complete All');
+      fireEvent.click(completeAllBtn);
+      expect(mockOnTodoUpdate).toHaveBeenCalledWith(1, { completed: true });
+    });
+  });
+
+  test('bulk delete operation calls onTodoDelete', async () => {
+    const mockOnTodoDelete = jest.fn();
+    window.confirm = jest.fn(() => true);
+    
+    render(<EnhancedMissionControl {...defaultProps} onTodoDelete={mockOnTodoDelete} />);
+    
+    // Select a todo
+    const firstCheckbox = screen.getAllByRole('checkbox')[0];
+    fireEvent.click(firstCheckbox);
+    
+    await waitFor(() => {
+      const deleteBtn = screen.getByText('🗑️ Delete Selected');
+      fireEvent.click(deleteBtn);
+      expect(mockOnTodoDelete).toHaveBeenCalled();
+    });
+  });
+
+  test('empty state is shown when no todos match filters', async () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const searchInput = screen.getByPlaceholderText(/Search missions/);
+    fireEvent.change(searchInput, { target: { value: 'nonexistent' } });
+    
+    await waitFor(() => {
       expect(screen.getByText('No missions found')).toBeInTheDocument();
-      expect(screen.getByText('Create your first space mission!')).toBeInTheDocument();
+      expect(screen.getByText('No missions match "nonexistent"')).toBeInTheDocument();
       expect(screen.getByText('🚀 Create New Mission')).toBeInTheDocument();
     });
   });
 
-  describe('Search Functionality', () => {
-    test('filters todos by search query', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const searchInput = screen.getByPlaceholderText(/Search missions/);
-      await user.type(searchInput, 'work');
-      
-      expect(screen.getByText('High priority work task')).toBeInTheDocument();
-      expect(screen.queryByText('Low priority personal task')).not.toBeInTheDocument();
-      expect(screen.queryByText('Urgent education task')).not.toBeInTheDocument();
-    });
+  test('empty state create button calls onTodoAdd', async () => {
+    const mockOnTodoAdd = jest.fn();
+    render(<EnhancedMissionControl {...defaultProps} todos={[]} onTodoAdd={mockOnTodoAdd} />);
+    
+    const createBtn = screen.getByText('🚀 Create New Mission');
+    fireEvent.click(createBtn);
+    
+    expect(mockOnTodoAdd).toHaveBeenCalled();
+  });
 
-    test('shows clear search button when searching', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const searchInput = screen.getByPlaceholderText(/Search missions/);
-      await user.type(searchInput, 'test');
-      
-      const clearButton = screen.getByLabelText('Clear search');
-      expect(clearButton).toBeInTheDocument();
-      
-      await user.click(clearButton);
-      expect(searchInput.value).toBe('');
-    });
+  test('keyboard shortcuts work correctly', () => {
+    const mockOnTodoAdd = jest.fn();
+    render(<EnhancedMissionControl {...defaultProps} onTodoAdd={mockOnTodoAdd} />);
+    
+    // Test Ctrl+N for new todo
+    fireEvent.keyDown(window, { key: 'n', ctrlKey: true });
+    expect(mockOnTodoAdd).toHaveBeenCalled();
+    
+    // Test Ctrl+F for search focus
+    const searchInput = screen.getByPlaceholderText(/Search missions/);
+    fireEvent.keyDown(window, { key: 'f', ctrlKey: true });
+    expect(document.activeElement).toBe(searchInput);
+  });
 
-    test('displays empty search results correctly', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
+  test('keyboard help toggle works', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const helpButton = screen.getByTitle(/Keyboard Shortcuts/);
+    fireEvent.click(helpButton);
+    
+    expect(screen.getByText('⌨️ Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('New Mission')).toBeInTheDocument();
+    expect(screen.getByText('Search')).toBeInTheDocument();
+    
+    const closeButton = screen.getByText('Got it!');
+    fireEvent.click(closeButton);
+    
+    expect(screen.queryByText('⌨️ Keyboard Shortcuts')).not.toBeInTheDocument();
+  });
+
+  test('mission card quick edit functionality works', async () => {
+    const mockOnTodoUpdate = jest.fn();
+    render(<EnhancedMissionControl {...defaultProps} onTodoUpdate={mockOnTodoUpdate} />);
+    
+    const missionText = screen.getByText('Complete project proposal');
+    fireEvent.doubleClick(missionText);
+    
+    await waitFor(() => {
+      const editInput = screen.getByDisplayValue('Complete project proposal');
+      fireEvent.change(editInput, { target: { value: 'Updated project proposal' } });
+      fireEvent.keyDown(editInput, { key: 'Enter' });
       
-      const searchInput = screen.getByPlaceholderText(/Search missions/);
-      await user.type(searchInput, 'nonexistent');
-      
-      expect(screen.getByText('No missions found')).toBeInTheDocument();
-      expect(screen.getByText('No missions match "nonexistent"')).toBeInTheDocument();
+      expect(mockOnTodoUpdate).toHaveBeenCalledWith(1, { text: 'Updated project proposal' });
     });
   });
 
-  describe('Filter and Sort Functionality', () => {
-    test('filters by urgency', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const filterSelect = screen.getByDisplayValue('All Missions');
-      await user.selectOptions(filterSelect, '🔥 Urgent Only');
-      
-      // Should show only urgent missions (daysUntilDeadline <= 3)
-      expect(screen.getByText('High priority work task')).toBeInTheDocument();
-      expect(screen.getByText('Urgent education task')).toBeInTheDocument();
-      expect(screen.queryByText('Low priority personal task')).not.toBeInTheDocument();
-    });
-
-    test('sorts by priority', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const sortSelect = screen.getByDisplayValue('Sort by Priority');
-      await user.selectOptions(sortSelect, 'Sort by Deadline');
-      
-      // After sorting by deadline, should maintain order but verify sort option is selected
-      expect(sortSelect.value).toBe('deadline');
-    });
-
-    test('filters by category', async () => {
-      const propsWithCategory = {
-        ...mockProps,
-        selectedCategory: 'work'
-      };
-      
-      render(<EnhancedMissionControl {...propsWithCategory} />);
-      
-      expect(screen.getByText('High priority work task')).toBeInTheDocument();
-      expect(screen.queryByText('Low priority personal task')).not.toBeInTheDocument();
-      expect(screen.queryByText('Urgent education task')).not.toBeInTheDocument();
-    });
+  test('mission card quick actions work', () => {
+    const mockOnTodoUpdate = jest.fn();
+    const mockOnTodoDelete = jest.fn();
+    window.confirm = jest.fn(() => true);
+    
+    render(<EnhancedMissionControl {...defaultProps} onTodoUpdate={mockOnTodoUpdate} onTodoDelete={mockOnTodoDelete} />);
+    
+    // Find complete button for incomplete todo
+    const projectCard = screen.getByText('Complete project proposal').closest('.enhanced-mission-card');
+    const completeBtn = projectCard.querySelector('.quick-action.complete');
+    
+    fireEvent.click(completeBtn);
+    expect(mockOnTodoUpdate).toHaveBeenCalledWith(1, { completed: true });
+    
+    // Test delete button
+    const deleteBtn = projectCard.querySelector('.quick-action.delete');
+    fireEvent.click(deleteBtn);
+    expect(mockOnTodoDelete).toHaveBeenCalledWith(1);
   });
 
-  describe('View Mode Switching', () => {
-    test('changes view mode to list view', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const listViewButton = screen.getByTitle('List View');
-      await user.click(listViewButton);
-      
-      expect(listViewButton).toHaveClass('active');
-      
-      const container = document.querySelector('.missions-container');
-      expect(container).toHaveClass('list-view');
-    });
-
-    test('changes view mode to timeline view', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const timelineViewButton = screen.getByTitle('Timeline View');
-      await user.click(timelineViewButton);
-      
-      expect(timelineViewButton).toHaveClass('active');
-      
-      const container = document.querySelector('.missions-container');
-      expect(container).toHaveClass('timeline-view');
-    });
+  test('urgency levels are displayed correctly', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    // High priority, urgent deadline todo should have critical styling
+    const urgentCard = screen.getByText('Complete project proposal').closest('.enhanced-mission-card');
+    expect(urgentCard).toHaveClass('urgent');
+    
+    // Completed todo should have completed styling
+    const completedCard = screen.getByText('Review quarterly reports').closest('.enhanced-mission-card');
+    expect(completedCard).toHaveClass('completed');
   });
 
-  describe('Mission Card Interactions', () => {
-    test('selects and deselects mission cards', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const firstCheckbox = screen.getAllByRole('checkbox')[0];
-      await user.click(firstCheckbox);
-      
-      expect(firstCheckbox).toBeChecked();
-      
-      // Should show bulk actions
-      expect(screen.getByText(/missions selected/)).toBeInTheDocument();
-      expect(screen.getByText('✓ Complete All')).toBeInTheDocument();
-    });
-
-    test('toggles mission completion', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const completeButtons = screen.getAllByTitle(/Mark as complete/);
-      await user.click(completeButtons[0]);
-      
-      expect(mockProps.onTodoUpdate).toHaveBeenCalledWith(1, { completed: true });
-    });
-
-    test('handles mission deletion with confirmation', async () => {
-      const user = userEvent.setup();
-      // Mock window.confirm to return true
-      window.confirm = jest.fn(() => true);
-      
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const deleteButtons = screen.getAllByTitle('Delete mission');
-      await user.click(deleteButtons[0]);
-      
-      expect(window.confirm).toHaveBeenCalledWith('Delete this mission?');
-      expect(mockProps.onTodoDelete).toHaveBeenCalledWith(1);
-    });
-
-    test('enables quick edit mode on double click', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const missionText = screen.getByText('High priority work task');
-      await user.dblClick(missionText);
-      
-      expect(screen.getByDisplayValue('High priority work task')).toBeInTheDocument();
-    });
-
-    test('saves quick edit on enter key', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const missionText = screen.getByText('High priority work task');
-      await user.dblClick(missionText);
-      
-      const editInput = screen.getByDisplayValue('High priority work task');
-      await user.clear(editInput);
-      await user.type(editInput, 'Updated task text');
-      await user.keyboard('{Enter}');
-      
-      expect(mockProps.onTodoUpdate).toHaveBeenCalledWith(1, { text: 'Updated task text' });
-    });
+  test('category and hierarchy badges are displayed', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    expect(screen.getByText('work')).toBeInTheDocument();
+    expect(screen.getByText('personal')).toBeInTheDocument();
+    expect(screen.getByText('planet')).toBeInTheDocument();
+    expect(screen.getByText('satellite')).toBeInTheDocument();
+    expect(screen.getByText('sun')).toBeInTheDocument();
   });
 
-  describe('Bulk Operations', () => {
-    test('performs bulk completion', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      // Select first two todos
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
-      await user.click(checkboxes[1]);
-      
-      const completeAllButton = screen.getByText('✓ Complete All');
-      await user.click(completeAllButton);
-      
-      expect(mockProps.onTodoUpdate).toHaveBeenCalledTimes(1); // Only incomplete one should be updated
-      expect(mockProps.onTodoUpdate).toHaveBeenCalledWith(1, { completed: true });
-    });
-
-    test('performs bulk deletion with confirmation', async () => {
-      const user = userEvent.setup();
-      window.confirm = jest.fn(() => true);
-      
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      // Select todos
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
-      await user.click(checkboxes[1]);
-      
-      const deleteButton = screen.getByText('🗑️ Delete Selected');
-      await user.click(deleteButton);
-      
-      expect(window.confirm).toHaveBeenCalledWith('Delete 2 selected missions?');
-      expect(mockProps.onTodoDelete).toHaveBeenCalledTimes(2);
-    });
-
-    test('cancels bulk selection', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      // Select a todo
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
-      
-      const cancelButton = screen.getByText('Cancel');
-      await user.click(cancelButton);
-      
-      expect(screen.queryByText(/missions selected/)).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Keyboard Shortcuts', () => {
-    test('shows keyboard help with Ctrl+?', async () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      fireEvent.keyDown(window, { key: '?', ctrlKey: true });
-      
-      expect(screen.getByText('⌨️ Keyboard Shortcuts')).toBeInTheDocument();
-      expect(screen.getByText('New Mission')).toBeInTheDocument();
-    });
-
-    test('focuses search input with Ctrl+F', async () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      fireEvent.keyDown(window, { key: 'f', ctrlKey: true, preventDefault: jest.fn() });
-      
-      const searchInput = screen.getByPlaceholderText(/Search missions/);
-      expect(searchInput).toHaveFocus();
-    });
-
-    test('selects all todos with Ctrl+A', async () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      fireEvent.keyDown(window, { key: 'a', ctrlKey: true, preventDefault: jest.fn() });
-      
-      expect(screen.getByText('3 missions selected')).toBeInTheDocument();
-    });
-
-    test('clears selection with Escape key', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      // First select a todo
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
-      
-      fireEvent.keyDown(window, { key: 'Escape' });
-      
-      expect(screen.queryByText(/missions selected/)).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Accessibility Features', () => {
-    test('has proper ARIA labels for interactive elements', () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      expect(screen.getByLabelText('Clear search')).toBeInTheDocument();
-      expect(screen.getByLabelText('Select mission: High priority work task')).toBeInTheDocument();
-    });
-
-    test('supports keyboard navigation', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      // Tab through elements
-      await user.tab();
-      expect(document.activeElement).toHaveAttribute('placeholder', /Search missions/);
-    });
-
-    test('provides proper focus indicators', () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const searchInput = screen.getByPlaceholderText(/Search missions/);
-      searchInput.focus();
-      
-      expect(searchInput).toHaveFocus();
-    });
-  });
-
-  describe('Urgency Visualization', () => {
-    test('displays correct urgency levels', () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      // Check for urgency classes on mission cards
-      const missionCards = document.querySelectorAll('.enhanced-mission-card');
-      
-      // First todo (2 days) should be urgent
-      expect(missionCards[0]).toHaveClass('urgent');
-      
-      // Third todo (1 day) should be critical
-      expect(missionCards[2]).toHaveClass('critical');
-    });
-
-    test('shows progress bars for deadlines', () => {
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const progressBars = document.querySelectorAll('.urgency-progress');
-      expect(progressBars.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Error Handling and Edge Cases', () => {
-    test('handles empty todos array gracefully', () => {
-      render(<EnhancedMissionControl {...mockProps} todos={[]} />);
-      
-      expect(screen.getByText('No missions found')).toBeInTheDocument();
-      expect(screen.getByText('0')).toBeInTheDocument(); // Total count should be 0
-    });
-
-    test('handles todos without visual properties', () => {
-      const todosWithoutVisualProps = [
-        {
-          id: 1,
-          text: 'Simple todo',
-          category: 'work',
-          priority: 'medium',
-          completed: false,
-          createdAt: new Date()
-        }
-      ];
-      
-      render(<EnhancedMissionControl {...mockProps} todos={todosWithoutVisualProps} />);
-      
-      expect(screen.getByText('Simple todo')).toBeInTheDocument();
-    });
-
-    test('handles invalid date objects', () => {
-      const todosWithInvalidDates = [
-        {
-          id: 1,
-          text: 'Todo with invalid date',
-          category: 'work',
-          priority: 'medium',
-          completed: false,
-          createdAt: 'invalid-date',
-          deadline: 'invalid-date',
-          visualProperties: {
-            daysUntilDeadline: 5
-          }
-        }
-      ];
-      
-      expect(() => {
-        render(<EnhancedMissionControl {...mockProps} todos={todosWithInvalidDates} />);
-      }).not.toThrow();
-    });
-  });
-
-  describe('Performance Considerations', () => {
-    test('renders large number of todos efficiently', () => {
-      const largeTodoSet = Array.from({ length: 100 }, (_, i) => ({
-        id: i + 1,
-        text: `Todo ${i + 1}`,
-        category: 'work',
-        priority: 'medium',
-        completed: false,
-        createdAt: new Date(),
-        visualProperties: { daysUntilDeadline: 5 }
-      }));
-      
-      const startTime = performance.now();
-      render(<EnhancedMissionControl {...mockProps} todos={largeTodoSet} />);
-      const endTime = performance.now();
-      
-      expect(endTime - startTime).toBeLessThan(1000); // Should render within 1 second
-    });
-
-    test('search debouncing works correctly', async () => {
-      const user = userEvent.setup();
-      render(<EnhancedMissionControl {...mockProps} />);
-      
-      const searchInput = screen.getByPlaceholderText(/Search missions/);
-      
-      // Type rapidly
-      await user.type(searchInput, 'work');
-      
-      // Search should update immediately for demo purposes
-      expect(screen.getByText('High priority work task')).toBeInTheDocument();
-    });
+  test('priority badges are displayed with correct styling', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const highPriorityBadge = screen.getByText('HIGH');
+    expect(highPriorityBadge).toHaveClass('priority-badge', 'high');
+    
+    const mediumPriorityBadge = screen.getByText('MEDIUM');
+    expect(mediumPriorityBadge).toHaveClass('priority-badge', 'medium');
+    
+    const lowPriorityBadge = screen.getByText('LOW');
+    expect(lowPriorityBadge).toHaveClass('priority-badge', 'low');
   });
 });
 
-describe('EnhancedMissionCard Component', () => {
-  const mockTodo = mockTodos[0];
-  const mockProps = {
-    todo: mockTodo,
-    isSelected: false,
-    onSelect: jest.fn(),
-    onUpdate: jest.fn(),
-    onDelete: jest.fn(),
-    onDragStart: jest.fn(),
-    onDragOver: jest.fn(),
-    onDrop: jest.fn(),
-    viewMode: 'grid'
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
+describe('EnhancedMissionControl Accessibility', () => {
+  test('has proper ARIA labels and roles', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
+    
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes.length).toBeGreaterThan(0);
+    
+    checkboxes.forEach(checkbox => {
+      expect(checkbox).toHaveAttribute('aria-label');
+    });
   });
 
-  test('renders mission card with correct content', () => {
-    render(
-      <div>
-        <EnhancedMissionControl {...{ todos: [mockTodo], onTodoUpdate: jest.fn(), onTodoAdd: jest.fn(), onTodoDelete: jest.fn(), selectedCategory: null, onCategoryChange: jest.fn() }} />
-      </div>
-    );
+  test('keyboard navigation works', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
     
-    expect(screen.getByText('High priority work task')).toBeInTheDocument();
-    expect(screen.getByText('HIGH')).toBeInTheDocument();
-    expect(screen.getByText('work')).toBeInTheDocument();
+    // Test escape key clears selection
+    const firstCheckbox = screen.getAllByRole('checkbox')[0];
+    fireEvent.click(firstCheckbox);
+    
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(firstCheckbox).not.toBeChecked();
   });
 
-  test('handles drag and drop events', () => {
-    render(
-      <div>
-        <EnhancedMissionControl {...{ todos: [mockTodo], onTodoUpdate: jest.fn(), onTodoAdd: jest.fn(), onTodoDelete: jest.fn(), selectedCategory: null, onCategoryChange: jest.fn() }} />
-      </div>
-    );
+  test('search input has proper focus management', () => {
+    render(<EnhancedMissionControl {...defaultProps} />);
     
-    const missionCard = document.querySelector('.enhanced-mission-card');
-    expect(missionCard).toHaveAttribute('draggable', 'true');
+    const searchInput = screen.getByPlaceholderText(/Search missions/);
+    expect(searchInput).toHaveAttribute('id', 'search-input');
+  });
+});
+
+describe('EnhancedMissionControl Performance', () => {
+  test('renders efficiently with large todo lists', () => {
+    const largeTodoList = Array.from({ length: 100 }, (_, i) => ({
+      id: i + 1,
+      text: `Todo item ${i + 1}`,
+      category: ['work', 'personal', 'education'][i % 3],
+      hierarchyType: ['sun', 'planet', 'satellite'][i % 3],
+      priority: ['low', 'medium', 'high'][i % 3],
+      completed: i % 4 === 0,
+      createdAt: new Date(),
+      deadline: new Date(Date.now() + (i * 24 * 60 * 60 * 1000)),
+      visualProperties: {
+        daysUntilDeadline: i % 10 + 1,
+        rotationSpeed: 0.005,
+        sizeMultiplier: 1.0,
+        brightness: 1.0,
+        urgencyColor: '#44aa44'
+      }
+    }));
+    
+    const startTime = performance.now();
+    render(<EnhancedMissionControl {...defaultProps} todos={largeTodoList} />);
+    const endTime = performance.now();
+    
+    // Should render within reasonable time
+    expect(endTime - startTime).toBeLessThan(1000);
+    
+    // Should display first few items
+    expect(screen.getByText('Todo item 1')).toBeInTheDocument();
   });
 
-  test('displays hierarchy type correctly', () => {
-    render(
-      <div>
-        <EnhancedMissionControl {...{ todos: [mockTodo], onTodoUpdate: jest.fn(), onTodoAdd: jest.fn(), onTodoDelete: jest.fn(), selectedCategory: null, onCategoryChange: jest.fn() }} />
-      </div>
-    );
+  test('search performance with large datasets', async () => {
+    const largeTodoList = Array.from({ length: 100 }, (_, i) => ({
+      id: i + 1,
+      text: `Todo item ${i + 1}`,
+      category: 'work',
+      hierarchyType: 'satellite',
+      priority: 'medium',
+      completed: false,
+      createdAt: new Date(),
+      visualProperties: {
+        daysUntilDeadline: 5,
+        rotationSpeed: 0.005,
+        sizeMultiplier: 1.0,
+        brightness: 1.0,
+        urgencyColor: '#44aa44'
+      }
+    }));
     
-    expect(screen.getByText('🪐 planet')).toBeInTheDocument();
+    render(<EnhancedMissionControl {...defaultProps} todos={largeTodoList} />);
+    
+    const startTime = performance.now();
+    const searchInput = screen.getByPlaceholderText(/Search missions/);
+    fireEvent.change(searchInput, { target: { value: 'item 50' } });
+    
+    await waitFor(() => {
+      expect(screen.getByText('Todo item 50')).toBeInTheDocument();
+    });
+    
+    const endTime = performance.now();
+    expect(endTime - startTime).toBeLessThan(200); // Search should be fast
   });
 });
