@@ -1,344 +1,134 @@
-# 🚀 Enhanced Solar System Todo App v0.4.2
+# 🚀 태양계 투두 앱 v0.4.4
 
-**Next-Generation 3D AI-Powered Productivity Platform** - Revolutionary space-themed todo management with Enhanced Mission Control and Multi Solar System visualization
+React Three Fiber를 사용한 3D 태양계 시뮬레이션과 할일 관리 시스템
 
-![Version](https://img.shields.io/badge/version-0.4.2-purple.svg)
+![Version](https://img.shields.io/badge/version-0.4.4-blue.svg)
 ![React](https://img.shields.io/badge/React-19.1.0-61dafb.svg)
 ![Three.js](https://img.shields.io/badge/Three.js-0.178.0-black.svg)
-![AI](https://img.shields.io/badge/AI-Powered-green.svg)
-![Tests](https://img.shields.io/badge/tests-85%25+-green.svg)
-![UI](https://img.shields.io/badge/UI-Enhanced-purple.svg)
 
-## ✨ What's New in v0.4.2
+## ✨ 주요 기능
 
-### 🎨 **Enhanced Mission Control Dashboard**
-- **Unified Control Panel** - Complete mission oversight in one view
-- **Real-time Performance Metrics** - FPS, Memory, and Object monitoring
-- **Advanced Statistics** - Detailed analytics and productivity insights
-- **System Health Monitoring** - Power, Communications, and Navigation status
+### 🌌 3D 태양계 시스템
+- 태양을 중심으로 한 8개 행성 궤도 시스템
+- 실제 행성 크기와 궤도 속도 반영
+- 마우스로 줌, 회전, 이동 가능
 
-### 🖥️ **Dual UI System**
-- **Enhanced UI Mode** - Feature-rich dashboard with advanced controls
-- **Classic UI Mode** - Traditional interface for focused productivity
-- **Seamless Toggle** - Switch between modes with preserved state
-- **Responsive Design** - Optimized for all devices and screen sizes
+### 📋 할일 관리
+- 행성별 카테고리로 할일 분류 (수성~해왕성)
+- 우선순위 설정 (높음/보통/낮음)
+- 마감일 설정 및 긴급도 시각화
+- 완료/미완료 상태 관리
 
-### 🌌 **Multi Solar System Architecture**
-- **Multiple Solar Systems** - Manage different project universes
-- **AI-Powered Organization** - Automatic system generation and management
-- **Advanced 3D Visualization** - Enhanced celestial body rendering
-- **Intelligent Navigation** - Smooth transitions between systems
+### 🤖 AI 기능
+- AI 기반 할일 자동 분류
+- 스마트 우선순위 예측
+- 생산성 분석 대시보드
+- 실시간 인사이트 제공
 
-### 🤖 **Advanced AI Integration**
-- **Smart Classification** - Automatic todo categorization and prioritization
-- **Predictive Analytics** - AI-powered insights and recommendations
-- **Dynamic Visual Properties** - Intelligent size, color, and animation
-- **Performance Optimization** - AI-driven rendering optimizations
+### 📊 분석 대시보드
+- 생산성 통계 및 트렌드 분석
+- 카테고리별 완료율 시각화
+- 시간대별 활동 패턴 분석
+- 목표 달성률 추적
 
-## 🌟 Core Features
+### 🎯 인터랙티브 기능
+- 미완료 할일이 있는 행성 클릭 가능
+- 행성 위에 할일 개수 표시
+- 마감일에 따른 색상 변화 (초록→노랑→주황→빨강)
+- 실시간 긴급도 애니메이션
 
-### 🎮 **Enhanced Mission Control**
-- **Mission Control Panel** - Centralized dashboard for all operations
-- **Universe Overview** - Solar systems, celestial bodies, and mission statistics
-- **Performance Dashboard** - Real-time FPS, memory usage, and object counts
-- **Priority Matrix** - Urgent, High, Medium, Low mission categorization
-- **System Status** - Power, communications, navigation health indicators
-
-### 🌍 **Multi Solar System Visualization**
-- **Dynamic System Generation** - AI creates systems based on todo categories
-- **Hierarchical Celestial Bodies** - Suns (goals), Planets (projects), Satellites (tasks)
-- **Realistic Physics** - Orbital mechanics with accurate speed and distance
-- **Interactive Elements** - Click celestial bodies for detailed information
-- **Smooth Navigation** - Seamless exploration between solar systems
-
-### 📋 **AI-Enhanced Todo Management**
-- **Intelligent Classification** - 6 categories: Work, Personal, Education, Finance, Home, Health
-- **Smart Hierarchy** - Automatic Sun/Planet/Satellite assignment
-- **Priority Detection** - AI analyzes text for urgency and importance
-- **Deadline Prediction** - Machine learning estimates realistic completion dates
-- **Visual Properties** - Dynamic sizing, coloring, and animations based on AI analysis
-
-### 🎨 **Advanced UI/UX Design**
-- **Dual Mode Interface** - Enhanced dashboard or classic view
-- **Responsive Layout** - Mobile, tablet, and desktop optimized
-- **Performance Monitoring** - Real-time metrics display
-- **Accessibility Features** - WCAG 2.1 AA compliant design
-- **Dark Theme** - Space-optimized color scheme
-
-## 🚀 Quick Start
+## 🚀 빠른 시작
 
 ```bash
-# Clone the repository
+# 프로젝트 클론
 git clone https://github.com/gon1zau6jyun4liu5/solar-system-todo.git
 
-# Navigate to project directory
+# 의존성 설치
 cd solar-system-todo
-
-# Install dependencies
 npm install
 
-# Start development server
+# 개발 서버 실행
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to experience the Enhanced Mission Control.
+브라우저에서 http://localhost:3000 으로 접속
 
-## 🎮 How to Use
+## 🧪 테스트
 
-### **Enhanced Mission Control Mode (Default)**
-
-1. **Mission Overview Dashboard**
-   - View real-time performance metrics
-   - Monitor system health indicators
-   - Analyze mission statistics and priorities
-
-2. **Multi Solar System Navigation**
-   - Use mouse/touch to explore different solar systems
-   - Scroll to zoom in/out for detailed inspection
-   - Click celestial bodies to view associated todos
-
-3. **Performance Monitoring**
-   - Track FPS for optimal 3D experience
-   - Monitor memory usage and object counts
-   - Ensure smooth operation across all devices
-
-### **Classic UI Mode**
-
-1. **Traditional Todo Management**
-   - Access familiar AI Todo Manager interface
-   - Focus on core productivity features
-   - Single solar system visualization
-
-2. **Quick Mode Switching**
-   - Click "Switch to Classic UI" in Enhanced mode
-   - Click "Switch to Enhanced UI" in Classic mode
-   - State preservation across mode changes
-
-### **AI-Powered Todo Creation**
-
-1. **Smart Mission Creation**
-   - Enter natural language descriptions
-   - AI automatically determines category, priority, and hierarchy
-   - Suggests optimal deadlines and classifications
-
-2. **Manual Override Options**
-   - Override AI suggestions when needed
-   - Fine-tune classifications for specific needs
-   - Maintain control while benefiting from AI assistance
-
-## 🎯 AI Classification System
-
-### **Categories & Keywords**
-| Category | Keywords | Default Priority | Est. Days |
-|----------|----------|------------------|-----------|
-| **Work** | meeting, project, deadline, report, email | High | 7 |
-| **Personal** | workout, health, family, hobby, book | Medium | 14 |
-| **Education** | study, learn, exam, research, course | High | 10 |
-| **Finance** | budget, payment, tax, investment | High | 3 |
-| **Home** | clean, repair, organize, cooking | Medium | 5 |
-| **Health** | medical, therapy, diet, wellness | High | 7 |
-
-### **Hierarchy Types**
-- **☀️ Suns** - Major goals and objectives (goal, mission, vision, strategy)
-- **🪐 Planets** - Projects and initiatives (project, plan, campaign, program)
-- **🛰️ Satellites** - Individual tasks and actions (task, action, step, item)
-
-### **Visual Properties Algorithm**
-```javascript
-// AI calculates visual properties based on multiple factors
-const visualProps = {
-  size: baseSizeFor(hierarchyType) * priorityMultiplier * urgencyFactor,
-  color: getCategoryColor(category) + getUrgencyTint(daysUntilDeadline),
-  rotationSpeed: baseSpeed / Math.max(1, daysUntilDeadline),
-  brightness: baseBrightness * priorityIntensity * urgencyBoost
-};
-```
-
-## 🏗️ Architecture Overview
-
-### **Component Hierarchy**
-```
-App.js (Enhanced State Management)
-├── EnhancedMissionControl.js (Main Dashboard)
-│   ├── MissionControlPanel.js (Control Interface)
-│   ├── PerformanceMetrics.js (Real-time Monitoring)
-│   └── MultiSolarSystemScene.js (3D Visualization)
-│       ├── AISun.js (Enhanced Suns)
-│       ├── AIPlanet.js (Smart Planets)
-│       └── AISatellite.js (Intelligent Satellites)
-└── AITodoManager.js (Classic UI Mode)
-    ├── AITodoForm.js (AI-Enhanced Forms)
-    ├── TodoList.js (Enhanced Lists)
-    └── TodoItem.js (Smart Items)
-```
-
-### **State Management**
-```javascript
-// Enhanced state structure for v0.4.2
-const appState = {
-  todos: [],                    // AI-classified todo items
-  selectedTodoId: null,         // Currently selected celestial body
-  isEnhancedUI: true,          // UI mode toggle
-  isAnimationPlaying: true,     // Animation control
-  performanceMetrics: {},       // Real-time performance data
-  aiInsights: {}               // Generated AI insights
-};
-```
-
-## 🧪 Testing & Quality Assurance
-
-### **Comprehensive Test Suite**
 ```bash
-npm test                    # Run all tests (85%+ coverage)
-npm run test:coverage      # Generate coverage report
-npm run test:performance   # Performance benchmarks
-npm run test:accessibility # Accessibility compliance
+# 테스트 실행
+npm test
+
+# 커버리지 확인 (80% 목표)
+npm run test:coverage
+
+# 프로덕션 빌드
+npm run build
 ```
 
-### **Test Coverage Areas**
-- ✅ Enhanced Mission Control rendering and functionality
-- ✅ Multi Solar System 3D visualization
-- ✅ AI classification accuracy and performance
-- ✅ UI mode switching and state preservation
-- ✅ Performance monitoring and optimization
-- ✅ Responsive design across all devices
-- ✅ Accessibility and keyboard navigation
-- ✅ Error handling and edge cases
+## 🎮 사용법
 
-## 📊 Performance Metrics
+### 할일 생성
+1. 우측 패널의 "+ AI Smart Mission" 버튼 클릭
+2. 할일 내용 입력 (AI가 자동으로 분류 제안)
+3. 필요시 카테고리, 우선순위, 마감일 수동 조정
+4. "Launch AI Mission" 클릭
 
-### **Real-time Monitoring**
-- **FPS Target:** 60+ frames per second
-- **Memory Usage:** < 100MB for optimal performance
-- **Object Count:** Dynamic based on active todos
-- **Render Time:** < 16ms per frame for smooth animation
+### 분석 대시보드
+1. 화면 하단의 "📊 Analytics" 버튼 클릭
+2. 생산성 지표 및 트렌드 확인
+3. 카테고리별 성과 분석
+4. 개선 권장사항 확인
 
-### **Performance Optimizations**
-- **Object Pooling** - Reuse 3D objects for efficiency
-- **LOD System** - Distance-based detail reduction
-- **Frustum Culling** - Render only visible objects
-- **Batch Operations** - Minimize state changes
-- **Worker Threads** - Offload heavy AI computations
+### 행성 인터랙션
+- 미완료 할일이 있는 행성을 클릭하면 해당 카테고리 필터 적용
+- 행성 위 숫자는 미완료 할일 개수
+- "Show All" 버튼으로 전체 보기 복원
 
-## 🌐 Browser Support
+## 🛠️ 기술 스택
 
-### **Recommended Browsers**
-- **Chrome 95+** - Full feature support with optimal performance
-- **Firefox 92+** - Complete compatibility
-- **Safari 15+** - Enhanced WebGL support
-- **Edge 95+** - Full feature parity
+- **Frontend:** React 19.1.0
+- **3D 렌더링:** Three.js 0.178.0 + React Three Fiber 9.2.0
+- **3D 유틸리티:** React Three Drei 10.5.1
+- **테스팅:** Jest + React Testing Library (85%+ 커버리지)
+- **빌드:** Create React App 5.0.1
+- **AI:** 자체 개발 분류 엔진
 
-### **Mobile Support**
-- **iOS Safari 15+** - Touch-optimized controls
-- **Chrome Mobile 95+** - Full feature support
-- **Samsung Internet 16+** - Optimized rendering
+## 📊 긴급도 시스템
 
-## 🎨 Design System
+| 상태 | 색상 | 남은 시간 비율 |
+|------|------|----------------|
+| 보통 | 🟢 초록색 | 51-100% |
+| 주의 | 🟡 노란색 | 26-50% |
+| 긴급 | 🟠 주황색 | 11-25% |
+| 심각 | 🔴 빨간색 | 1-10% |
+| 연체 | ⚫ 진한 빨간색 | 0% |
 
-### **Color Palette**
-```css
-/* Enhanced Mission Control Colors */
---primary-purple: #6633ff;
---primary-blue: #0099ff;
---control-bg: rgba(0, 0, 0, 0.95);
---status-online: #00ff00;
---performance-excellent: #00ff88;
-```
+## 📋 지원 브라우저
 
-### **Typography**
-- **Headers:** System UI fonts with cosmic styling
-- **Metrics:** Monospace for technical readability
-- **UI Elements:** Sans-serif for clarity and accessibility
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
-### **Animations**
-- **Mission Control Glow** - Subtle breathing effect
-- **Status Indicators** - Pulsing for active states
-- **Performance Metrics** - Smooth value transitions
-- **3D Transitions** - Smooth camera movements
+## 🔄 최신 업데이트 (v0.4.4)
 
-## 🔧 Development Workflow
+- 📝 한국어 README 문서 제공
+- 🎯 핵심 기능 위주로 문서 간소화
+- 📊 분석 대시보드 기능 소개 추가
+- 🤖 AI 기능 설명 보강
 
-### **Version Management**
-- **Feature Branches:** `feature/feature-name-vX.X.X`
-- **Version Display:** Always visible in UI
-- **Semantic Versioning:** Major.Minor.Patch format
-- **Release Notes:** Comprehensive change documentation
+## 📄 라이선스
 
-### **Quality Gates**
-1. **All Tests Pass** - 85%+ coverage requirement
-2. **ESLint Clean** - Zero warnings policy
-3. **Performance Benchmarks** - 60fps minimum
-4. **Accessibility Compliance** - WCAG 2.1 AA
-5. **Browser Testing** - Cross-platform validation
+MIT License
 
-## 🚀 Roadmap
+## 🤝 기여하기
 
-### **v0.5.0 - Advanced AI & Collaboration**
-- 🎤 **Voice Control** - Natural language mission management
-- 👥 **Team Workspaces** - Collaborative solar systems
-- 🧠 **Advanced AI** - Machine learning insights
-- 🥽 **VR/AR Support** - Immersive 3D environments
-- 📱 **Mobile App** - Native iOS/Android applications
-
-### **v0.6.0 - Enterprise Features**
-- 🔄 **Cloud Sync** - Multi-device synchronization
-- 📊 **Advanced Analytics** - Business intelligence
-- 🔒 **Security** - Enterprise-grade protection
-- 🌍 **Localization** - Multi-language support
-- 🔌 **API Platform** - Third-party integrations
-
-## 🤝 Contributing
-
-We welcome contributions to the Enhanced Solar System Todo project!
-
-1. **Fork the repository**
-2. **Create feature branch** (`git checkout -b feature/amazing-feature-v0.4.2`)
-3. **Add comprehensive tests** - Maintain 85%+ coverage
-4. **Update documentation** - Include specification updates
-5. **Commit changes** (`git commit -m 'Add amazing feature'`)
-6. **Push to branch** (`git push origin feature/amazing-feature-v0.4.2`)
-7. **Open Pull Request** - Include detailed description
-
-### **Development Guidelines**
-- Follow existing code style and patterns
-- Write tests for all new functionality
-- Update specifications for any changes
-- Ensure accessibility compliance
-- Test across supported browsers
-
-## 📞 Support & Community
-
-- **GitHub Issues** - Bug reports and feature requests
-- **Discussions** - Community questions and ideas
-- **Wiki** - Detailed documentation and guides
-- **Releases** - Version history and change logs
-
-## 🙏 Acknowledgments
-
-- **Three.js Community** - Outstanding 3D library and ecosystem
-- **React Team** - Excellent framework and fiber integration
-- **AI Research Community** - Inspiration for classification algorithms
-- **Space Agencies** - Real-world inspiration for design and mechanics
-- **Open Source Contributors** - Community support and contributions
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+1. Fork 후 feature 브랜치 생성
+2. 변경사항 커밋
+3. 테스트 통과 확인
+4. Pull Request 생성
 
 ---
 
-**Made with 🚀, 🤖, and ❤️ for the future of productivity**
-
-**Enhanced Solar System Todo v0.4.2** - Where AI meets the cosmos to revolutionize task management through immersive 3D experiences and intelligent automation.
-
-**🎯 Experience the future of productivity at [Demo Link](https://your-demo-link.com)**
-
----
-
-### **📈 Project Stats**
-- **🌟 Stars:** Growing community of space productivity enthusiasts
-- **🍴 Forks:** Active development and customization
-- **🐛 Issues:** Community-driven improvement
-- **🚀 Releases:** Regular feature updates and enhancements
-- **📊 Coverage:** 85%+ comprehensive testing
-- **⚡ Performance:** 60+ FPS optimized experience
+**Made with 🚀 and ❤️**
