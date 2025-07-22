@@ -10,7 +10,8 @@ const Planet = ({
   orbitSpeed, 
   pendingTasks, 
   isClickable = true, 
-  onClick 
+  onClick,
+  onCelestialClick
 }) => {
   const planetRef = useRef();
   const orbitRef = useRef();
@@ -49,6 +50,13 @@ const Planet = ({
     }
   };
 
+  const handleCelestialClick = (event) => {
+    event.stopPropagation();
+    if (onCelestialClick) {
+      onCelestialClick(event);
+    }
+  };
+
   return (
     <group>
       {/* 궤도 선 */}
@@ -67,8 +75,17 @@ const Planet = ({
       {/* 행성 */}
       <mesh
         ref={planetRef}
-        onClick={handleClick}
+        onClick={handleCelestialClick}
         position={[orbitRadius, 0, 0]}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          if (isClickable && pendingTasks > 0) {
+            document.body.style.cursor = 'pointer';
+          }
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = 'default';
+        }}
       >
         <sphereGeometry args={[size, 16, 16]} />
         <meshStandardMaterial 
@@ -85,9 +102,30 @@ const Planet = ({
             color="#ffffff"
             anchorX="center"
             anchorY="middle"
+            onClick={handleClick}
+            onPointerOver={(e) => {
+              e.stopPropagation();
+              document.body.style.cursor = 'pointer';
+            }}
+            onPointerOut={() => {
+              document.body.style.cursor = 'default';
+            }}
           >
             {pendingTasks}
           </Text>
+        )}
+
+        {/* 클릭 가능한 행성의 링 효과 */}
+        {isClickable && pendingTasks > 0 && (
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[size * 1.2, size * 1.3, 32]} />
+            <meshBasicMaterial 
+              color={color} 
+              transparent 
+              opacity={0.4}
+              side={2}
+            />
+          </mesh>
         )}
       </mesh>
     </group>

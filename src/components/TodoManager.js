@@ -61,7 +61,7 @@ const initialTodos = [
   }
 ];
 
-const TodoManager = ({ selectedCategory, onCategoryChange }) => {
+const TodoManager = ({ selectedCategory, onCategoryChange, onTodosChange, isVisible = true }) => {
   const [todos, setTodos] = useState([]);
   const [editingTodo, setEditingTodo] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -83,12 +83,15 @@ const TodoManager = ({ selectedCategory, onCategoryChange }) => {
     }
   }, []);
 
-  // 로컬스토리지에 데이터 저장
+  // 로컬스토리지에 데이터 저장 및 부모 컴포넌트에 알림
   useEffect(() => {
     if (todos.length > 0) {
       localStorage.setItem('solar-system-todos', JSON.stringify(todos));
+      if (onTodosChange) {
+        onTodosChange(todos);
+      }
     }
-  }, [todos]);
+  }, [todos, onTodosChange]);
 
   // 선택된 카테고리가 변경되면 필터 업데이트
   useEffect(() => {
@@ -180,17 +183,17 @@ const TodoManager = ({ selectedCategory, onCategoryChange }) => {
   } : null;
 
   return (
-    <div className="todo-manager">
+    <div className={`todo-manager ${!isVisible ? 'hidden' : ''}`}>
       <div className="todo-header">
         <h2>🚀 Solar System Mission Control</h2>
-        <div className="version-display">v0.3.0</div>
+        <div className="version-display">v0.4.0</div>
         
         {selectedCategory && (
           <div className="category-header">
             <h3>📍 {selectedCategory.toUpperCase()} Missions</h3>
             <button 
               className="clear-category-btn"
-              onClick={() => onCategoryChange(null)}
+              onClick={() => onCategoryChange && onCategoryChange(null)}
             >
               ✕ Show All
             </button>

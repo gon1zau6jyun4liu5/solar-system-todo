@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import SolarSystem from './SolarSystem';
 
-const Scene = ({ todos, selectedCategory, onPlanetClick }) => {
+const Scene = ({ todos, selectedCategory, onPlanetClick, onCelestialClick, animationSpeed = 1.0 }) => {
   return (
     <Canvas 
       camera={{ position: [0, 30, 40], fov: 60 }}
@@ -17,6 +17,8 @@ const Scene = ({ todos, selectedCategory, onPlanetClick }) => {
         todos={todos || []}
         selectedCategory={selectedCategory}
         onPlanetClick={onPlanetClick}
+        onCelestialClick={onCelestialClick}
+        animationSpeed={animationSpeed}
       />
       
       <OrbitControls 

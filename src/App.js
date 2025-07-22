@@ -1,54 +1,99 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import './App.css';
-import MultiSolarSystemScene from './components/MultiSolarSystemScene';
-import AITodoManager from './components/AITodoManager';
-import AIPanel from './components/AIPanel';
+import Scene from './components/Scene';
+import TodoManager from './components/TodoManager';
+import CelestialPopup from './components/CelestialPopup';
+import SpeedControl from './components/SpeedControl';
+import './components/CelestialPopup.css';
+import './components/SpeedControl.css';
 
 function App() {
-  const [selectedTodoId, setSelectedTodoId] = useState(null);
-  const [todoData, setTodoData] = useState([]);
-  const [isAnimationPlaying, setIsAnimationPlaying] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [todos, setTodos] = useState([]);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [selectedTodo, setSelectedTodo] = useState(null);
+  const [animationSpeed, setAnimationSpeed] = useState(1.0);
 
-  // Handle todo data changes from AITodoManager
-  const handleTodoDataChange = (newTodoData) => {
-    setTodoData(newTodoData);
-  };
+  // Todo 목록이 변경될 때 업데이트
+  const handleTodosChange = useCallback((newTodos) => {
+    setTodos(newTodos);
+  }, []);
 
-  // Handle celestial body clicks in 3D scene
-  const handleCelestialBodyClick = (clickedTodo) => {
-    setSelectedTodoId(clickedTodo.id);
-    console.log('Clicked celestial body:', clickedTodo);
-  };
+  // 행성 클릭 핸들러
+  const handlePlanetClick = useCallback((planetName) => {
+    setSelectedCategory(planetName);
+  }, []);
 
-  // Handle animation toggle
-  const handleAnimationToggle = () => {
-    setIsAnimationPlaying(!isAnimationPlaying);
-  };
+  // 카테고리 변경 핸들러
+  const handleCategoryChange = useCallback((category) => {
+    setSelectedCategory(category);
+  }, []);
+
+  // 천체 클릭 핸들러 (팝업 표시)
+  const handleCelestialClick = useCallback((todo) => {
+    setSelectedTodo(todo);
+  }, []);
+
+  // 팝업 닫기 핸들러
+  const handleClosePopup = useCallback(() => {
+    setSelectedTodo(null);
+  }, []);
+
+  // 사이드바 토글 핸들러
+  const handleSidebarToggle = useCallback(() => {
+    setSidebarVisible(prev => !prev);
+  }, []);
+
+  // 애니메이션 속도 변경 핸들러
+  const handleSpeedChange = useCallback((newSpeed) => {
+    setAnimationSpeed(newSpeed);
+  }, []);
 
   return (
     <div className="App">
-      {/* AI Control Panel */}
-      <AIPanel 
-        onAnimationToggle={handleAnimationToggle}
-        isAnimationPlaying={isAnimationPlaying}
+      {/* 3D 장면 */}
+      <Scene 
+        todos={todos}
+        selectedCategory={selectedCategory}
+        onPlanetClick={handlePlanetClick}
+        onCelestialClick={handleCelestialClick}
+        animationSpeed={animationSpeed}
       />
       
-      {/* 3D Solar System Scene */}
-      <MultiSolarSystemScene 
-        todoData={todoData}
-        onCelestialBodyClick={handleCelestialBodyClick}
-        selectedTodoId={selectedTodoId}
-        isAnimationPlaying={isAnimationPlaying}
+      {/* 사이드바 토글 버튼 */}
+      <button 
+        className={`sidebar-toggle ${sidebarVisible ? 'active' : ''}`}
+        onClick={handleSidebarToggle}
+        aria-label={sidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
+      >
+        {sidebarVisible ? '📋 Hide Panel' : '📋 Show Panel'}
+      </button>
+
+      {/* Todo 관리 사이드바 */}
+      <TodoManager 
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
+        onTodosChange={handleTodosChange}
+        isVisible={sidebarVisible}
       />
-      
-      {/* AI Todo Manager */}
-      <AITodoManager 
-        onTodoDataChange={handleTodoDataChange}
+
+      {/* 천체 정보 팝업 */}
+      {selectedTodo && (
+        <CelestialPopup
+          todo={selectedTodo}
+          onClose={handleClosePopup}
+        />
+      )}
+
+      {/* 애니메이션 속도 조절 */}
+      <SpeedControl
+        animationSpeed={animationSpeed}
+        onSpeedChange={handleSpeedChange}
       />
-      
-      {/* Version Info */}
+
+      {/* 버전 정보 */}
       <div className="version-info">
-        Solar System Todo v0.3.1
+        Solar System Todo v0.4.0
       </div>
     </div>
   );

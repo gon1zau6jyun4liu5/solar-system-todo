@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Sun from './Sun';
 import Planet from './Planet';
 
-const SolarSystem = ({ todos, selectedCategory, onPlanetClick }) => {
+const SolarSystem = ({ todos, selectedCategory, onPlanetClick, onCelestialClick, animationSpeed = 1.0 }) => {
   // 행성 데이터 정의
   const planets = [
     {
@@ -71,11 +71,75 @@ const SolarSystem = ({ todos, selectedCategory, onPlanetClick }) => {
     }
   ];
 
-  // 각 행성별 pending 태스크 수 계산
+  // 각 카테고리별 todo 분석 및 위성 할당
+  const todoAnalysis = useMemo(() => {
+    const analysis = {
+      sun: { todos: [], pending: 0, completed: 0 },
+      planets: {}
+    };
+
+    // 행성별 초기화
+    planets.forEach(planet => {
+      analysis.planets[planet.name] = {
+        todos: [],
+        pending: 0,
+        completed: 0,
+        satellites: []
+      };
+    });
+
+    // Todo 분류
+    todos.forEach(todo => {
+      if (todo.category === 'sun' || todo.category === 'general') {
+        analysis.sun.todos.push(todo);
+        if (todo.completed) {
+          analysis.sun.completed++;
+        } else {
+          analysis.sun.pending++;
+        }
+      } else if (analysis.planets[todo.category]) {
+        analysis.planets[todo.category].todos.push(todo);
+        if (todo.completed) {
+          analysis.planets[todo.category].completed++;
+        } else {
+          analysis.planets[todo.category].pending++;
+        }
+      } else {
+        // 위성으로 분류 - 행성이 있는 경우에만 위성으로 할당
+        const availablePlanets = planets.filter(planet => 
+          analysis.planets[planet.name].todos.length > 0 || 
+          analysis.planets[planet.name].pending > 0
+        );
+        
+        if (availablePlanets.length > 0) {
+          // 가장 적은 위성을 가진 행성에 할당
+          const targetPlanet = availablePlanets.reduce((min, planet) => 
+            analysis.planets[planet.name].satellites.length < analysis.planets[min.name].satellites.length 
+              ? planet : min
+          );
+          
+          analysis.planets[targetPlanet.name].satellites.push(todo);
+        } else {
+          // 행성이 없으면 일반 카테고리로 배정
+          analysis.sun.todos.push(todo);
+          if (todo.completed) {
+            analysis.sun.completed++;
+          } else {
+            analysis.sun.pending++;
+          }
+        }
+      }
+    });
+
+    return analysis;
+  }, [todos, planets]);
+
+  // 각 행성별 pending 태스크 수 계산 (위성 포함)
   const getPendingTasksForPlanet = (planetName) => {
-    return todos.filter(todo => 
-      todo.category === planetName && !todo.completed
-    ).length;
+    const planetData = todoAnalysis.planets[planetName];
+    const planetPending = planetData.pending;
+    const satellitePending = planetData.satellites.filter(satellite => !satellite.completed).length;
+    return planetPending + satellitePending;
   };
 
   // 행성이 클릭 가능한지 확인 (pending tasks가 있는 경우만)
@@ -83,25 +147,114 @@ const SolarSystem = ({ todos, selectedCategory, onPlanetClick }) => {
     return getPendingTasksForPlanet(planetName) > 0;
   };
 
+  // 위성 렌더링 컴포넌트
+  const SatelliteOrbit = ({ planet, satellites, planetData }) => {
+    if (satellites.length === 0) return null;
+
+    return (
+      <group>
+        {satellites.map((satellite, index) => {
+          const orbitRadius = planet.size + 0.8 + (index * 0.3);
+          const orbitSpeed = (planet.orbitSpeed * 3) + (index * 0.5);
+          const initialAngle = (index * Math.PI * 2) / satellites.length;
+
+          return (
+            <mesh
+              key={`satellite-${satellite.id}`}
+              position={[
+                Math.cos(initialAngle) * orbitRadius,
+                0,
+                Math.sin(initialAngle) * orbitRadius
+              ]}
+              onClick={(e) => {
+                e.stopPropagation();
+                onCelestialClick?.(satellite);
+              }}
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = 'pointer';
+              }}
+              onPointerOut={() => {
+                document.body.style.cursor = 'default';
+              }}
+            >
+              <sphereGeometry args={[0.15, 8, 8]} />
+              <meshStandardMaterial 
+                color={satellite.completed ? '#4caf50' : '#ffffff'}
+                emissive={satellite.completed ? '#004400' : (satellite.priority === 'high' ? '#ff4444' : '#000000')}
+                emissiveIntensity={satellite.completed ? 0.3 : (satellite.priority === 'high' ? 0.5 : 0)}
+              />
+              
+              {/* 위성 궤도선 */}
+              <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[orbitRadius - 0.02, orbitRadius + 0.02, 32]} />
+                <meshBasicMaterial 
+                  color="#ffffff" 
+                  transparent 
+                  opacity={0.2} 
+                />
+              </mesh>
+            </mesh>
+          );
+        })}
+      </group>
+    );
+  };
+
   return (
     <group>
       {/* 태양 */}
-      <Sun />
+      <Sun 
+        animationSpeed={animationSpeed}
+        todos={todoAnalysis.sun.todos}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (todoAnalysis.sun.todos.length > 0) {
+            onCelestialClick?.(todoAnalysis.sun.todos[0]);
+          }
+        }}
+      />
       
       {/* 행성들 */}
-      {planets.map(planet => (
-        <Planet
-          key={planet.name}
-          name={planet.name}
-          size={planet.size}
-          color={planet.color}
-          orbitRadius={planet.orbitRadius}
-          orbitSpeed={planet.orbitSpeed}
-          pendingTasks={getPendingTasksForPlanet(planet.name)}
-          isClickable={isPlanetClickable(planet.name)}
-          onClick={onPlanetClick}
-        />
-      ))}
+      {planets.map(planet => {
+        const planetData = todoAnalysis.planets[planet.name];
+        const pendingTasks = getPendingTasksForPlanet(planet.name);
+        const isClickable = isPlanetClickable(planet.name);
+
+        return (
+          <group key={planet.name}>
+            <Planet
+              name={planet.name}
+              size={planet.size}
+              color={planet.color}
+              orbitRadius={planet.orbitRadius}
+              orbitSpeed={planet.orbitSpeed * animationSpeed}
+              pendingTasks={pendingTasks}
+              isClickable={isClickable}
+              onClick={(planetName) => {
+                if (isClickable) {
+                  onPlanetClick?.(planetName);
+                }
+              }}
+              onCelestialClick={(e) => {
+                e.stopPropagation();
+                if (planetData.todos.length > 0) {
+                  onCelestialClick?.(planetData.todos[0]);
+                }
+              }}
+            />
+            
+            {/* 위성들 - 행성 주변에 렌더링 */}
+            {planetData.satellites.length > 0 && (
+              <SatelliteOrbit 
+                planet={planet}
+                satellites={planetData.satellites}
+                planetData={planetData}
+              />
+            )}
+          </group>
+        );
+      })}
     </group>
   );
 };
