@@ -1,0 +1,268 @@
+/* CelestialPopup.css - v0.4.0 */
+
+.celestial-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2500;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.celestial-popup {
+  background: linear-gradient(135deg, rgba(15, 15, 30, 0.95), rgba(25, 25, 50, 0.95));
+  border: 2px solid #00aaff;
+  border-radius: 20px;
+  padding: 30px;
+  color: white;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 40px rgba(0, 170, 255, 0.5);
+  max-width: 600px;
+  min-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  animation: popupSlideIn 0.3s ease-out;
+}
+
+@keyframes popupSlideIn {
+  from {
+    transform: scale(0.8) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.celestial-popup h3 {
+  margin: 0 0 25px 0;
+  color: #00aaff;
+  text-align: center;
+  font-size: 1.6em;
+  text-shadow: 0 0 15px rgba(0, 170, 255, 0.6);
+  padding-right: 40px;
+  word-wrap: break-word;
+}
+
+.celestial-popup .close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 107, 53, 0.8);
+  border: none;
+  color: white;
+  font-size: 1.5em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.celestial-popup .close-btn:hover {
+  background: rgba(255, 107, 53, 1);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
+}
+
+.popup-content {
+  margin: 20px 0;
+}
+
+.popup-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  border-left: 4px solid #00aaff;
+  backdrop-filter: blur(5px);
+}
+
+.popup-section h4 {
+  margin: 0 0 15px 0;
+  color: #ffaa00;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popup-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.popup-meta span {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  text-align: center;
+  font-size: 0.9em;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.popup-meta span:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.deadline-info {
+  margin: 15px 0;
+}
+
+.deadline-info p {
+  margin: 10px 0;
+  font-size: 1em;
+}
+
+.urgency-display {
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.urgency-bar-popup {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.urgency-fill-popup {
+  height: 100%;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: linear-gradient(90deg, #44aa44, #88cc88);
+}
+
+.celestial-info p {
+  margin: 10px 0;
+  font-size: 1em;
+  line-height: 1.5;
+}
+
+.visual-props {
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(102, 51, 255, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(102, 51, 255, 0.3);
+}
+
+.visual-props ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.visual-props li {
+  margin: 8px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: #ccccff;
+}
+
+.ai-suggestions-list {
+  margin: 15px 0;
+  padding-left: 20px;
+}
+
+.ai-suggestions-list li {
+  margin: 10px 0;
+  font-size: 0.95em;
+  line-height: 1.4;
+  color: #dddddd;
+  background: rgba(102, 51, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #6633ff;
+  list-style: none;
+  position: relative;
+}
+
+.ai-suggestions-list li::before {
+  content: "💡";
+  position: absolute;
+  left: -25px;
+  top: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .celestial-popup {
+    width: 95%;
+    min-width: 280px;
+    padding: 20px;
+    margin: 20px;
+    max-height: 85vh;
+  }
+  
+  .celestial-popup h3 {
+    font-size: 1.3em;
+    padding-right: 45px;
+  }
+  
+  .popup-meta {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .popup-section {
+    padding: 15px;
+    margin: 15px 0;
+  }
+  
+  .popup-section h4 {
+    font-size: 1.1em;
+  }
+  
+  .visual-props li {
+    font-size: 0.8em;
+  }
+}
+
+@media (max-width: 480px) {
+  .celestial-popup {
+    width: 98%;
+    min-width: 250px;
+    padding: 15px;
+    margin: 10px;
+  }
+  
+  .celestial-popup h3 {
+    font-size: 1.2em;
+  }
+  
+  .popup-section {
+    padding: 12px;
+  }
+}
