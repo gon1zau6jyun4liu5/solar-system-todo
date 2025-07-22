@@ -1,34 +1,44 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 /**
- * Enhanced AI Sun component v0.3.1
- * - Animation control support
- * - Progress percentage display
- * - Auto-generated suns for solar systems
- * - Enhanced visual effects
+ * Enhanced Sun component with AI-based visual properties and animation control
+ * - Size based on priority and importance
+ * - Rotation speed based on deadline proximity
+ * - Color and brightness based on urgency
+ * - Animation pause/play support
+ * - Ref forwarding for camera tracking
  */
-const AISun = ({ 
+const AISun = forwardRef(({ 
   solarSystemData, 
   position = [0, 0, 0],
   onClick,
   isSelected = false,
-  isAnimationPlaying = true,
-  progressPercentage = null
-}) => {
+  isAnimationPlaying = true
+}, ref) => {
   const meshRef = useRef();
   const glowRef = useRef();
-  const coronaRef = useRef();
+  const groupRef = useRef();
+
+  // Expose position methods for camera tracking
+  useImperativeHandle(ref, () => ({
+    getWorldPosition: (target) => {
+      if (groupRef.current) {
+        return groupRef.current.getWorldPosition(target);
+      }
+      return target.set(...position);
+    },
+    position: position
+  }));
 
   // Calculate visual properties from AI classification
   const visualProps = useMemo(() => {
     if (!solarSystemData?.todos?.length) return {
       size: 2.5,
-      brightness: 2.0,
-      rotationSpeed: 0.005,
-      color: '#ffdd00'
+      brightness: 1.8,
+      rotationSpeed: 0.008,
+      color: '#ffaa00'
     };
 
     // Aggregate properties from all todos in this solar system
@@ -42,55 +52,55 @@ const AISun = ({
       ...todos.map(todo => todo.visualProperties?.daysUntilDeadline || 10)
     );
 
-    // Size calculation (2.0 - 5.0 range)
+    // Enhanced size calculation (2.0 - 5.0 range for better visibility)
     const size = 2.0 + (avgPriority / 3) * 3.0;
     
-    // Brightness calculation (1.5 - 4.0 range)
+    // Enhanced brightness calculation (1.5 - 4.0 range)
     const brightness = 1.5 + (avgPriority / 3) * 2.5;
     
     // Rotation speed (faster when deadline approaches)
-    const baseSpeed = 0.005;
-    const rotationSpeed = isAnimationPlaying ? 
-      Math.max(0.002, baseSpeed + (0.02 / Math.max(1, minDaysUntilDeadline))) : 0;
+    const baseRotationSpeed = Math.max(0.003, 0.04 / Math.max(1, minDaysUntilDeadline));
     
-    // Color based on urgency and system health
-    const completionRate = todos.filter(t => t.completed).length / todos.length;
-    let color;
-    if (minDaysUntilDeadline <= 2) {
-      color = '#ff3333'; // Critical red
-    } else if (minDaysUntilDeadline <= 5) {
-      color = '#ff8800'; // Warning orange
-    } else if (completionRate > 0.7) {
-      color = '#44ff44'; // Healthy green
-    } else {
-      color = '#ffdd00'; // Normal yellow
-    }
+    // Enhanced color based on urgency and system health
+    let color = '#ffdd00'; // Default golden
+    if (minDaysUntilDeadline <= 1) color = '#ff2222';
+    else if (minDaysUntilDeadline <= 3) color = '#ff6600';
+    else if (minDaysUntilDeadline <= 7) color = '#ff9900';
 
-    return { size, brightness, rotationSpeed, color, completionRate };
-  }, [solarSystemData, isAnimationPlaying]);
+    return { 
+      size, 
+      brightness, 
+      rotationSpeed: baseRotationSpeed, 
+      color,
+      urgencyLevel: minDaysUntilDeadline
+    };
+  }, [solarSystemData]);
 
-  // Rotation animation with variable speed
+  // Animation with pause/play control
   useFrame((state, delta) => {
+    if (!isAnimationPlaying) return;
+
     if (meshRef.current) {
       meshRef.current.rotation.y += visualProps.rotationSpeed;
       
-      // Add slight wobble for urgency
-      if (visualProps.rotationSpeed > 0.01) {
-        meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 2) * 0.1;
-        meshRef.current.rotation.z = Math.cos(state.clock.elapsedTime * 1.5) * 0.1;
+      // Add slight wobble for urgency (more pronounced)
+      if (visualProps.urgencyLevel <= 3) {
+        const urgencyIntensity = 1 - (visualProps.urgencyLevel / 3);
+        meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 2) * 0.15 * urgencyIntensity;
+        meshRef.current.rotation.z = Math.cos(state.clock.elapsedTime * 1.5) * 0.1 * urgencyIntensity;
       }
     }
     
-    // Glow animation
-    if (glowRef.current && visualProps.brightness > 2.5) {
-      const pulseFactor = 1 + Math.sin(state.clock.elapsedTime * 1.5) * 0.2;
+    // Enhanced glow animation
+    if (glowRef.current) {
+      const pulseFactor = 1 + Math.sin(state.clock.elapsedTime * 0.8) * 0.3;
       glowRef.current.scale.setScalar(pulseFactor);
-    }
-
-    // Corona animation
-    if (coronaRef.current && isAnimationPlaying) {
-      coronaRef.current.rotation.y -= visualProps.rotationSpeed * 0.3;
-      coronaRef.current.rotation.z += visualProps.rotationSpeed * 0.2;
+      
+      // Urgent pulsing
+      if (visualProps.urgencyLevel <= 3) {
+        const urgentPulse = 1 + Math.sin(state.clock.elapsedTime * 4) * 0.2;
+        glowRef.current.scale.setScalar(pulseFactor * urgentPulse);
+      }
     }
   });
 
@@ -99,11 +109,11 @@ const AISun = ({
     color: visualProps.color,
     emissive: visualProps.color,
     emissiveIntensity: visualProps.brightness,
-    roughness: 0.9,
-    metalness: 0.1
+    roughness: 0.3,
+    metalness: 0.0
   }), [visualProps.color, visualProps.brightness]);
 
-  // Glow effect material
+  // Enhanced glow effect material
   const glowMaterial = useMemo(() => new THREE.MeshBasicMaterial({
     color: visualProps.color,
     transparent: true,
@@ -111,47 +121,21 @@ const AISun = ({
     side: THREE.BackSide
   }), [visualProps.color]);
 
-  // Corona effect material
+  // Corona effect material for very urgent suns
   const coronaMaterial = useMemo(() => new THREE.MeshBasicMaterial({
-    color: visualProps.color,
+    color: '#ffffff',
     transparent: true,
     opacity: 0.2,
-    side: THREE.DoubleSide
-  }), [visualProps.color]);
-
-  // Progress display color
-  const progressColor = progressPercentage !== null ? 
-    (progressPercentage > 50 ? '#44ff44' : 
-     progressPercentage > 25 ? '#ffaa00' : '#ff4444') : '#ffffff';
+    side: THREE.BackSide
+  }), []);
 
   return (
-    <group position={position}>
-      {/* Corona effect */}
-      <mesh 
-        ref={coronaRef}
-        material={coronaMaterial}
-        scale={1.8}
-      >
-        <sphereGeometry args={[visualProps.size, 16, 16]} />
-      </mesh>
-
-      {/* Outer glow effect */}
-      <mesh 
-        ref={glowRef}
-        material={glowMaterial}
-        scale={1.4}
-      >
-        <sphereGeometry args={[visualProps.size, 16, 16]} />
-      </mesh>
-
+    <group ref={groupRef} position={position}>
       {/* Main sun body */}
       <mesh 
         ref={meshRef}
         material={sunMaterial}
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick?.();
-        }}
+        onClick={onClick}
         onPointerOver={(e) => {
           e.stopPropagation();
           document.body.style.cursor = 'pointer';
@@ -159,114 +143,91 @@ const AISun = ({
         onPointerOut={() => {
           document.body.style.cursor = 'default';
         }}
+        castShadow
+        receiveShadow
       >
-        <sphereGeometry args={[visualProps.size, 32, 32]} />
+        <sphereGeometry args={[visualProps.size, 48, 48]} />
       </mesh>
 
-      {/* Selection indicator */}
-      {isSelected && (
-        <mesh>
-          <ringGeometry args={[visualProps.size * 1.6, visualProps.size * 1.8, 32]} />
-          <meshBasicMaterial 
-            color="#00aaff" 
-            transparent 
-            opacity={0.7}
-            side={THREE.DoubleSide}
-          />
+      {/* Primary glow effect */}
+      <mesh 
+        ref={glowRef}
+        material={glowMaterial}
+        scale={1.3}
+      >
+        <sphereGeometry args={[visualProps.size, 24, 24]} />
+      </mesh>
+
+      {/* Corona effect for urgent suns */}
+      {visualProps.urgencyLevel <= 3 && (
+        <mesh material={coronaMaterial} scale={1.6}>
+          <sphereGeometry args={[visualProps.size, 16, 16]} />
         </mesh>
       )}
 
-      {/* System completion indicator rings */}
-      {visualProps.completionRate > 0 && (
+      {/* Selection indicator with enhanced styling */}
+      {isSelected && (
         <>
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[
-              visualProps.size * 1.2, 
-              visualProps.size * 1.3, 
-              Math.max(8, Math.floor(visualProps.completionRate * 32))
-            ]} />
+          <mesh>
+            <ringGeometry args={[visualProps.size * 1.8, visualProps.size * 2.0, 64]} />
             <meshBasicMaterial 
-              color="#44ff44" 
+              color="#00aaff" 
               transparent 
-              opacity={visualProps.completionRate}
+              opacity={0.8}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[visualProps.size * 1.8, visualProps.size * 2.0, 64]} />
+            <meshBasicMaterial 
+              color="#00aaff" 
+              transparent 
+              opacity={0.6}
               side={THREE.DoubleSide}
             />
           </mesh>
         </>
       )}
 
-      {/* Progress percentage display */}
-      {progressPercentage !== null && (
-        <group position={[0, visualProps.size + 1.5, 0]}>
-          <Text
-            fontSize={0.6}
-            color={progressColor}
-            anchorX="center"
-            anchorY="middle"
-            outlineColor="#000000"
-            outlineWidth={0.1}
-          >
-            {Math.round(progressPercentage)}%
-          </Text>
-        </group>
-      )}
-
-      {/* System info display */}
+      {/* System information display */}
       {solarSystemData && (
-        <group position={[0, visualProps.size + 2.5, 0]}>
-          <Text
-            fontSize={0.4}
-            color="#ffffff"
-            anchorX="center"
-            anchorY="middle"
-            outlineColor="#000000"
-            outlineWidth={0.05}
-          >
-            {solarSystemData.category.toUpperCase()} SYSTEM
-          </Text>
-          <Text
-            fontSize={0.3}
-            color="#cccccc"
-            anchorX="center"
-            anchorY="middle"
-            position={[0, -0.6, 0]}
-            outlineColor="#000000"
-            outlineWidth={0.05}
-          >
-            {solarSystemData.totalTodos} todos
-          </Text>
-        </group>
-      )}
-
-      {/* Solar flare effects for high urgency */}
-      {visualProps.rotationSpeed > 0.015 && (
-        <>
-          {[...Array(6)].map((_, i) => (
-            <mesh 
-              key={i} 
-              rotation={[0, 0, (i * Math.PI * 2) / 6]}
-              position={[visualProps.size * 1.1, 0, 0]}
-            >
-              <coneGeometry args={[0.2, visualProps.size * 0.8, 4]} />
+        <group position={[0, visualProps.size + 2, 0]}>
+          {/* System name background */}
+          <mesh>
+            <planeGeometry args={[4, 0.8]} />
+            <meshBasicMaterial 
+              color="#000000" 
+              transparent 
+              opacity={0.8} 
+            />
+          </mesh>
+          
+          {/* System stats indicators */}
+          <group position={[0, -1.5, 0]}>
+            <mesh>
+              <planeGeometry args={[6, 0.6]} />
               <meshBasicMaterial 
-                color={visualProps.color} 
+                color="#001122" 
                 transparent 
-                opacity={0.6}
+                opacity={0.7} 
               />
             </mesh>
-          ))}
-        </>
+          </group>
+        </group>
       )}
 
-      {/* Ambient light source */}
-      <pointLight
+      {/* Light source from sun */}
+      <pointLight 
+        position={[0, 0, 0]}
         intensity={visualProps.brightness * 0.5}
-        color={visualProps.color}
         distance={50}
-        decay={2}
+        color={visualProps.color}
+        castShadow
       />
     </group>
   );
-};
+});
+
+AISun.displayName = 'AISun';
 
 export default AISun;
