@@ -1,10 +1,10 @@
-/* Enhanced Mission Control Styles v0.4.2 */
+/* Enhanced Mission Control Styles v0.5.2 - 패널 너비 확장 및 UI 개선 */
 
 .enhanced-mission-control {
   position: fixed;
   top: 20px;
   right: 20px;
-  width: 480px;
+  width: 600px; /* v0.5.2: 480px → 600px로 확장 (25% 증가) */
   max-height: 85vh;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
   border: 2px solid #4a90e2;
@@ -35,9 +35,9 @@
   }
 }
 
-/* Header Section */
+/* Header Section - v0.5.2 업데이트 */
 .mission-control-header {
-  padding: 25px;
+  padding: 25px 30px; /* v0.5.2: 좌우 패딩 증가 */
   border-bottom: 1px solid rgba(74, 144, 226, 0.3);
   background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(106, 90, 205, 0.1));
 }
@@ -45,7 +45,7 @@
 .mission-control-header h2 {
   margin: 0 0 20px 0;
   color: #4a90e2;
-  font-size: 1.4em;
+  font-size: 1.5em; /* v0.5.2: 1.4em → 1.5em 증가 */
   font-weight: 600;
   text-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
   display: flex;
@@ -53,11 +53,11 @@
   gap: 10px;
 }
 
-/* Enhanced Stats Grid */
+/* Enhanced Stats Grid - v0.5.2 개선 */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* v0.5.2: 80px → 100px */
+  gap: 15px; /* v0.5.2: 12px → 15px 증가 */
   margin-bottom: 20px;
 }
 
@@ -65,7 +65,7 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 12px 8px;
+  padding: 15px 12px; /* v0.5.2: 12px 8px → 15px 12px */
   text-align: center;
   transition: all 0.3s ease;
   position: relative;
@@ -102,7 +102,7 @@
 }
 
 .stat-value {
-  font-size: 1.8em;
+  font-size: 2em; /* v0.5.2: 1.8em → 2em 증가 */
   font-weight: bold;
   color: #ffffff;
   margin-bottom: 4px;
@@ -110,17 +110,17 @@
 }
 
 .stat-label {
-  font-size: 0.75em;
+  font-size: 0.8em; /* v0.5.2: 0.75em → 0.8em */
   color: rgba(255, 255, 255, 0.8);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* Enhanced Control Toolbar */
+/* Enhanced Control Toolbar - v0.5.2 개선 */
 .control-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px; /* v0.5.2: 15px → 18px */
 }
 
 .search-section {
@@ -131,12 +131,12 @@
 
 .enhanced-search {
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 18px; /* v0.5.2: 12px 16px → 14px 18px */
   background: rgba(255, 255, 255, 0.08);
   border: 2px solid rgba(74, 144, 226, 0.3);
   border-radius: 25px;
   color: white;
-  font-size: 0.95em;
+  font-size: 1em; /* v0.5.2: 0.95em → 1em */
   transition: all 0.3s ease;
   outline: none;
 }
@@ -153,7 +153,7 @@
 
 .clear-search {
   position: absolute;
-  right: 12px;
+  right: 15px; /* v0.5.2: 12px → 15px */
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.6);
@@ -168,10 +168,10 @@
   color: white;
 }
 
-/* Filter Controls */
+/* Filter Controls - v0.5.2 개선 */
 .filter-controls {
   display: flex;
-  gap: 10px;
+  gap: 12px; /* v0.5.2: 10px → 12px */
   align-items: center;
   flex-wrap: wrap;
 }
@@ -182,11 +182,11 @@
   border: 1px solid rgba(74, 144, 226, 0.3);
   border-radius: 8px;
   color: white;
-  padding: 8px 12px;
-  font-size: 0.85em;
+  padding: 10px 15px; /* v0.5.2: 8px 12px → 10px 15px */
+  font-size: 0.9em; /* v0.5.2: 0.85em → 0.9em */
   outline: none;
   transition: all 0.3s ease;
-  min-width: 120px;
+  min-width: 140px; /* v0.5.2: 120px → 140px */
 }
 
 .filter-select:focus,
@@ -214,7 +214,7 @@
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.6);
-  padding: 8px 12px;
+  padding: 10px 15px; /* v0.5.2: 8px 12px → 10px 15px */
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.2s ease;
@@ -240,7 +240,7 @@
   background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(106, 90, 205, 0.15));
   border: 1px solid rgba(74, 144, 226, 0.3);
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 15px 20px; /* v0.5.2: 12px 16px → 15px 20px */
   margin-top: 15px;
   animation: slideDown 0.3s ease-out;
 }
@@ -259,20 +259,21 @@
 .selection-count {
   font-weight: 500;
   color: #4a90e2;
+  font-size: 1em; /* v0.5.2: 기본 크기 */
 }
 
 .bulk-buttons {
   display: flex;
-  gap: 8px;
+  gap: 10px; /* v0.5.2: 8px → 10px */
 }
 
 .bulk-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 6px 12px;
+  padding: 8px 15px; /* v0.5.2: 6px 12px → 8px 15px */
   border-radius: 6px;
-  font-size: 0.8em;
+  font-size: 0.85em; /* v0.5.2: 0.8em → 0.85em */
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -309,17 +310,17 @@
   background: rgba(220, 53, 69, 0.5);
 }
 
-/* Missions Container */
+/* Missions Container - v0.5.2 개선 */
 .missions-container {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 25px 30px; /* v0.5.2: 20px → 25px 30px */
   scrollbar-width: thin;
   scrollbar-color: rgba(74, 144, 226, 0.5) transparent;
 }
 
 .missions-container::-webkit-scrollbar {
-  width: 6px;
+  width: 8px; /* v0.5.2: 6px → 8px */
 }
 
 .missions-container::-webkit-scrollbar-track {
@@ -328,28 +329,28 @@
 
 .missions-container::-webkit-scrollbar-thumb {
   background: rgba(74, 144, 226, 0.5);
-  border-radius: 3px;
+  border-radius: 4px; /* v0.5.2: 3px → 4px */
 }
 
 /* Grid View */
 .missions-container.grid-view {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 15px; /* v0.5.2: 12px → 15px */
 }
 
 /* List View */
 .missions-container.list-view {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px; /* v0.5.2: 8px → 12px */
 }
 
 /* Timeline View */
 .missions-container.timeline-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px; /* v0.5.2: 16px → 20px */
   position: relative;
 }
 
@@ -363,12 +364,12 @@
   background: linear-gradient(to bottom, #4a90e2, #6a5acd);
 }
 
-/* Enhanced Mission Card */
+/* Enhanced Mission Card - v0.5.2 개선 */
 .enhanced-mission-card {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 16px;
+  padding: 20px; /* v0.5.2: 16px → 20px */
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
@@ -443,33 +444,35 @@
 .enhanced-mission-card {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 15px; /* v0.5.2: 12px → 15px */
 }
 
 .mission-selector {
   margin-top: 4px;
   accent-color: #4a90e2;
   cursor: pointer;
+  width: 18px; /* v0.5.2: 크기 명시 */
+  height: 18px;
 }
 
 .mission-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px; /* v0.5.2: 8px → 10px */
 }
 
 .mission-text {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1em;
+  gap: 10px; /* v0.5.2: 8px → 10px */
+  font-size: 1.05em; /* v0.5.2: 1em → 1.05em */
   line-height: 1.4;
   cursor: text;
 }
 
 .category-icon {
-  font-size: 1.2em;
+  font-size: 1.3em; /* v0.5.2: 1.2em → 1.3em */
   flex-shrink: 0;
 }
 
@@ -482,8 +485,8 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid #4a90e2;
   color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 6px 12px; /* v0.5.2: 4px 8px → 6px 12px */
+  border-radius: 6px; /* v0.5.2: 4px → 6px */
   font-size: inherit;
   outline: none;
   width: 100%;
@@ -493,7 +496,7 @@
 .mission-metadata {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px; /* v0.5.2: 6px → 8px */
   align-items: center;
 }
 
@@ -501,9 +504,9 @@
 .deadline-badge,
 .category-badge,
 .hierarchy-badge {
-  padding: 3px 8px;
+  padding: 4px 10px; /* v0.5.2: 3px 8px → 4px 10px */
   border-radius: 12px;
-  font-size: 0.7em;
+  font-size: 0.75em; /* v0.5.2: 0.7em → 0.75em */
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -559,11 +562,11 @@
 /* Urgency Progress Bar */
 .urgency-progress {
   width: 100%;
-  height: 3px;
+  height: 4px; /* v0.5.2: 3px → 4px */
   background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: 6px; /* v0.5.2: 4px → 6px */
 }
 
 .progress-bar {
@@ -593,7 +596,7 @@
 .mission-actions {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px; /* v0.5.2: 4px → 6px */
   opacity: 0.6;
   transition: opacity 0.2s ease;
 }
@@ -606,13 +609,13 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 8px; /* v0.5.2: 6px → 8px */
+  border-radius: 8px; /* v0.5.2: 6px → 8px */
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: 0.95em; /* v0.5.2: 0.9em → 0.95em */
   transition: all 0.2s ease;
-  width: 32px;
-  height: 32px;
+  width: 36px; /* v0.5.2: 32px → 36px */
+  height: 36px; /* v0.5.2: 32px → 36px */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -661,26 +664,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 80px 30px; /* v0.5.2: 60px 20px → 80px 30px */
   text-align: center;
   color: rgba(255, 255, 255, 0.6);
 }
 
 .empty-icon {
-  font-size: 4em;
-  margin-bottom: 20px;
+  font-size: 4.5em; /* v0.5.2: 4em → 4.5em */
+  margin-bottom: 25px; /* v0.5.2: 20px → 25px */
   opacity: 0.4;
 }
 
 .empty-state h3 {
-  margin: 0 0 10px 0;
+  margin: 0 0 12px 0; /* v0.5.2: 10px → 12px */
   color: rgba(255, 255, 255, 0.8);
-  font-size: 1.3em;
+  font-size: 1.4em; /* v0.5.2: 1.3em → 1.4em */
 }
 
 .empty-state p {
-  margin: 0 0 20px 0;
-  font-size: 0.95em;
+  margin: 0 0 25px 0; /* v0.5.2: 20px → 25px */
+  font-size: 1em; /* v0.5.2: 0.95em → 1em */
   line-height: 1.5;
 }
 
@@ -688,9 +691,10 @@
   background: linear-gradient(135deg, #4a90e2, #6a5acd);
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 15px 30px; /* v0.5.2: 12px 24px → 15px 30px */
   border-radius: 25px;
   font-weight: 500;
+  font-size: 1em; /* v0.5.2: 크기 명시 */
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
@@ -720,8 +724,8 @@
   background: linear-gradient(135deg, rgba(20, 20, 40, 0.98), rgba(40, 40, 60, 0.98));
   border: 2px solid #4a90e2;
   border-radius: 20px;
-  padding: 30px;
-  max-width: 400px;
+  padding: 35px; /* v0.5.2: 30px → 35px */
+  max-width: 450px; /* v0.5.2: 400px → 450px */
   backdrop-filter: blur(20px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
@@ -778,28 +782,7 @@
   background: #357abd;
 }
 
-/* Help Toggle Button */
-.help-toggle {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #4a90e2, #6a5acd);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.2em;
-  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
-  transition: all 0.3s ease;
-  z-index: 999;
-}
-
-.help-toggle:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
-}
+/* Help Toggle Button - v0.5.2: 제거 (요구사항: 왼쪽 하단 버전 표시 외 제거) */
 
 /* Animations */
 @keyframes pulse {
@@ -820,7 +803,7 @@
   }
 }
 
-/* Responsive Design */
+/* Responsive Design - v0.5.2 개선 */
 @media (max-width: 768px) {
   .enhanced-mission-control {
     position: relative;
@@ -860,16 +843,11 @@
   .shortcuts-grid {
     grid-template-columns: 1fr;
   }
-
-  .help-toggle {
-    bottom: 20px;
-    right: 20px;
-  }
 }
 
 /* List view specific adjustments */
 .enhanced-mission-card.list {
-  padding: 12px 16px;
+  padding: 15px 20px; /* v0.5.2: 12px 16px → 15px 20px */
 }
 
 .enhanced-mission-card.list .mission-content {
@@ -879,12 +857,12 @@
 }
 
 .enhanced-mission-card.list .mission-metadata {
-  gap: 8px;
+  gap: 10px; /* v0.5.2: 8px → 10px */
 }
 
 .enhanced-mission-card.list .mission-actions {
   flex-direction: row;
-  gap: 6px;
+  gap: 8px; /* v0.5.2: 6px → 8px */
   opacity: 1;
 }
 
