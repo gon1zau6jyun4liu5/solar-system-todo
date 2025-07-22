@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import './EnhancedMissionControl.css';
 
 /**
- * Enhanced Mission Control Panel v0.4.2
+ * Enhanced Mission Control Panel v0.5.1
  * Advanced UI/UX for todo management with improved accessibility,
- * drag & drop support, and enhanced visual feedback
+ * drag & drop support, enhanced visual feedback, and bug fixes
  */
 const EnhancedMissionControl = ({ 
   todos, 
@@ -194,7 +194,7 @@ const EnhancedMissionControl = ({
       {/* Header with stats and controls */}
       <div className="mission-control-header">
         <div className="mission-stats">
-          <h2>🚀 Enhanced Mission Control v0.4.2</h2>
+          <h2>🚀 Enhanced Mission Control v0.5.1</h2>
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-value">{stats.total}</div>
@@ -339,7 +339,7 @@ const EnhancedMissionControl = ({
               }
             </p>
             <button 
-              onClick={onTodoAdd}
+              onClick={() => onTodoAdd()}
               className="create-first-mission"
             >
               🚀 Create New Mission
@@ -413,8 +413,8 @@ const EnhancedMissionControl = ({
 };
 
 /**
- * Enhanced Mission Card Component
- * Individual todo item with enhanced interaction
+ * Enhanced Mission Card Component v0.5.1
+ * Individual todo item with enhanced interaction and bug fixes
  */
 const EnhancedMissionCard = ({ 
   todo, 
@@ -450,9 +450,12 @@ const EnhancedMissionCard = ({
     }
   };
 
-  const urgencyLevel = todo.visualProperties?.daysUntilDeadline <= 1 ? 'critical' :
-                       todo.visualProperties?.daysUntilDeadline <= 3 ? 'urgent' :
-                       todo.visualProperties?.daysUntilDeadline <= 7 ? 'warning' : 'normal';
+  // v0.5.1 BUG FIX: visualProperties가 undefined일 경우 대비
+  const daysUntilDeadline = todo.visualProperties?.daysUntilDeadline || 30;
+  
+  const urgencyLevel = daysUntilDeadline <= 1 ? 'critical' :
+                       daysUntilDeadline <= 3 ? 'urgent' :
+                       daysUntilDeadline <= 7 ? 'warning' : 'normal';
 
   return (
     <div 
@@ -485,7 +488,7 @@ const EnhancedMissionCard = ({
           />
         ) : (
           <div className="mission-text" onDoubleClick={handleQuickEdit}>
-            <span className={`category-icon ${todo.category}`}>
+            <span className={`category-icon ${todo.category || 'general'}`}>
               {getCategoryIcon(todo.category)}
             </span>
             <span className={todo.completed ? 'completed-text' : ''}>
@@ -496,8 +499,9 @@ const EnhancedMissionCard = ({
 
         {/* Mission metadata */}
         <div className="mission-metadata">
-          <span className={`priority-badge ${todo.priority}`}>
-            {todo.priority.toUpperCase()}
+          {/* v0.5.1 BUG FIX: priority가 undefined일 경우 기본값 처리 */}
+          <span className={`priority-badge ${todo.priority || 'medium'}`}>
+            {(todo.priority || 'medium').toUpperCase()}
           </span>
           
           {todo.deadline && (
@@ -507,7 +511,7 @@ const EnhancedMissionCard = ({
           )}
 
           <span className="category-badge">
-            {todo.category}
+            {todo.category || 'general'}
           </span>
 
           {todo.hierarchyType && (
@@ -524,7 +528,7 @@ const EnhancedMissionCard = ({
               className={`progress-bar ${urgencyLevel}`}
               style={{
                 width: `${Math.max(0, Math.min(100, 
-                  (todo.visualProperties?.daysUntilDeadline / 30) * 100
+                  (daysUntilDeadline / 30) * 100
                 ))}%`
               }}
             />
@@ -583,7 +587,10 @@ const getCategoryIcon = (category) => {
     jupiter: '🪐',
     saturn: '🪐',
     uranus: '🔵',
-    neptune: '🔷'
+    neptune: '🔷',
+    study: '📖',
+    social: '👥',
+    general: '🚀'
   };
   return icons[category] || '🚀';
 };
