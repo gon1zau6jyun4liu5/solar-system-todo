@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import TodoList from './TodoList';
-import TodoForm from './TodoForm';
+import AITodoForm from './AITodoForm';
 import { classifyTodoWithAI } from '../utils/aiClassifier';
-import './TodoManager.css';
+import './AITodoManager.css';
 
 // Enhanced initial todos with AI classification
 const createInitialTodos = () => {
@@ -33,7 +33,7 @@ const createInitialTodos = () => {
   });
 };
 
-const AITodoManager = ({ onTodoDataChange }) => {
+const AITodoManager = ({ onTodoDataChange, selectedTodoId, onTaskClick }) => {
   const [todos, setTodos] = useState([]);
   const [editingTodo, setEditingTodo] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -153,6 +153,12 @@ const AITodoManager = ({ onTodoDataChange }) => {
     setShowForm(false);
   };
 
+  // Enhanced task click handler for 3D focusing
+  const handleTaskClick = (todo) => {
+    // Call the parent's onTaskClick to trigger 3D camera focus
+    onTaskClick?.(todo);
+  };
+
   // Filter todos
   const filteredTodos = todos.filter(todo => {
     // Category filter
@@ -188,13 +194,14 @@ const AITodoManager = ({ onTodoDataChange }) => {
     suns: todos.filter(t => t.hierarchyType === 'sun').length,
     planets: todos.filter(t => t.hierarchyType === 'planet').length,
     satellites: todos.filter(t => t.hierarchyType === 'satellite').length,
-    categories: [...new Set(todos.map(t => t.category))].length
+    categories: [...new Set(todos.map(t => t.category))].length,
+    systems: [...new Set(todos.map(t => t.solarSystemId))].length
   };
 
   return (
     <div className="ai-todo-manager">
       <div className="todo-header">
-        <h2>🤖 AI-Powered Solar System Mission Control v0.3.0</h2>
+        <h2>🤖 AI-Powered Solar System Mission Control v0.4.0</h2>
         <div className="ai-stats">
           <div className="stat-group">
             <span className="stat-label">Total:</span>
@@ -210,12 +217,12 @@ const AITodoManager = ({ onTodoDataChange }) => {
           </div>
           <div className="stat-group">
             <span className="stat-label">Systems:</span>
-            <span className="stat-value">{stats.categories}</span>
+            <span className="stat-value">{stats.systems}</span>
           </div>
         </div>
       </div>
 
-      {/* AI Insights Panel */}
+      {/* Enhanced AI Insights Panel */}
       {Object.keys(aiInsights).length > 0 && (
         <div className="ai-insights">
           <h3>🧠 AI Insights</h3>
@@ -233,6 +240,11 @@ const AITodoManager = ({ onTodoDataChange }) => {
             {aiInsights.categoryBalance && (
               <div className="insight-item">
                 ⚖️ {aiInsights.categoryBalance}
+              </div>
+            )}
+            {aiInsights.systemsOverview && (
+              <div className="insight-item">
+                🌌 {aiInsights.systemsOverview}
               </div>
             )}
           </div>
@@ -272,18 +284,21 @@ const AITodoManager = ({ onTodoDataChange }) => {
             <button 
               className={filter === 'sun' ? 'active sun-filter' : ''}
               onClick={() => setFilter('sun')}
+              title="Major goals and objectives - represented as Suns"
             >
               ☀️ Suns ({stats.suns})
             </button>
             <button 
               className={filter === 'planet' ? 'active planet-filter' : ''}
               onClick={() => setFilter('planet')}
+              title="Projects and initiatives - represented as Planets"
             >
               🪐 Planets ({stats.planets})
             </button>
             <button 
               className={filter === 'satellite' ? 'active satellite-filter' : ''}
               onClick={() => setFilter('satellite')}
+              title="Tasks and action items - represented as Satellites"
             >
               🛰️ Satellites ({stats.satellites})
             </button>
@@ -293,6 +308,7 @@ const AITodoManager = ({ onTodoDataChange }) => {
             value={selectedCategory} 
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="category-filter"
+            title="Filter by AI-classified category"
           >
             <option value="all">All Categories</option>
             <option value="work">💼 Work</option>
@@ -308,13 +324,24 @@ const AITodoManager = ({ onTodoDataChange }) => {
           className="add-todo-btn ai-enhanced"
           onClick={() => setShowForm(true)}
           disabled={showForm}
+          title="Create a new AI-classified mission"
         >
           🤖 + AI Smart Mission
         </button>
       </div>
 
+      {/* Focus Instructions */}
+      <div className="focus-instructions">
+        <div className="instruction-item">
+          🎯 <strong>Click any task</strong> to focus camera on its celestial body
+        </div>
+        <div className="instruction-item">
+          🌌 <strong>3D Navigation:</strong> Drag to rotate, scroll to zoom, right-click to pan
+        </div>
+      </div>
+
       {showForm && (
-        <TodoForm
+        <AITodoForm
           todo={editingTodo}
           onSubmit={editingTodo ? 
             (data) => updateTodo(editingTodo.id, data) : 
@@ -330,13 +357,15 @@ const AITodoManager = ({ onTodoDataChange }) => {
         onToggleComplete={toggleComplete}
         onEdit={startEdit}
         onDelete={deleteTodo}
+        onTaskClick={handleTaskClick}
+        selectedTodoId={selectedTodoId}
         aiMode={true}
       />
     </div>
   );
 };
 
-// Generate AI insights about todo patterns
+// Generate enhanced AI insights about todo patterns
 function generateAIInsights(todos) {
   const insights = {};
   const now = new Date();
@@ -367,6 +396,10 @@ function generateAIInsights(todos) {
   );
   
   insights.categoryBalance = `Most tasks are in ${maxCategory} category (${categories[maxCategory]} tasks)`;
+
+  // Analyze solar systems
+  const systems = [...new Set(todos.map(t => t.solarSystemId))];
+  insights.systemsOverview = `Operating ${systems.length} solar system${systems.length > 1 ? 's' : ''} with distributed task hierarchy`;
 
   return insights;
 }

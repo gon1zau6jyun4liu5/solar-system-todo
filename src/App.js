@@ -1,97 +1,70 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import './App.css';
-import Scene from './components/Scene';
-import TodoManager from './components/TodoManager';
-import CelestialPopup from './components/CelestialPopup';
-import SpeedControl from './components/SpeedControl';
-import './components/CelestialPopup.css';
-import './components/SpeedControl.css';
+import AIPanel from './components/AIPanel';
+import AITodoManager from './components/AITodoManager';
+import MultiSolarSystemScene from './components/MultiSolarSystemScene';
 
 function App() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [todos, setTodos] = useState([]);
-  const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [selectedTodo, setSelectedTodo] = useState(null);
-  const [animationSpeed, setAnimationSpeed] = useState(1.0);
+  const [isAnimationPlaying, setIsAnimationPlaying] = useState(true);
+  const [todoData, setTodoData] = useState([]);
+  const [selectedTodoId, setSelectedTodoId] = useState(null);
+  const [focusedCelestialBody, setFocusedCelestialBody] = useState(null);
 
-  // Todo 목록이 변경될 때 업데이트
-  const handleTodosChange = useCallback((newTodos) => {
-    setTodos(newTodos);
-  }, []);
+  // Animation control handler
+  const handleAnimationToggle = () => {
+    setIsAnimationPlaying(!isAnimationPlaying);
+  };
 
-  // 행성 클릭 핸들러
-  const handlePlanetClick = useCallback((planetName) => {
-    setSelectedCategory(planetName);
-  }, []);
+  // Todo data change handler from AITodoManager
+  const handleTodoDataChange = (newTodoData) => {
+    setTodoData(newTodoData);
+  };
 
-  // 카테고리 변경 핸들러
-  const handleCategoryChange = useCallback((category) => {
-    setSelectedCategory(category);
-  }, []);
+  // Celestial body click handler (from 3D scene)
+  const handleCelestialBodyClick = (todoData) => {
+    setSelectedTodoId(todoData.id);
+    setFocusedCelestialBody({
+      type: todoData.hierarchyType,
+      id: todoData.id,
+      position: todoData.position || [0, 0, 0]
+    });
+  };
 
-  // 천체 클릭 핸들러 (팝업 표시)
-  const handleCelestialClick = useCallback((todo) => {
-    setSelectedTodo(todo);
-  }, []);
-
-  // 팝업 닫기 핸들러
-  const handleClosePopup = useCallback(() => {
-    setSelectedTodo(null);
-  }, []);
-
-  // 사이드바 토글 핸들러
-  const handleSidebarToggle = useCallback(() => {
-    setSidebarVisible(prev => !prev);
-  }, []);
-
-  // 애니메이션 속도 변경 핸들러
-  const handleSpeedChange = useCallback((newSpeed) => {
-    setAnimationSpeed(newSpeed);
-  }, []);
+  // Task click handler (from todo panel)
+  const handleTaskClick = (todoItem) => {
+    setSelectedTodoId(todoItem.id);
+    setFocusedCelestialBody({
+      type: todoItem.hierarchyType,
+      id: todoItem.id,
+      position: null // Will be calculated in 3D scene
+    });
+  };
 
   return (
     <div className="App">
-      {/* 3D 장면 */}
-      <Scene 
-        todos={todos}
-        selectedCategory={selectedCategory}
-        onPlanetClick={handlePlanetClick}
-        onCelestialClick={handleCelestialClick}
-        animationSpeed={animationSpeed}
+      {/* 3D Multi Solar System Scene */}
+      <MultiSolarSystemScene 
+        todoData={todoData}
+        selectedTodoId={selectedTodoId}
+        focusedCelestialBody={focusedCelestialBody}
+        isAnimationPlaying={isAnimationPlaying}
+        onCelestialBodyClick={handleCelestialBodyClick}
       />
       
-      {/* 사이드바 토글 버튼 */}
-      <button 
-        className={`sidebar-toggle ${sidebarVisible ? 'active' : ''}`}
-        onClick={handleSidebarToggle}
-        aria-label={sidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
-      >
-        {sidebarVisible ? '📋 Hide Panel' : '📋 Show Panel'}
-      </button>
-
-      {/* Todo 관리 사이드바 */}
-      <TodoManager 
-        selectedCategory={selectedCategory}
-        onCategoryChange={handleCategoryChange}
-        onTodosChange={handleTodosChange}
-        isVisible={sidebarVisible}
+      {/* AI Control Panel */}
+      <AIPanel 
+        onAnimationToggle={handleAnimationToggle}
+        isAnimationPlaying={isAnimationPlaying}
       />
-
-      {/* 천체 정보 팝업 */}
-      {selectedTodo && (
-        <CelestialPopup
-          todo={selectedTodo}
-          onClose={handleClosePopup}
-        />
-      )}
-
-      {/* 애니메이션 속도 조절 */}
-      <SpeedControl
-        animationSpeed={animationSpeed}
-        onSpeedChange={handleSpeedChange}
+      
+      {/* AI-Powered Todo Manager */}
+      <AITodoManager 
+        onTodoDataChange={handleTodoDataChange}
+        selectedTodoId={selectedTodoId}
+        onTaskClick={handleTaskClick}
       />
-
-      {/* 버전 정보 */}
+      
+      {/* Version Display */}
       <div className="version-info">
         Solar System Todo v0.4.0
       </div>

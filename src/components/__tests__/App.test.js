@@ -3,61 +3,74 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from '../../App';
 
-// Mock Three.js components to avoid WebGL context issues in tests
+// Mock the 3D components to avoid WebGL issues in tests
 jest.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <div data-testid="canvas">{children}</div>,
-  useFrame: () => {},
+  useFrame: jest.fn(),
+  useThree: jest.fn(() => ({
+    camera: { position: { clone: jest.fn(), set: jest.fn() } },
+    controls: { target: { clone: jest.fn() }, update: jest.fn() }
+  }))
 }));
 
 jest.mock('@react-three/drei', () => ({
   OrbitControls: () => <div data-testid="orbit-controls" />,
-  Text: ({ children, ...props }) => <div data-testid="three-text" {...props}>{children}</div>
+  Stars: () => <div data-testid="stars" />
 }));
 
-jest.mock('../../components/Scene', () => {
-  return function Scene({ animationSpeed, onCelestialClick }) {
+jest.mock('../MultiSolarSystemScene', () => {
+  return function MultiSolarSystemScene({ 
+    todoData, 
+    selectedTodoId, 
+    focusedCelestialBody, 
+    isAnimationPlaying, 
+    onCelestialBodyClick 
+  }) {
     return (
       <div 
-        data-testid="scene" 
-        data-animation-speed={animationSpeed}
-        onClick={() => onCelestialClick && onCelestialClick({ id: 1, text: 'Test todo' })}
+        data-testid="multi-solar-system-scene" 
+        data-animation-playing={isAnimationPlaying}
+        data-selected-todo-id={selectedTodoId}
+        data-focused-body={focusedCelestialBody ? JSON.stringify(focusedCelestialBody) : null}
+        onClick={() => onCelestialBodyClick && onCelestialBodyClick({ id: 1, hierarchyType: 'planet' })}
       >
-        3D Scene Mock
+        Multi Solar System Scene Mock - {todoData.length} todos
       </div>
     );
   };
 });
 
-jest.mock('../../components/TodoManager', () => {
-  return function TodoManager({ isVisible, onTodosChange }) {
+jest.mock('../AIPanel', () => {
+  return function AIPanel({ onAnimationToggle, isAnimationPlaying }) {
     return (
-      <div 
-        data-testid="todo-manager" 
-        data-visible={isVisible}
-        style={{ display: isVisible ? 'block' : 'none' }}
-      >
-        Todo Manager Mock
+      <div data-testid="ai-panel">
+        <button onClick={onAnimationToggle} data-testid="animation-toggle">
+          {isAnimationPlaying ? 'Pause' : 'Play'}
+        </button>
       </div>
     );
   };
 });
 
-jest.mock('../../components/CelestialPopup', () => {
-  return function CelestialPopup({ todo, onClose }) {
-    return todo ? (
-      <div data-testid="celestial-popup" onClick={onClose}>
-        Popup: {todo.text}
-      </div>
-    ) : null;
-  };
-});
+jest.mock('../AITodoManager', () => {
+  return function AITodoManager({ onTodoDataChange, selectedTodoId, onTaskClick }) {
+    const mockTodos = [
+      { id: 1, text: 'Test todo 1', hierarchyType: 'planet' },
+      { id: 2, text: 'Test todo 2', hierarchyType: 'satellite' }
+    ];
+    
+    React.useEffect(() => {
+      onTodoDataChange(mockTodos);
+    }, [onTodoDataChange]);
 
-jest.mock('../../components/SpeedControl', () => {
-  return function SpeedControl({ animationSpeed, onSpeedChange }) {
     return (
-      <div data-testid="speed-control">
-        <span>Speed: {animationSpeed}x</span>
-        <button onClick={() => onSpeedChange(2.0)}>Change Speed</button>
+      <div data-testid="ai-todo-manager" data-selected-todo-id={selectedTodoId}>
+        <button 
+          onClick={() => onTaskClick && onTaskClick(mockTodos[0])}
+          data-testid="task-click-button"
+        >
+          Click Task 1
+        </button>
       </div>
     );
   };
@@ -81,10 +94,9 @@ describe('App v0.4.0', () => {
   test('renders all main components for v0.4.0', () => {
     render(<App />);
     
-    expect(screen.getByTestId('scene')).toBeInTheDocument();
-    expect(screen.getByTestId('todo-manager')).toBeInTheDocument();
-    expect(screen.getByTestId('speed-control')).toBeInTheDocument();
-    expect(screen.getByText('📋 Hide Panel')).toBeInTheDocument();
+    expect(screen.getByTestId('multi-solar-system-scene')).toBeInTheDocument();
+    expect(screen.getByTestId('ai-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('ai-todo-manager')).toBeInTheDocument();
   });
 
   test('displays correct version information v0.4.0', () => {
@@ -93,138 +105,131 @@ describe('App v0.4.0', () => {
     expect(screen.getByText('Solar System Todo v0.4.0')).toBeInTheDocument();
   });
 
-  test('toggles sidebar visibility correctly', () => {
+  test('handles animation toggle correctly', () => {
     render(<App />);
     
-    // Initially sidebar should be visible
-    const todoManager = screen.getByTestId('todo-manager');
-    expect(todoManager).toHaveAttribute('data-visible', 'true');
-    expect(screen.getByText('📋 Hide Panel')).toBeInTheDocument();
+    // Initially should be playing
+    const scene = screen.getByTestId('multi-solar-system-scene');
+    expect(scene).toHaveAttribute('data-animation-playing', 'true');
+    expect(screen.getByText('Pause')).toBeInTheDocument();
     
     // Click toggle button
-    const toggleButton = screen.getByText('📋 Hide Panel');
+    const toggleButton = screen.getByTestId('animation-toggle');
     fireEvent.click(toggleButton);
     
-    // Should now be hidden
-    expect(todoManager).toHaveAttribute('data-visible', 'false');
-    expect(screen.getByText('📋 Show Panel')).toBeInTheDocument();
+    // Should now be paused
+    expect(scene).toHaveAttribute('data-animation-playing', 'false');
+    expect(screen.getByText('Play')).toBeInTheDocument();
   });
 
-  test('opens celestial popup when celestial body is clicked', () => {
+  test('handles celestial body click from 3D scene', () => {
     render(<App />);
     
-    // Initially no popup
-    expect(screen.queryByTestId('celestial-popup')).not.toBeInTheDocument();
+    const scene = screen.getByTestId('multi-solar-system-scene');
     
-    // Click scene to trigger celestial click
-    const scene = screen.getByTestId('scene');
+    // Initially no selection
+    expect(scene).toHaveAttribute('data-selected-todo-id', '');
+    
+    // Click on celestial body in 3D scene
     fireEvent.click(scene);
     
-    // Should show popup
-    expect(screen.getByTestId('celestial-popup')).toBeInTheDocument();
-    expect(screen.getByText('Popup: Test todo')).toBeInTheDocument();
+    // Should update selected todo and focused body
+    expect(scene).toHaveAttribute('data-selected-todo-id', '1');
+    const focusedBodyData = JSON.parse(scene.getAttribute('data-focused-body'));
+    expect(focusedBodyData.id).toBe(1);
+    expect(focusedBodyData.type).toBe('planet');
   });
 
-  test('closes celestial popup when clicked', () => {
+  test('handles task click from todo manager for camera focusing', () => {
     render(<App />);
     
-    // Open popup
-    const scene = screen.getByTestId('scene');
+    const scene = screen.getByTestId('multi-solar-system-scene');
+    const taskButton = screen.getByTestId('task-click-button');
+    
+    // Initially no selection
+    expect(scene).toHaveAttribute('data-selected-todo-id', '');
+    
+    // Click task in todo manager
+    fireEvent.click(taskButton);
+    
+    // Should update focused celestial body for camera tracking
+    expect(scene).toHaveAttribute('data-selected-todo-id', '1');
+    const focusedBodyData = JSON.parse(scene.getAttribute('data-focused-body'));
+    expect(focusedBodyData.id).toBe(1);
+    expect(focusedBodyData.type).toBe('planet');
+  });
+
+  test('passes todo data to MultiSolarSystemScene', () => {
+    render(<App />);
+    
+    const scene = screen.getByTestId('multi-solar-system-scene');
+    
+    // Should receive mock todo data
+    expect(scene).toHaveTextContent('2 todos');
+  });
+
+  test('manages state correctly for multiple interactions', () => {
+    render(<App />);
+    
+    const scene = screen.getByTestId('multi-solar-system-scene');
+    const taskButton = screen.getByTestId('task-click-button');
+    const animationButton = screen.getByTestId('animation-toggle');
+    
+    // Start with animation playing, no selection
+    expect(scene).toHaveAttribute('data-animation-playing', 'true');
+    expect(scene).toHaveAttribute('data-selected-todo-id', '');
+    
+    // Click task to focus
+    fireEvent.click(taskButton);
+    expect(scene).toHaveAttribute('data-selected-todo-id', '1');
+    
+    // Toggle animation while task is selected
+    fireEvent.click(animationButton);
+    expect(scene).toHaveAttribute('data-animation-playing', 'false');
+    expect(scene).toHaveAttribute('data-selected-todo-id', '1'); // Should maintain selection
+    
+    // Click celestial body in 3D scene
     fireEvent.click(scene);
-    
-    expect(screen.getByTestId('celestial-popup')).toBeInTheDocument();
-    
-    // Close popup
-    const popup = screen.getByTestId('celestial-popup');
-    fireEvent.click(popup);
-    
-    expect(screen.queryByTestId('celestial-popup')).not.toBeInTheDocument();
+    expect(scene).toHaveAttribute('data-selected-todo-id', '1'); // Updated selection
+    expect(scene).toHaveAttribute('data-animation-playing', 'false'); // Maintain animation state
   });
 
-  test('animation speed control works correctly', () => {
+  test('initializes with correct default state', () => {
     render(<App />);
     
-    // Initial speed should be 1.0
-    const scene = screen.getByTestId('scene');
-    expect(scene).toHaveAttribute('data-animation-speed', '1');
-    expect(screen.getByText('Speed: 1x')).toBeInTheDocument();
+    const scene = screen.getByTestId('multi-solar-system-scene');
     
-    // Change speed
-    const changeSpeedButton = screen.getByText('Change Speed');
-    fireEvent.click(changeSpeedButton);
-    
-    // Speed should be updated
-    expect(scene).toHaveAttribute('data-animation-speed', '2');
-    expect(screen.getByText('Speed: 2x')).toBeInTheDocument();
+    // Check default state
+    expect(scene).toHaveAttribute('data-animation-playing', 'true');
+    expect(scene).toHaveAttribute('data-selected-todo-id', '');
+    expect(scene).toHaveAttribute('data-focused-body', 'null');
   });
 
-  test('sidebar toggle button shows correct text based on state', () => {
-    render(<App />);
+  test('App has correct main class and structure', () => {
+    const { container } = render(<App />);
     
-    let toggleButton = screen.getByRole('button', { name: /sidebar/i });
-    expect(toggleButton).toHaveTextContent('📋 Hide Panel');
+    const appDiv = container.querySelector('.App');
+    expect(appDiv).toBeInTheDocument();
     
-    fireEvent.click(toggleButton);
-    
-    toggleButton = screen.getByRole('button', { name: /sidebar/i });
-    expect(toggleButton).toHaveTextContent('📋 Show Panel');
-  });
-
-  test('handles planet click correctly', () => {
-    render(<App />);
-    
-    // This would typically be tested through Scene component integration
-    // For now, we verify the structure is in place
-    expect(screen.getByTestId('scene')).toBeInTheDocument();
-  });
-
-  test('passes animation speed to Scene component', () => {
-    render(<App />);
-    
-    const scene = screen.getByTestId('scene');
-    expect(scene).toHaveAttribute('data-animation-speed', '1');
-    
-    // Change animation speed
-    const changeSpeedButton = screen.getByText('Change Speed');
-    fireEvent.click(changeSpeedButton);
-    
-    expect(scene).toHaveAttribute('data-animation-speed', '2');
-  });
-
-  test('maintains state correctly between interactions', () => {
-    render(<App />);
-    
-    // Hide sidebar
-    fireEvent.click(screen.getByText('📋 Hide Panel'));
-    expect(screen.getByTestId('todo-manager')).toHaveAttribute('data-visible', 'false');
-    
-    // Open popup
-    fireEvent.click(screen.getByTestId('scene'));
-    expect(screen.getByTestId('celestial-popup')).toBeInTheDocument();
-    
-    // Sidebar should still be hidden
-    expect(screen.getByTestId('todo-manager')).toHaveAttribute('data-visible', 'false');
-    
-    // Change speed
-    fireEvent.click(screen.getByText('Change Speed'));
-    expect(screen.getByText('Speed: 2x')).toBeInTheDocument();
-    
-    // Other states should remain unchanged
-    expect(screen.getByTestId('celestial-popup')).toBeInTheDocument();
-    expect(screen.getByTestId('todo-manager')).toHaveAttribute('data-visible', 'false');
-  });
-
-  test('all components are properly integrated', () => {
-    render(<App />);
-    
-    // Verify all main components are rendered
-    expect(screen.getByTestId('scene')).toBeInTheDocument();
-    expect(screen.getByTestId('todo-manager')).toBeInTheDocument();
-    expect(screen.getByTestId('speed-control')).toBeInTheDocument();
+    // Check if all major components are present
+    expect(screen.getByTestId('multi-solar-system-scene')).toBeInTheDocument();
+    expect(screen.getByTestId('ai-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('ai-todo-manager')).toBeInTheDocument();
     expect(screen.getByText('Solar System Todo v0.4.0')).toBeInTheDocument();
+  });
+
+  test('handles edge cases gracefully', () => {
+    render(<App />);
     
-    // Verify interactive elements are present
-    expect(screen.getByRole('button', { name: /sidebar/i })).toBeInTheDocument();
+    const scene = screen.getByTestId('multi-solar-system-scene');
+    
+    // Test rapid clicks
+    fireEvent.click(scene);
+    fireEvent.click(scene);
+    fireEvent.click(scene);
+    
+    // Should still function normally
+    expect(scene).toHaveAttribute('data-selected-todo-id', '1');
   });
 
   test('renders without crashing with v0.4.0 features', () => {
@@ -233,18 +238,62 @@ describe('App v0.4.0', () => {
     }).not.toThrow();
   });
 
-  test('handles edge cases correctly', () => {
+  test('maintains animation state across interactions', () => {
     render(<App />);
     
-    // Multiple rapid clicks should not break anything
-    const toggleButton = screen.getByRole('button', { name: /sidebar/i });
+    const scene = screen.getByTestId('multi-solar-system-scene');
+    const toggleButton = screen.getByTestId('animation-toggle');
+    const taskButton = screen.getByTestId('task-click-button');
     
-    for (let i = 0; i < 5; i++) {
-      fireEvent.click(toggleButton);
-    }
+    // Pause animation
+    fireEvent.click(toggleButton);
+    expect(scene).toHaveAttribute('data-animation-playing', 'false');
     
-    // App should still be functional
-    expect(screen.getByTestId('scene')).toBeInTheDocument();
-    expect(screen.getByTestId('todo-manager')).toBeInTheDocument();
+    // Click task - animation state should be preserved
+    fireEvent.click(taskButton);
+    expect(scene).toHaveAttribute('data-animation-playing', 'false');
+    expect(scene).toHaveAttribute('data-selected-todo-id', '1');
+    
+    // Resume animation
+    fireEvent.click(toggleButton);
+    expect(scene).toHaveAttribute('data-animation-playing', 'true');
+    expect(scene).toHaveAttribute('data-selected-todo-id', '1'); // Selection preserved
+  });
+});
+
+describe('App v0.4.0 Integration Tests', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorageMock.getItem.mockReturnValue(null);
+  });
+
+  test('integrates all components correctly for v0.4.0', () => {
+    const { container } = render(<App />);
+    
+    // Check component hierarchy
+    const app = container.querySelector('.App');
+    expect(app).toBeInTheDocument();
+    
+    // Check all main components are mounted
+    expect(screen.getByTestId('multi-solar-system-scene')).toBeInTheDocument();
+    expect(screen.getByTestId('ai-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('ai-todo-manager')).toBeInTheDocument();
+    
+    // Check version display
+    expect(screen.getByText('Solar System Todo v0.4.0')).toBeInTheDocument();
+  });
+
+  test('data flow works correctly between components', () => {
+    render(<App />);
+    
+    const scene = screen.getByTestId('multi-solar-system-scene');
+    const todoManager = screen.getByTestId('ai-todo-manager');
+    
+    // TodoManager should provide data to Scene
+    expect(scene).toHaveTextContent('2 todos');
+    
+    // Selection state should be synchronized
+    expect(scene).toHaveAttribute('data-selected-todo-id', '');
+    expect(todoManager).toHaveAttribute('data-selected-todo-id', '');
   });
 });

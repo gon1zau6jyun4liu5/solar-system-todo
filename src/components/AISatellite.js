@@ -1,38 +1,51 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 /**
- * Enhanced AI-powered Satellite component v0.3.1
- * - Animation control support
- * - Progress percentage display
- * - Enhanced visual effects and task completion status
- * - Improved orbit mechanics around planets
+ * AI-powered Satellite component with enhanced animation control
+ * Represents small tasks orbiting around planets
+ * - Orbital motion around parent planet
+ * - Smallest size with high detail
+ * - Fast rotation for urgent tasks
+ * - Completion status visualization
+ * - Animation pause/play support
+ * - Ref forwarding for camera tracking
  */
-const AISatellite = ({ 
+const AISatellite = forwardRef(({ 
   todoData,
   planetPosition = [0, 0, 0],
   orbitRadius = 2,
-  orbitSpeed = 0.03,
+  orbitSpeed = 0.025,
   initialAngle = 0,
   onClick,
   isSelected = false,
-  progressPercentage = null
-}) => {
+  isAnimationPlaying = true
+}, ref) => {
   const meshRef = useRef();
   const groupRef = useRef();
-  const trailRef = useRef();
+  const glowRef = useRef();
   const orbitAngle = useRef(initialAngle);
+
+  // Expose position methods for camera tracking
+  useImperativeHandle(ref, () => ({
+    getWorldPosition: (target) => {
+      if (groupRef.current) {
+        return groupRef.current.getWorldPosition(target);
+      }
+      return target.set(...planetPosition).add(new THREE.Vector3(orbitRadius, 0, 0));
+    },
+    position: planetPosition
+  }));
 
   // Calculate visual properties from AI classification
   const visualProps = useMemo(() => {
     const vp = todoData.visualProperties;
     
-    // Satellite size (0.15 - 0.5 range) - smallest celestial body
-    const size = 0.15 + (vp.sizeMultiplier - 0.7) * 0.7;
+    // Enhanced satellite size (0.15 - 0.6 range) - smallest celestial body
+    const size = 0.15 + (vp.sizeMultiplier - 0.7) * 0.9;
     
-    // Completion status affects color and behavior
+    // Completion status affects color and appearance
     const baseColor = todoData.completed ? '#4caf50' : '#ffffff';
     const urgencyTint = vp.daysUntilDeadline <= 1 ? '#ff0000' : 
                        vp.daysUntilDeadline <= 3 ? '#ff8800' : baseColor;
@@ -41,55 +54,56 @@ const AISatellite = ({
       size,
       color: todoData.completed ? baseColor : urgencyTint,
       rotationSpeed: vp.rotationSpeed * 3, // Satellites rotate fastest
-      brightness: vp.brightness * 0.4, // Dimmest of all bodies
+      brightness: vp.brightness * 0.6, // Dimmer than planets
       completed: todoData.completed,
       urgencyLevel: vp.daysUntilDeadline
     };
   }, [todoData]);
 
-  // Animation loop with complex orbital patterns
+  // Enhanced animation loop with pause/play control
   useFrame((state, delta) => {
+    if (!isAnimationPlaying) return;
+
     if (groupRef.current && meshRef.current) {
-      // Orbital motion around planet (only if orbitSpeed > 0)
-      if (orbitSpeed > 0) {
-        const speedMultiplier = visualProps.completed ? 0.3 : (1 + visualProps.rotationSpeed * 150);
-        orbitAngle.current += orbitSpeed * speedMultiplier;
-        
-        const x = planetPosition[0] + Math.cos(orbitAngle.current) * orbitRadius;
-        const z = planetPosition[2] + Math.sin(orbitAngle.current) * orbitRadius;
-        // Figure-8 motion for visual interest
-        const y = planetPosition[1] + Math.sin(orbitAngle.current * 2) * 0.7;
-        
-        groupRef.current.position.set(x, y, z);
-      }
+      // Enhanced orbital motion around planet
+      const speedMultiplier = visualProps.completed ? 0.3 : (1 + visualProps.rotationSpeed * 200);
+      orbitAngle.current += orbitSpeed * speedMultiplier;
       
-      // Very fast satellite rotation (always happens)
+      const x = planetPosition[0] + Math.cos(orbitAngle.current) * orbitRadius;
+      const z = planetPosition[2] + Math.sin(orbitAngle.current) * orbitRadius;
+      // Enhanced figure-8 motion for more dynamic movement
+      const y = planetPosition[1] + Math.cos(orbitAngle.current * 2.5) * 0.8;
+      
+      groupRef.current.position.set(x, y, z);
+      
+      // Enhanced fast satellite rotation
       meshRef.current.rotation.y += visualProps.rotationSpeed;
       meshRef.current.rotation.x += visualProps.rotationSpeed * 0.8;
       meshRef.current.rotation.z += visualProps.rotationSpeed * 0.4;
       
-      // Urgent satellites vibrate
+      // Enhanced urgent satellites vibration
       if (visualProps.urgencyLevel <= 1 && !visualProps.completed) {
-        const vibration = Math.sin(state.clock.elapsedTime * 40) * 0.03;
-        meshRef.current.position.x += vibration;
-        meshRef.current.position.z += vibration;
+        const vibrationIntensity = 1 - (visualProps.urgencyLevel / 1);
+        const vibration = Math.sin(state.clock.elapsedTime * 40) * 0.08 * vibrationIntensity;
+        groupRef.current.position.x += vibration;
+        groupRef.current.position.z += vibration;
+        groupRef.current.position.y += vibration * 0.5;
       }
       
-      // Energy trail effect for active tasks
-      if (trailRef.current && !visualProps.completed) {
-        trailRef.current.rotation.y += orbitSpeed * 2;
-        const pulse = 1 + Math.sin(state.clock.elapsedTime * 20) * 0.3;
-        trailRef.current.scale.setScalar(pulse);
+      // Enhanced glow effect for urgent items
+      if (glowRef.current && visualProps.urgencyLevel <= 3 && !visualProps.completed) {
+        const pulse = 1 + Math.sin(state.clock.elapsedTime * 18) * 0.6;
+        glowRef.current.scale.setScalar(pulse);
       }
     }
   });
 
-  // Satellite material based on status and urgency
+  // Enhanced satellite material based on status
   const satelliteMaterial = useMemo(() => {
     if (visualProps.completed) {
       return new THREE.MeshStandardMaterial({
         color: visualProps.color,
-        emissive: '#002200',
+        emissive: '#004400',
         emissiveIntensity: 0.6,
         roughness: 0.2,
         metalness: 0.9,
@@ -102,26 +116,29 @@ const AISatellite = ({
       color: visualProps.color,
       emissive: visualProps.urgencyLevel <= 3 ? visualProps.color : '#000000',
       emissiveIntensity: visualProps.urgencyLevel <= 3 ? 0.5 : 0,
-      roughness: 0.9,
-      metalness: 0.1
+      roughness: 0.7,
+      metalness: 0.3,
+      transparent: false,
+      opacity: 1.0
     });
   }, [visualProps]);
 
-  // Energy trail material for active satellites
-  const trailMaterial = useMemo(() => new THREE.MeshBasicMaterial({
+  // Enhanced glow material for urgent items
+  const glowMaterial = useMemo(() => new THREE.MeshBasicMaterial({
     color: visualProps.color,
     transparent: true,
-    opacity: visualProps.completed ? 0.1 : 0.4,
-    side: THREE.DoubleSide
-  }), [visualProps.color, visualProps.completed]);
+    opacity: 0.5,
+    side: THREE.BackSide
+  }), [visualProps.color]);
 
-  // Orbit trail for active satellites only
+  // Enhanced orbit trail for active satellites
   const orbitGeometry = useMemo(() => {
-    if (visualProps.completed) return null;
+    if (visualProps.completed) return null; // No trail for completed tasks
     
     const points = [];
-    for (let i = 0; i <= 24; i++) {
-      const angle = (i / 24) * Math.PI * 2;
+    const segments = 64; // Higher resolution
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2;
       points.push(new THREE.Vector3(
         planetPosition[0] + Math.cos(angle) * orbitRadius,
         planetPosition[1],
@@ -131,33 +148,23 @@ const AISatellite = ({
     return new THREE.BufferGeometry().setFromPoints(points);
   }, [planetPosition, orbitRadius, visualProps.completed]);
 
-  // Progress display color
-  const progressColor = progressPercentage !== null ? 
-    (progressPercentage > 50 ? '#44ff44' : 
-     progressPercentage > 25 ? '#ffaa00' : '#ff4444') : '#ffffff';
+  // Enhanced orbit trail material
+  const orbitMaterial = useMemo(() => new THREE.LineBasicMaterial({
+    color: visualProps.color,
+    transparent: true,
+    opacity: isSelected ? 0.6 : 0.25,
+    linewidth: isSelected ? 2 : 1
+  }), [visualProps.color, isSelected]);
 
   return (
     <group>
-      {/* Orbit trail for active satellites */}
+      {/* Enhanced orbit trail for active satellites */}
       {orbitGeometry && !visualProps.completed && (
-        <line geometry={orbitGeometry}>
-          <lineBasicMaterial 
-            color={visualProps.color}
-            transparent
-            opacity={0.2}
-          />
-        </line>
+        <line geometry={orbitGeometry} material={orbitMaterial} />
       )}
       
       {/* Satellite group */}
       <group ref={groupRef}>
-        {/* Energy trail effect */}
-        {!visualProps.completed && (
-          <mesh ref={trailRef} material={trailMaterial}>
-            <ringGeometry args={[visualProps.size * 0.8, visualProps.size * 1.2, 8]} />
-          </mesh>
-        )}
-
         {/* Main satellite body */}
         <mesh 
           ref={meshRef}
@@ -173,150 +180,145 @@ const AISatellite = ({
           onPointerOut={() => {
             document.body.style.cursor = 'default';
           }}
+          castShadow
+          receiveShadow
         >
-          <sphereGeometry args={[visualProps.size, 12, 12]} />
+          <sphereGeometry args={[visualProps.size, 16, 16]} />
         </mesh>
 
-        {/* Completion indicator */}
+        {/* Enhanced glow effect for urgent items */}
+        {visualProps.urgencyLevel <= 3 && !visualProps.completed && (
+          <mesh ref={glowRef} material={glowMaterial}>
+            <sphereGeometry args={[visualProps.size * 1.4, 12, 12]} />
+          </mesh>
+        )}
+
+        {/* Enhanced completion indicator */}
         {visualProps.completed && (
           <group>
-            {/* Check mark representation */}
-            <mesh position={[0, 0, visualProps.size + 0.02]}>
-              <ringGeometry args={[visualProps.size * 0.6, visualProps.size * 0.8, 8]} />
-              <meshBasicMaterial color="#00ff00" transparent opacity={0.9} />
-            </mesh>
             {/* Success glow */}
             <mesh>
-              <sphereGeometry args={[visualProps.size * 1.4, 8, 8]} />
+              <sphereGeometry args={[visualProps.size * 1.3, 12, 12]} />
               <meshBasicMaterial 
-                color="#44ff44" 
+                color="#00ff00" 
                 transparent 
-                opacity={0.2}
+                opacity={0.4}
                 side={THREE.BackSide}
+              />
+            </mesh>
+            {/* Check mark representation */}
+            <mesh position={[0, 0, visualProps.size + 0.05]}>
+              <ringGeometry args={[visualProps.size * 0.6, visualProps.size * 0.8, 12]} />
+              <meshBasicMaterial 
+                color="#00ff00" 
+                transparent 
+                opacity={0.9}
+                side={THREE.DoubleSide}
               />
             </mesh>
           </group>
         )}
 
-        {/* Selection indicator */}
+        {/* Enhanced selection indicator */}
         {isSelected && (
+          <>
+            <mesh>
+              <ringGeometry args={[visualProps.size * 1.3, visualProps.size * 1.5, 16]} />
+              <meshBasicMaterial 
+                color="#00aaff" 
+                transparent 
+                opacity={0.9}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[visualProps.size * 1.3, visualProps.size * 1.5, 16]} />
+              <meshBasicMaterial 
+                color="#00aaff" 
+                transparent 
+                opacity={0.7}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+          </>
+        )}
+
+        {/* Enhanced urgency indicator */}
+        {visualProps.urgencyLevel <= 1 && !visualProps.completed && (
+          <>
+            <mesh rotation={[0, 0, Math.PI / 4]}>
+              <ringGeometry args={[visualProps.size * 1.2, visualProps.size * 1.25, 8]} />
+              <meshBasicMaterial 
+                color="#ff0000" 
+                transparent 
+                opacity={0.9}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+            <mesh rotation={[0, 0, -Math.PI / 4]}>
+              <ringGeometry args={[visualProps.size * 1.2, visualProps.size * 1.25, 8]} />
+              <meshBasicMaterial 
+                color="#ff0000" 
+                transparent 
+                opacity={0.7}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+          </>
+        )}
+
+        {/* Enhanced task text (very small, visible only when close) */}
+        <group position={[0, visualProps.size + 0.3, 0]}>
           <mesh>
-            <ringGeometry args={[visualProps.size * 1.3, visualProps.size * 1.5, 8]} />
+            <planeGeometry args={[Math.min(todoData.text.length * 0.06, 1.5), 0.15]} />
             <meshBasicMaterial 
-              color="#00aaff" 
+              color="#ffffff" 
               transparent 
-              opacity={0.9}
-              side={THREE.DoubleSide}
+              opacity={0.6} 
+            />
+          </mesh>
+        </group>
+
+        {/* Energy field for high priority incomplete tasks */}
+        {todoData.priority === 'high' && !visualProps.completed && (
+          <mesh>
+            <sphereGeometry args={[visualProps.size * 1.15, 8, 8]} />
+            <meshBasicMaterial 
+              color={visualProps.color}
+              transparent 
+              opacity={0.3}
+              side={THREE.BackSide}
             />
           </mesh>
         )}
 
-        {/* Urgency warning indicators */}
-        {visualProps.urgencyLevel <= 1 && !visualProps.completed && (
-          <>
-            <mesh rotation={[0, 0, Math.PI / 4]}>
-              <ringGeometry args={[visualProps.size * 1.2, visualProps.size * 1.3, 4]} />
-              <meshBasicMaterial color="#ff0000" transparent opacity={0.8} />
-            </mesh>
-            <mesh rotation={[0, 0, -Math.PI / 4]}>
-              <ringGeometry args={[visualProps.size * 1.2, visualProps.size * 1.3, 4]} />
-              <meshBasicMaterial color="#ff0000" transparent opacity={0.8} />
-            </mesh>
-          </>
-        )}
-
-        {/* Progress percentage display */}
-        {progressPercentage !== null && (
-          <group position={[0, visualProps.size + 0.6, 0]}>
-            <Text
-              fontSize={0.25}
-              color={progressColor}
-              anchorX="center"
-              anchorY="middle"
-              outlineColor="#000000"
-              outlineWidth={0.1}
-            >
-              {Math.round(progressPercentage)}%
-            </Text>
-          </group>
-        )}
-
-        {/* Task text (very small, visible only when close) */}
-        <group position={[0, visualProps.size + 1.0, 0]}>
-          <Text
-            fontSize={0.2}
-            color="#ffffff"
-            anchorX="center"
-            anchorY="middle"
-            outlineColor="#000000"
-            outlineWidth={0.05}
-            maxWidth={4}
-          >
-            {todoData.text.length > 20 ? 
-              todoData.text.substring(0, 17) + '...' : 
-              todoData.text}
-          </Text>
-        </group>
-
-        {/* Status indicator */}
-        <group position={[0, -visualProps.size - 0.5, 0]}>
-          <Text
-            fontSize={0.15}
-            color={visualProps.urgencyLevel <= 2 ? '#ff4444' : '#cccccc'}
-            anchorX="center"
-            anchorY="middle"
-            outlineColor="#000000"
-            outlineWidth={0.03}
-          >
-            {visualProps.completed ? 'COMPLETE' : 
-             visualProps.urgencyLevel <= 1 ? 'URGENT' :
-             visualProps.urgencyLevel <= 3 ? 'SOON' : 'ACTIVE'}
-          </Text>
-        </group>
-
-        {/* Satellite antenna/solar panel details */}
-        {!visualProps.completed && (
-          <>
-            {/* Antenna */}
-            <mesh position={[0, visualProps.size * 0.8, 0]}>
-              <cylinderGeometry args={[0.01, 0.01, visualProps.size * 0.6]} />
-              <meshBasicMaterial color="#888888" />
-            </mesh>
-            
-            {/* Solar panels */}
-            <mesh position={[visualProps.size * 0.8, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-              <boxGeometry args={[visualProps.size * 0.3, visualProps.size * 0.1, visualProps.size * 0.6]} />
-              <meshBasicMaterial color="#003366" transparent opacity={0.8} />
-            </mesh>
-            <mesh position={[-visualProps.size * 0.8, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-              <boxGeometry args={[visualProps.size * 0.3, visualProps.size * 0.1, visualProps.size * 0.6]} />
-              <meshBasicMaterial color="#003366" transparent opacity={0.8} />
-            </mesh>
-          </>
-        )}
-
-        {/* Thruster effects for urgent tasks */}
-        {visualProps.urgencyLevel <= 2 && !visualProps.completed && (
-          <>
-            {[...Array(4)].map((_, i) => (
+        {/* Data stream effect for active satellites */}
+        {!visualProps.completed && visualProps.urgencyLevel <= 5 && (
+          <group>
+            {Array.from({ length: 3 }, (_, i) => (
               <mesh 
                 key={i} 
-                rotation={[0, 0, (i * Math.PI * 2) / 4]}
-                position={[visualProps.size * 0.7, 0, 0]}
+                position={[
+                  Math.cos(i * Math.PI * 2 / 3) * visualProps.size * 2,
+                  0,
+                  Math.sin(i * Math.PI * 2 / 3) * visualProps.size * 2
+                ]}
               >
-                <coneGeometry args={[0.05, visualProps.size * 0.3, 4]} />
+                <sphereGeometry args={[0.02, 4, 4]} />
                 <meshBasicMaterial 
-                  color="#ffaa00" 
+                  color={visualProps.color}
                   transparent 
                   opacity={0.7}
                 />
               </mesh>
             ))}
-          </>
+          </group>
         )}
       </group>
     </group>
   );
-};
+});
+
+AISatellite.displayName = 'AISatellite';
 
 export default AISatellite;
