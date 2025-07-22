@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import './EnhancedMissionControl.css';
 
 /**
- * Enhanced Mission Control Panel v0.5.1
- * Advanced UI/UX for todo management with improved accessibility,
- * drag & drop support, enhanced visual feedback, and bug fixes
+ * Enhanced Mission Control Panel v0.5.2
+ * Advanced UI/UX for todo management with expanded panel width,
+ * improved solar system logic, and enhanced user experience
  */
 const EnhancedMissionControl = ({ 
   todos, 
@@ -194,7 +194,7 @@ const EnhancedMissionControl = ({
       {/* Header with stats and controls */}
       <div className="mission-control-header">
         <div className="mission-stats">
-          <h2>🚀 Enhanced Mission Control v0.5.1</h2>
+          <h2>🚀 Enhanced Mission Control v0.5.2</h2>
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-value">{stats.total}</div>
@@ -399,22 +399,13 @@ const EnhancedMissionControl = ({
           </div>
         </div>
       )}
-
-      {/* Quick action button */}
-      <button 
-        onClick={() => setShowKeyboardHelp(true)}
-        className="help-toggle"
-        title="Keyboard Shortcuts (Ctrl+?)"
-      >
-        ❓
-      </button>
     </div>
   );
 };
 
 /**
- * Enhanced Mission Card Component v0.5.1
- * Individual todo item with enhanced interaction and bug fixes
+ * Enhanced Mission Card Component v0.5.2
+ * Individual todo item with enhanced interaction, improved UI, and satellite display logic
  */
 const EnhancedMissionCard = ({ 
   todo, 
@@ -450,12 +441,17 @@ const EnhancedMissionCard = ({
     }
   };
 
-  // v0.5.1 BUG FIX: visualProperties가 undefined일 경우 대비
+  // v0.5.2 개선: visualProperties가 undefined일 경우 안전 처리
   const daysUntilDeadline = todo.visualProperties?.daysUntilDeadline || 30;
   
   const urgencyLevel = daysUntilDeadline <= 1 ? 'critical' :
                        daysUntilDeadline <= 3 ? 'urgent' :
                        daysUntilDeadline <= 7 ? 'warning' : 'normal';
+
+  // v0.5.2 추가: 서브태스크 표시 로직 (위성 표현을 위한)
+  const hasSubtasks = todo.subtasks && todo.subtasks.length > 0;
+  const completedSubtasks = todo.subtasks?.filter(st => st.completed).length || 0;
+  const totalSubtasks = todo.subtasks?.length || 0;
 
   return (
     <div 
@@ -494,12 +490,18 @@ const EnhancedMissionCard = ({
             <span className={todo.completed ? 'completed-text' : ''}>
               {todo.text}
             </span>
+            {/* v0.5.2 추가: 서브태스크 표시 (위성 개념) */}
+            {hasSubtasks && (
+              <span className="subtasks-indicator" title={`${completedSubtasks}/${totalSubtasks} subtasks completed`}>
+                🛰️ {completedSubtasks}/{totalSubtasks}
+              </span>
+            )}
           </div>
         )}
 
         {/* Mission metadata */}
         <div className="mission-metadata">
-          {/* v0.5.1 BUG FIX: priority가 undefined일 경우 기본값 처리 */}
+          {/* v0.5.2: priority가 undefined일 경우 안전한 기본값 처리 */}
           <span className={`priority-badge ${todo.priority || 'medium'}`}>
             {(todo.priority || 'medium').toUpperCase()}
           </span>
@@ -514,9 +516,10 @@ const EnhancedMissionCard = ({
             {todo.category || 'general'}
           </span>
 
-          {todo.hierarchyType && (
-            <span className="hierarchy-badge">
-              {getHierarchyIcon(todo.hierarchyType)} {todo.hierarchyType}
+          {/* v0.5.2 개선: 태양계 위성 관계 표시 */}
+          {hasSubtasks && (
+            <span className="hierarchy-badge" title="Has satellite tasks">
+              🪐 Planet ({totalSubtasks} 🛰️)
             </span>
           )}
         </div>
@@ -532,6 +535,21 @@ const EnhancedMissionCard = ({
                 ))}%`
               }}
             />
+          </div>
+        )}
+
+        {/* v0.5.2 추가: 서브태스크 목록 (접을 수 있는 형태) */}
+        {hasSubtasks && (
+          <div className="subtasks-list">
+            {todo.subtasks.map(subtask => (
+              <div key={subtask.id} className={`subtask-item ${subtask.completed ? 'completed' : ''}`}>
+                <span className="subtask-icon">🛰️</span>
+                <span className={`subtask-text ${subtask.completed ? 'completed-text' : ''}`}>
+                  {subtask.text}
+                </span>
+                {subtask.completed && <span className="subtask-check">✓</span>}
+              </div>
+            ))}
           </div>
         )}
       </div>
