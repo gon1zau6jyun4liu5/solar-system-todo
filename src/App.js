@@ -106,12 +106,12 @@ function App() {
       
       {/* 버전 정보 표시 */}
       <div className="version-info">
-        Advanced Solar System Todo v0.4.4
+        Advanced Solar System Todo v0.4.5
       </div>
 
       {/* Feature showcase badge */}
       <div className="feature-badge">
-        🚀 NEW: Korean README Documentation
+        🚀 NEW: Integrated Documentation
       </div>
     </div>
   );
