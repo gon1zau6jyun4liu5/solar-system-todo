@@ -6,7 +6,6 @@ import AITodoManager from './components/AITodoManager';
 import EnhancedMissionControl from './components/EnhancedMissionControl';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
 import DynamicSolarSystemManager from './components/DynamicSolarSystemManager';
-import AIGroupingEngine from './components/AIGroupingEngine';
 import AsteroidActionSystem from './components/AsteroidActionSystem';
 
 // AI 그룹핑 엔진 - 태스크 자동 분석 및 분류
@@ -528,9 +527,9 @@ function App() {
         onAsteroidAction={handleAsteroidAction}
       />
       
-      {/* 버전 정보 표시 - v0.4.7로 업데이트 */}
+      {/* 버전 정보 표시 - v0.4.8로 업데이트 */}
       <div className="version-info">
-        AI Dynamic Solar System Todo v0.4.7
+        AI Dynamic Solar System Todo v0.4.8
       </div>
 
       {/* 새 기능 배지 */}
