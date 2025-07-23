@@ -10,17 +10,10 @@ import './App.css';
 // 유틸리티 함수들
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// v0.8.0: functional_specification.md 정확한 구현
-// CORRECT INTERPRETATION:
-// "그룹명이 2개 이상이면 태양도 2개 이상입니다. 태양계도 2개 이상이 됩니다."
-// 
-// 올바른 구조:
-// 1. 태스크가 없으면 행성도 없습니다
-// 2. 서브 태스크가 없으면 위성도 없습니다
-// 3. 태스크가 없으면 태스크 그룹도 없고, 태양도 없습니다
-// 4. AI가 태스크를 분석해서 여러 그룹으로 나눔
-// 5. 각 그룹 = 하나의 태양계 (그룹명 = 태양 이름)
-// 6. 여러 그룹 = 여러 태양계 시스템
+// v0.8.1: functional_specification.md 완전 준수
+// CRITICAL FIX: 메인 메뉴를 왼쪽 수직으로 배치 (사양서 요구사항)
+// "메인 메뉴는 화면의 맨 왼쪽에 수직으로 완전히 밀차되어 있습니다"
+// "메인 메뉴와 패널이 겹치는 경우, 메인 메뉴가 위에 위치합니다"
 
 function App() {
   // 기본 상태 관리
@@ -45,7 +38,7 @@ function App() {
     setTodos([]);
     setSolarSystems([]); // 태스크가 없으면 태양계도 없습니다
     setAsteroids([]); // 태스크가 없으면 소행성도 없습니다
-    console.log('🚫 v0.8.0: 태스크 없음 - 모든 태양계 시스템 제거');
+    console.log('🚫 v0.8.1: 태스크 없음 - 모든 태양계 시스템 제거');
   }, []);
 
   // 기본 태스크 데이터 (다양한 카테고리로 여러 태양계 생성 테스트)
@@ -150,7 +143,7 @@ function App() {
     ];
 
     setTodos(defaultTasks);
-    console.log('🌟 v0.8.0: 기본 태스크 초기화 완료 - 다중 카테고리로 여러 태양계 생성 예정');
+    console.log('🌟 v0.8.1: 기본 태스크 초기화 완료 - 다중 카테고리로 여러 태양계 생성 예정');
   }, []);
 
   // 카테고리별 테마
@@ -371,7 +364,7 @@ function App() {
       });
     });
     
-    console.log('☄️ v0.8.0: 생성된 소행성:', newAsteroids.length, '개');
+    console.log('☄️ v0.8.1: 생성된 소행성:', newAsteroids.length, '개');
     setAsteroids(newAsteroids);
   }, [calculateUrgencyColor]);
 
@@ -387,7 +380,7 @@ function App() {
 
   // v0.8.0: 다중 태양계 생성 (functional_specification.md 정확한 준수)
   const updateSolarSystems = useCallback(async () => {
-    console.log('🔄 v0.8.0: 다중 태양계 업데이트 시작');
+    console.log('🔄 v0.8.1: 다중 태양계 업데이트 시작');
     console.log('📋 현재 태스크 수:', todos.length);
 
     // 규칙 1: 태스크가 없으면 태양도 없습니다
@@ -493,7 +486,7 @@ function App() {
         return solarSystem;
       });
 
-      console.log('🌌 v0.8.0: 생성된 태양계 시스템:', newSolarSystems.length, '개');
+      console.log('🌌 v0.8.1: 생성된 태양계 시스템:', newSolarSystems.length, '개');
       newSolarSystems.forEach((system, index) => {
         console.log(`  ${index + 1}. ${system.name} - ${system.planets.length}개 행성`);
       });
@@ -636,139 +629,218 @@ function App() {
 
   return (
     <div className="App" style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      {/* v0.8.0: functional_specification.md 정확한 준수 - 다중 태양계 3D 씬 */}
-      <Scene 
-        isAnimationPlaying={isAnimationPlaying}
-        solarSystems={solarSystems} // 다중 태양계 시스템
-        asteroids={asteroids}
-        currentView={currentView}
-        onSolarSystemClick={handleSolarSystemClick}
-        onPlanetClick={handleCelestialBodyClick}
-        onSatelliteClick={handleCelestialBodyClick}
-        onAsteroidClick={handleCelestialBodyClick}
-        onSunClick={handleCelestialBodyClick}
-        data-testid="scene"
-      />
+      {/* v0.8.1: functional_specification.md 완전 준수 - 메인 메뉴를 왼쪽 수직으로 배치 */}
+      {/* "메인 메뉴는 화면의 맨 왼쪽에 수직으로 완전히 밀차되어 있습니다" */}
+      <div 
+        className="main-menu-vertical"
+        data-testid="main-menu-vertical"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '80px',
+          height: '100vh',
+          background: 'linear-gradient(180deg, rgba(15, 15, 35, 0.95) 0%, rgba(25, 25, 45, 0.95) 100%)',
+          borderRight: '2px solid rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '20px 10px',
+          gap: '15px',
+          zIndex: 2000, // 메인 메뉴가 위에 위치 (사양서 요구사항)
+          boxShadow: '2px 0 20px rgba(0, 0, 0, 0.3)'
+        }}
+      >
+        {/* 로고/타이틀 */}
+        <div style={{
+          color: '#fff',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          marginBottom: '10px',
+          transform: 'rotate(0deg)',
+          lineHeight: '1.2'
+        }}>
+          🌌<br/>SOLAR<br/>TODO<br/>v0.8.1
+        </div>
 
-      {/* v0.8.0: 반응형 UI 컨트롤 (PC, 태블릿, 모바일 대응) */}
-      <div className="control-panel" style={{
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        zIndex: 1000
-      }}>
-        {/* UI 모드 토글 버튼 */}
+        {/* UI 모드 토글 */}
         <button 
-          className="ui-mode-toggle"
+          className="menu-button"
           onClick={toggleUIMode}
           title={`Switch to ${useEnhancedUI ? 'Classic' : 'Enhanced'} UI`}
           data-testid="ui-mode-toggle"
           style={{
-            background: 'rgba(0, 0, 0, 0.7)',
+            background: useEnhancedUI 
+              ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' 
+              : 'linear-gradient(135deg, #6b7280, #9ca3af)',
             color: 'white',
             border: 'none',
-            padding: '10px 15px',
-            borderRadius: '25px',
+            padding: '12px',
+            borderRadius: '12px',
             cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold'
+            fontSize: '18px',
+            width: '50px',
+            height: '50px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
           }}
         >
-          {useEnhancedUI ? '🎨' : '🚀'} {useEnhancedUI ? 'Enhanced' : 'Classic'}
+          {useEnhancedUI ? '🎨' : '🚀'}
         </button>
 
         {/* 분석 대시보드 토글 */}
         <button 
-          className="analytics-toggle"
+          className="menu-button"
           onClick={toggleAnalyticsDashboard}
           title="Toggle Advanced Analytics Dashboard"
           data-testid="analytics-toggle"
           style={{
-            background: 'rgba(0, 0, 0, 0.7)',
+            background: showAnalyticsDashboard 
+              ? 'linear-gradient(135deg, #059669, #10b981)' 
+              : 'linear-gradient(135deg, #374151, #4b5563)',
             color: 'white',
             border: 'none',
-            padding: '10px 15px',
-            borderRadius: '25px',
+            padding: '12px',
+            borderRadius: '12px',
             cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold'
+            fontSize: '18px',
+            width: '50px',
+            height: '50px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
           }}
         >
-          📊 Analytics
+          📊
         </button>
 
         {/* AI 그룹핑 토글 */}
         <button 
-          className="ai-grouping-toggle"
+          className="menu-button"
           onClick={toggleAIGrouping}
           title="Toggle AI Grouping"
           data-testid="ai-grouping-toggle"
           style={{
-            background: aiGroupingActive ? 'rgba(76, 175, 80, 0.8)' : 'rgba(244, 67, 54, 0.8)',
+            background: aiGroupingActive 
+              ? 'linear-gradient(135deg, #dc2626, #ef4444)' 
+              : 'linear-gradient(135deg, #6b7280, #9ca3af)',
             color: 'white',
             border: 'none',
-            padding: '10px 15px',
-            borderRadius: '25px',
+            padding: '12px',
+            borderRadius: '12px',
             cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold'
+            fontSize: '18px',
+            width: '50px',
+            height: '50px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
           }}
         >
-          🤖 AI {aiGroupingActive ? 'ON' : 'OFF'}
+          🤖
         </button>
 
         {/* 애니메이션 토글 */}
         <button 
-          className="animation-toggle"
+          className="menu-button"
           onClick={toggleAnimation}
           title={`${isAnimationPlaying ? 'Pause' : 'Play'} Solar System`}
           data-testid="animation-toggle"
           style={{
-            background: 'rgba(0, 0, 0, 0.7)',
+            background: isAnimationPlaying 
+              ? 'linear-gradient(135deg, #f59e0b, #f97316)' 
+              : 'linear-gradient(135deg, #6b7280, #9ca3af)',
             color: 'white',
             border: 'none',
-            padding: '10px 15px',
-            borderRadius: '25px',
+            padding: '12px',
+            borderRadius: '12px',
             cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold'
+            fontSize: '18px',
+            width: '50px',
+            height: '50px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
           }}
         >
-          {isAnimationPlaying ? '⏸️ Pause' : '▶️ Play'} Solar System
+          {isAnimationPlaying ? '⏸️' : '▶️'}
         </button>
 
-        {/* v0.8.0: 테스트용 버튼 - 규칙 검증 */}
+        {/* Clear All 테스트 버튼 */}
         <button 
-          className="clear-all-toggle"
+          className="menu-button"
           onClick={handleClearAllToggle}
           title="Clear All Tasks (Test Rule Compliance)"
           data-testid="clear-all-toggle"
           style={{
-            background: 'rgba(255, 87, 34, 0.8)',
+            background: 'linear-gradient(135deg, #7c2d12, #dc2626)',
             color: 'white',
             border: 'none',
-            padding: '10px 15px',
-            borderRadius: '25px',
+            padding: '12px',
+            borderRadius: '12px',
             cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold'
+            fontSize: '18px',
+            width: '50px',
+            height: '50px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
           }}
         >
-          🧹 Clear All
+          🧹
         </button>
+
+        {/* 상태 표시 (축약형) */}
+        <div style={{
+          marginTop: 'auto',
+          fontSize: '10px',
+          color: '#888',
+          textAlign: 'center',
+          lineHeight: '1.2'
+        }}>
+          T:{todos.length}<br/>
+          S:{solarSystems.length}<br/>
+          A:{asteroids.length}
+        </div>
       </div>
 
-      {/* 시스템 상태 표시 - 규칙 준수 확인 */}
+      {/* v0.8.1: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
+      <div style={{ marginLeft: '80px', width: 'calc(100vw - 80px)', height: '100vh' }}>
+        <Scene 
+          isAnimationPlaying={isAnimationPlaying}
+          solarSystems={solarSystems} // 다중 태양계 시스템
+          asteroids={asteroids}
+          currentView={currentView}
+          onSolarSystemClick={handleSolarSystemClick}
+          onPlanetClick={handleCelestialBodyClick}
+          onSatelliteClick={handleCelestialBodyClick}
+          onAsteroidClick={handleCelestialBodyClick}
+          onSunClick={handleCelestialBodyClick}
+          data-testid="scene"
+        />
+      </div>
+
+      {/* 시스템 상태 표시 - 위치 조정 */}
       <div 
         className="system-status"
         data-testid="system-status"
         style={{
           position: 'fixed',
           bottom: '20px',
-          left: '20px',
+          left: '100px', // 메인 메뉴 뒤에 위치
           background: 'rgba(0, 0, 0, 0.8)',
           color: 'white',
           padding: '15px 20px',
@@ -780,7 +852,7 @@ function App() {
       >
         📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
         <br />
-        🚀 v0.8.0 Correct Functional Specification Implementation
+        🚀 v0.8.1 Complete Functional Specification Compliance
         <br />
         {/* 규칙 준수 상태 표시 */}
         <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
@@ -791,28 +863,30 @@ function App() {
         </div>
       </div>
 
-      {/* v0.8.0: 조건부 UI 렌더링 */}
-      {useEnhancedUI ? (
-        <EnhancedMissionControl
-          todos={todos}
-          selectedCategory={selectedCategory}
-          onTodoUpdate={handleTodoUpdate}
-          onTodoAdd={handleTodoAdd}
-          onTodoDelete={handleTodoDelete}
-          onCategoryChange={handleCategoryChange}
-          solarSystems={solarSystems} // 다중 시스템 전달
-          asteroids={asteroids}
-          data-testid="enhanced-mission-control"
-        />
-      ) : (
-        <AITodoManager
-          onTodoDataChange={setTodos}
-          todos={todos}
-          data-testid="ai-todo-manager"
-        />
-      )}
+      {/* v0.8.1: 조건부 UI 렌더링 - 메인 메뉴에 겹치지 않도록 위치 조정 */}
+      <div style={{ marginLeft: '80px' }}>
+        {useEnhancedUI ? (
+          <EnhancedMissionControl
+            todos={todos}
+            selectedCategory={selectedCategory}
+            onTodoUpdate={handleTodoUpdate}
+            onTodoAdd={handleTodoAdd}
+            onTodoDelete={handleTodoDelete}
+            onCategoryChange={handleCategoryChange}
+            solarSystems={solarSystems} // 다중 시스템 전달
+            asteroids={asteroids}
+            data-testid="enhanced-mission-control"
+          />
+        ) : (
+          <AITodoManager
+            onTodoDataChange={setTodos}
+            todos={todos}
+            data-testid="ai-todo-manager"
+          />
+        )}
+      </div>
 
-      {/* 분석 대시보드 */}
+      {/* 분석 대시보드 - 메인 메뉴보다 낮은 z-index */}
       {showAnalyticsDashboard && (
         <AdvancedAnalyticsDashboard
           todos={todos}
@@ -821,18 +895,20 @@ function App() {
           isVisible={showAnalyticsDashboard}
           onClose={closeAnalyticsDashboard}
           data-testid="analytics-dashboard"
+          style={{ zIndex: 1500 }} // 메인 메뉴(2000)보다 낮음
         />
       )}
 
-      {/* 소행성 액션 시스템 */}
+      {/* 소행성 액션 시스템 - 메인 메뉴보다 낮은 z-index */}
       <AsteroidActionSystem
         asteroids={asteroids}
         solarSystems={solarSystems} // 다중 시스템 전달
         onAsteroidAction={handleAsteroidAction}
         data-testid="asteroid-action-system"
+        style={{ zIndex: 1200 }} // 메인 메뉴(2000)보다 낮음
       />
 
-      {/* v0.8.0: 상세정보 모달 (functional_specification.md 요구사항: 클릭 시 상세정보 창) */}
+      {/* v0.8.1: 상세정보 모달 - 메인 메뉴와 동일한 z-index */}
       {showTaskDetail && selectedTask && (
         <TaskDetailModal
           task={selectedTask}
@@ -840,6 +916,7 @@ function App() {
           onClose={closeTaskDetail}
           onUpdate={handleTodoUpdate}
           data-testid="task-detail-modal"
+          style={{ zIndex: 2000 }} // 메인 메뉴와 같은 레벨
         />
       )}
     </div>
