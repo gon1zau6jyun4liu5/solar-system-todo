@@ -93,6 +93,12 @@ const AsteroidActionSystem = ({ asteroids, solarSystems, onAsteroidAction }) => 
 
   // 소행성과 연결된 태스크 정보 가져오기
   const getTaskInfo = (asteroidId) => {
+
+    if (!solarSystems || !Array.isArray(solarSystems)) {
+      console.warn('solarSystems prop이 전달되지 않았습니다');
+      return null;
+    }  
+
     const asteroid = visibleAsteroids.find(a => a.id === asteroidId);
     if (!asteroid) return null;
 
