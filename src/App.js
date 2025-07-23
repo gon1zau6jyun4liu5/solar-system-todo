@@ -1,179 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import './App.css';
 import Scene from './components/Scene';
 import AITodoManager from './components/AITodoManager';
 import EnhancedMissionControl from './components/EnhancedMissionControl';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
-import DynamicSolarSystemManager from './components/DynamicSolarSystemManager';
 import AsteroidActionSystem from './components/AsteroidActionSystem';
+import TaskDetailModal from './components/TaskDetailModal';
+import './App.css';
 
-// AI 그룹핑 엔진 - 태스크 자동 분석 및 분류
-const AIEngine = {
-  // 태스크 내용 분석
-  analyzeTasks: async (tasks) => {
-    // 키워드 기반 분석 (실제로는 ML/NLP 사용)
-    const analysis = tasks.map(task => {
-      const keywords = task.text.toLowerCase().split(' ');
-      const category = categorizeTask(keywords);
-      const priority = calculatePriority(task);
-      const context = extractContext(task);
-      
-      return {
-        taskId: task.id,
-        category,
-        priority,
-        context,
-        keywords,
-        complexity: calculateComplexity(task)
-      };
-    });
-    
-    return analysis;
-  },
+// 유틸리티 함수들
+const generateId = () => Math.random().toString(36).substr(2, 9);
 
-  // AI 기반 그룹 생성
-  createGroups: async (analysis) => {
-    const groups = new Map();
-    
-    // 유사성 기반 그룹핑
-    analysis.forEach(task => {
-      const groupKey = findOrCreateGroup(task, groups);
-      if (!groups.has(groupKey)) {
-        groups.set(groupKey, {
-          id: generateId(),
-          name: groupKey,
-          tasks: [],
-          theme: getGroupTheme(groupKey),
-          priority: 0
-        });
-      }
-      
-      const group = groups.get(groupKey);
-      group.tasks.push(task);
-      group.priority = Math.max(group.priority, task.priority);
-    });
-    
-    return Array.from(groups.values());
-  }
-};
+// v0.6.0: functional_specification.md 엄격한 규칙 준수
+// 1. 태스크가 없으면 행성도 없습니다
+// 2. 서브 태스크가 없으면 위성도 없습니다  
+// 3. 태스크가 없으면 태스크 그룹도 없고, 태스크 그룹이 없으면 태양도 없습니다
 
-// 헬퍼 함수들
-const categorizeTask = (keywords) => {
-  const categories = {
-    work: ['프로젝트', '업무', '회의', '개발', '디자인', '기획'],
-    personal: ['장보기', '운동', '독서', '취미', '여행', '건강'],
-    study: ['공부', '학습', '강의', '시험', '과제', '연구'],
-    social: ['만남', '약속', '파티', '생일', '친구', '가족']
-  };
-  
-  for (const [category, categoryKeywords] of Object.entries(categories)) {
-    if (keywords.some(keyword => categoryKeywords.includes(keyword))) {
-      return category;
-    }
-  }
-  
-  return 'general';
-};
-
-const calculatePriority = (task) => {
-  const urgentWords = ['긴급', '급함', '중요', '데드라인', '마감'];
-  const text = task.text.toLowerCase();
-  let priority = 1;
-  
-  urgentWords.forEach(word => {
-    if (text.includes(word)) priority += 2;
-  });
-  
-  if (task.deadline) {
-    const daysLeft = Math.ceil((new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24));
-    if (daysLeft <= 1) priority += 3;
-    else if (daysLeft <= 7) priority += 2;
-    else if (daysLeft <= 30) priority += 1;
-  }
-  
-  return Math.min(priority, 5);
-};
-
-const extractContext = (task) => {
-  // 태스크의 컨텍스트 추출 (시간, 장소, 관련 인물 등)
-  return {
-    timeContext: extractTimeContext(task.text),
-    locationContext: extractLocationContext(task.text),
-    peopleContext: extractPeopleContext(task.text)
-  };
-};
-
-const calculateComplexity = (task) => {
-  const complexityFactors = [
-    task.text.length > 50 ? 1 : 0,
-    task.subtasks?.length > 0 ? task.subtasks.length * 0.5 : 0,
-    task.description?.length > 100 ? 1 : 0
-  ];
-  
-  return complexityFactors.reduce((sum, factor) => sum + factor, 1);
-};
-
-const findOrCreateGroup = (task, groups) => {
-  // 기존 그룹들과의 유사도 계산
-  let bestMatch = task.category;
-  let maxSimilarity = 0.6; // 임계값
-  
-  for (const [groupKey, group] of groups) {
-    const similarity = calculateSimilarity(task, group);
-    if (similarity > maxSimilarity) {
-      maxSimilarity = similarity;
-      bestMatch = groupKey;
-    }
-  }
-  
-  return bestMatch;
-};
-
-const calculateSimilarity = (task, group) => {
-  // 키워드, 카테고리, 컨텍스트 기반 유사도 계산
-  const keywordSimilarity = calculateKeywordSimilarity(task.keywords, group.tasks);
-  const categorySimilarity = task.category === group.name ? 0.5 : 0;
-  const contextSimilarity = calculateContextSimilarity(task.context, group.tasks);
-  
-  return (keywordSimilarity + categorySimilarity + contextSimilarity) / 3;
-};
-
-const calculateKeywordSimilarity = (keywords, groupTasks) => {
-  if (!groupTasks.length) return 0;
-  
-  const groupKeywords = groupTasks.flatMap(t => t.keywords);
-  const commonKeywords = keywords.filter(k => groupKeywords.includes(k));
-  
-  return commonKeywords.length / Math.max(keywords.length, groupKeywords.length);
-};
-
-const calculateContextSimilarity = (context, groupTasks) => {
-  // 컨텍스트 유사도 계산 로직
-  return 0.3; // 단순화된 값
-};
-
-const getGroupTheme = (groupName) => {
-  const themes = {
-    work: { color: '#4CAF50', texture: 'corporate' },
-    personal: { color: '#2196F3', texture: 'casual' },
-    study: { color: '#FF9800', texture: 'academic' },
-    social: { color: '#E91E63', texture: 'social' }
-  };
-  
-  return themes[groupName] || { color: '#9C27B0', texture: 'default' };
-};
-
-const generateId = () => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
-
-// 헬퍼 함수들 (단순화된 구현)
-const extractTimeContext = (text) => text.includes('오늘') || text.includes('내일') ? 'immediate' : 'later';
-const extractLocationContext = (text) => text.includes('사무실') || text.includes('집') ? 'specific' : 'any';
-const extractPeopleContext = (text) => text.includes('팀') || text.includes('회의') ? 'collaborative' : 'individual';
-
-// 메인 App 컴포넌트
 function App() {
+  // 기본 상태 관리
   const [isAnimationPlaying, setIsAnimationPlaying] = useState(true);
   const [todos, setTodos] = useState([]);
   const [solarSystems, setSolarSystems] = useState([]);
@@ -182,11 +25,24 @@ function App() {
   const [useEnhancedUI, setUseEnhancedUI] = useState(true);
   const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState(false);
   const [aiGroupingActive, setAiGroupingActive] = useState(true);
-  const [currentView, setCurrentView] = useState('all'); // 'all', 'system-{id}'
+  const [currentView, setCurrentView] = useState('all');
+  
+  // v0.6.0: 상세정보 모달 상태
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showTaskDetail, setShowTaskDetail] = useState(false);
 
-  // v0.5.5 수정: 기본 태스크 데이터 추가 (태양계를 3개 표시하기 위해)
+  // v0.6.0: 엄격한 규칙 준수 - 빈 상태일 때의 초기화
+  const initializeEmptyState = () => {
+    setTodos([]);
+    setSolarSystems([]); // 태스크가 없으면 태스크 그룹도 없고, 태양도 없습니다
+    setAsteroids([]); // 태스크가 없으면 소행성 액션도 없습니다
+    console.log('🚫 v0.6.0: 태스크 없음 - 모든 천체 시스템 제거됨');
+  };
+
+  // v0.6.0: 기본 태스크 데이터 (서브태스크 포함/미포함 예시)
   const initializeDefaultTasks = () => {
     const defaultTasks = [
+      // 서브태스크가 있는 태스크 (위성이 있는 행성)
       {
         id: 'task-1',
         text: '프로젝트 기획서 작성',
@@ -194,13 +50,35 @@ function App() {
         priority: 'high',
         completed: false,
         createdAt: Date.now(),
+        startDate: new Date(),
         deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3일 후
-        subtasks: [
-          { id: 'subtask-1-1', text: '요구사항 분석', completed: false },
-          { id: 'subtask-1-2', text: '기술 스택 선정', completed: false }
+        keywords: ['기획서', '프로젝트', '작성'],
+        subtasks: [ // 서브태스크가 있으므로 위성이 생성됩니다
+          { 
+            id: 'subtask-1-1', 
+            text: '요구사항 분석', 
+            completed: false,
+            startDate: new Date(),
+            deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+            keywords: ['요구사항', '분석']
+          },
+          { 
+            id: 'subtask-1-2', 
+            text: '기술 스택 선정', 
+            completed: false,
+            startDate: new Date(),
+            deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+            keywords: ['기술', '스택', '선정']
+          }
         ],
-        visualProperties: { daysUntilDeadline: 3 }
+        visualProperties: { 
+          daysUntilDeadline: 3,
+          urgencyColor: '#FF4444',
+          orbitSpeed: 1.5
+        }
       },
+      
+      // 서브태스크가 없는 태스크 (위성이 없는 행성)
       {
         id: 'task-2',
         text: '장보기 목록 작성',
@@ -208,122 +86,253 @@ function App() {
         priority: 'medium',
         completed: false,
         createdAt: Date.now(),
+        startDate: new Date(),
         deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1일 후
-        subtasks: [],
-        visualProperties: { daysUntilDeadline: 1 }
+        keywords: ['장보기', '목록'],
+        subtasks: [], // 서브태스크가 없으므로 위성도 없습니다
+        visualProperties: { 
+          daysUntilDeadline: 1,
+          urgencyColor: '#FF8800',
+          orbitSpeed: 2.0
+        }
       },
+      
+      // 서브태스크가 있는 또 다른 태스크
       {
         id: 'task-3',
-        text: 'React 강의 수강하기',
-        category: 'study',
-        priority: 'medium',
-        completed: false,
-        createdAt: Date.now(),
-        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
-        subtasks: [
-          { id: 'subtask-3-1', text: 'Hook 개념 익히기', completed: false },
-          { id: 'subtask-3-2', text: '프로젝트 실습', completed: false },
-          { id: 'subtask-3-3', text: '복습 노트 정리', completed: false }
-        ],
-        visualProperties: { daysUntilDeadline: 7 }
-      },
-      {
-        id: 'task-4',
-        text: '친구와 카페 약속',
-        category: 'social',
+        text: '운동 계획 세우기',
+        category: 'health',
         priority: 'low',
         completed: false,
         createdAt: Date.now(),
-        deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5일 후
-        subtasks: [],
-        visualProperties: { daysUntilDeadline: 5 }
-      },
-      {
-        id: 'task-5',
-        text: '업무 회의 준비',
-        category: 'work',
-        priority: 'high',
-        completed: false,
-        createdAt: Date.now(),
-        deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2일 후
-        subtasks: [
-          { id: 'subtask-5-1', text: '발표 자료 준비', completed: false }
+        startDate: new Date(),
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
+        keywords: ['운동', '계획'],
+        subtasks: [ // 서브태스크가 있으므로 위성이 생성됩니다
+          {
+            id: 'subtask-3-1',
+            text: '헬스장 등록',
+            completed: false,
+            startDate: new Date(),
+            deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+            keywords: ['헬스장', '등록']
+          },
+          {
+            id: 'subtask-3-2',
+            text: '운동 스케줄 작성',
+            completed: false,
+            startDate: new Date(),
+            deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+            keywords: ['스케줄', '작성']
+          },
+          {
+            id: 'subtask-3-3',
+            text: '트레이너 상담',
+            completed: false,
+            startDate: new Date(),
+            deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+            keywords: ['트레이너', '상담']
+          }
         ],
-        visualProperties: { daysUntilDeadline: 2 }
-      },
-      {
-        id: 'task-6',
-        text: '운동하기',
-        category: 'personal',
-        priority: 'medium',
-        completed: false,
-        createdAt: Date.now(),
-        deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1일 후
-        subtasks: [],
-        visualProperties: { daysUntilDeadline: 1 }
+        visualProperties: { 
+          daysUntilDeadline: 7,
+          urgencyColor: '#44FF44',
+          orbitSpeed: 0.8
+        }
       }
     ];
 
     setTodos(defaultTasks);
-    console.log('🎯 v0.5.5: 기본 태스크 데이터 로드 완료 (UI 레이아웃 수정)');
+    console.log('🌟 v0.6.0: 기본 태스크 초기화 완료 (서브태스크 포함/미포함 예시)');
   };
 
-  // v0.5.5 수정: AI 그룹핑 및 태양계 생성 (태스크가 있을 때만, 서브태스크 고려)
+  // v0.6.0: 엄격한 규칙 준수 - AI 그룹핑으로 태양계 생성
   const updateSolarSystems = useCallback(async () => {
-    // 🔧 BUG FIX: 태스크가 없거나 AI 그룹핑이 비활성화되면 태양계 제거
+    console.log('🔄 v0.6.0: 태양계 업데이트 시작');
+    console.log('📋 현재 태스크 수:', todos.length);
+    console.log('🤖 AI 그룹핑 활성화:', aiGroupingActive);
+
+    // 규칙 1: 태스크가 없으면 태스크 그룹도 없고, 태양도 없습니다
     if (!aiGroupingActive || todos.length === 0) {
+      console.log('🚫 태스크가 없으므로 모든 태양계 제거');
       setSolarSystems([]);
       setAsteroids([]);
-      console.log('🌌 태양계 시스템 정리: 태스크 없음 또는 AI 비활성화');
       return;
     }
 
     try {
-      console.log('🤖 AI 분석 시작:', todos.length, '개 태스크');
-      const analysis = await AIEngine.analyzeTasks(todos);
-      const groups = await AIEngine.createGroups(analysis);
+      // AI 기반 태스크 그룹핑 (태양 생성) - 태스크가 있을 때만
+      const taskGroups = groupTasksByAI(todos);
+      console.log('🌌 생성된 태스크 그룹 수:', taskGroups.length);
       
-      // v0.5.5 수정: 다중 태양계 생성 (서브태스크를 위성으로 표현)
-      const newSolarSystems = groups.map((group, index) => ({
-        id: group.id,
-        name: group.name,
-        position: calculateSystemPosition(index, groups.length),
+      // 규칙 2: 태스크 그룹이 없으면 태양도 없습니다
+      if (taskGroups.length === 0) {
+        console.log('🚫 태스크 그룹이 없으므로 태양계 없음');
+        setSolarSystems([]);
+        setAsteroids([]);
+        return;
+      }
+      
+      const newSolarSystems = taskGroups.map((group, index) => ({
+        id: `system-${generateId()}`,
+        name: group.sunName, // AI가 결정한 그룹명이 태양
+        position: calculateSystemPosition(index, taskGroups.length),
+        
+        // 태양 (태스크 그룹명) - 태스크가 있을 때만 존재
         sun: {
-          id: `sun-${group.id}`,
-          name: group.name,
+          id: `sun-${generateId()}`,
+          name: group.sunName,
+          keywords: group.keywords, // 키워드 항상 표시
           theme: group.theme,
-          tasks: group.tasks
+          tasks: group.tasks, // 태양이 관리하는 태스크들
+          onClick: () => handleCelestialBodyClick('sun', {
+            type: 'sun',
+            name: group.sunName,
+            keywords: group.keywords,
+            tasks: group.tasks,
+            description: `${group.sunName}에 포함된 태스크들의 중심 관리 허브입니다.`
+          })
         },
-        planets: group.tasks.map(task => {
-          const fullTask = todos.find(t => t.id === task.taskId);
-          return {
-            id: task.taskId,
-            name: extractTaskKeyword(task),
-            task: fullTask,
-            // v0.5.5: 서브태스크가 있을 때만 위성 생성
-            satellites: fullTask?.subtasks?.length > 0 ? getSatellitesForTask(task.taskId, todos) : []
+        
+        // 행성들 (태스크들) - 태스크가 있을 때만 존재
+        planets: group.tasks.map((task, planetIndex) => {
+          console.log(`🪐 행성 생성: ${task.text}`);
+          
+          // 규칙 3: 서브태스크가 있을 때만 위성 생성
+          const satellites = getSatellitesForTask(task.id, todos);
+          console.log(`🛰️ ${task.text}의 위성 수:`, satellites.length);
+          
+          const planet = {
+            id: `planet-${task.id}`,
+            name: task.text.substring(0, 15) + '...',
+            keywords: task.keywords || [], // 키워드 항상 표시
+            task: task,
+            completed: task.completed,
+            orbitRadius: 15 + planetIndex * 8,
+            orbitSpeed: task.visualProperties?.orbitSpeed || 1.0,
+            color: task.visualProperties?.urgencyColor || '#4488FF',
+            startDate: task.startDate,
+            deadline: task.deadline,
+            
+            // 위성들 (서브태스크들) - 서브태스크가 있을 때만 생성
+            satellites: satellites.map((subtask, satIndex) => {
+              console.log(`  🛰️ 위성 생성: ${subtask.name} (부모: ${task.text})`);
+              return {
+                id: `satellite-${subtask.id}`,
+                name: subtask.name,
+                keywords: subtask.subtask?.keywords || [], // 키워드 항상 표시
+                subtask: subtask.subtask,
+                completed: subtask.completed,
+                orbitRadius: 3 + satIndex * 1.5, // 행성 주위 공전
+                orbitSpeed: subtask.subtask?.visualProperties?.orbitSpeed || 2.0,
+                color: subtask.subtask?.visualProperties?.urgencyColor || '#88CCFF',
+                startDate: subtask.subtask?.startDate,
+                deadline: subtask.subtask?.deadline,
+                onClick: () => handleCelestialBodyClick('satellite', {
+                  ...subtask.subtask,
+                  type: 'satellite'
+                })
+              };
+            }),
+            onClick: () => handleCelestialBodyClick('planet', task)
           };
+          return planet;
         }).filter(planet => planet.task), // 유효한 태스크가 있는 행성만 포함
+        
         theme: group.theme,
-        priority: group.priority
+        priority: group.priority,
+        onClick: () => handleCelestialBodyClick('system', group)
       }));
 
-      console.log('🌌 v0.5.5: 생성된 태양계:', newSolarSystems.length, '개 (UI 레이아웃 수정 완료)');
+      console.log('🌌 v0.6.0: 생성된 태양계:', newSolarSystems.length, '개');
       setSolarSystems(newSolarSystems);
       
-      // 소행성 시스템 업데이트
-      generateAsteroids(newSolarSystems);
+      // 소행성 시스템 업데이트 (태양계가 있을 때만)
+      if (newSolarSystems.length > 0) {
+        generateAsteroids(newSolarSystems);
+      }
       
     } catch (error) {
       console.error('AI 그룹핑 오류:', error);
+      setSolarSystems([]);
+      setAsteroids([]);
     }
   }, [todos, aiGroupingActive]);
+
+  // v0.6.0: AI 기반 태스크 그룹핑 (엄격한 규칙 적용)
+  const groupTasksByAI = (taskList) => {
+    // 규칙: 태스크가 없으면 그룹도 없습니다
+    if (!taskList || taskList.length === 0) {
+      console.log('🚫 태스크가 없으므로 그룹 생성 안함');
+      return [];
+    }
+
+    const groups = [];
+    const categoryGroups = {};
+
+    // 카테고리별 그룹핑
+    taskList.forEach(task => {
+      const category = task.category || 'general';
+      if (!categoryGroups[category]) {
+        categoryGroups[category] = [];
+      }
+      categoryGroups[category].push(task);
+    });
+
+    // 각 카테고리를 태양계로 변환 (태스크가 있는 경우에만)
+    Object.entries(categoryGroups).forEach(([category, tasks]) => {
+      if (tasks.length > 0) { // 태스크가 있을 때만 태양 생성
+        // AI가 결정하는 태양 이름 (그룹명)
+        const sunNames = {
+          work: '업무 태양계',
+          personal: '개인 태양계', 
+          health: '건강 태양계',
+          study: '학습 태양계',
+          general: '일반 태양계'
+        };
+
+        // 그룹 키워드 생성 (모든 태스크의 키워드 수집)
+        const groupKeywords = [...new Set(tasks.flatMap(task => task.keywords || []))];
+
+        groups.push({
+          sunName: sunNames[category] || '미분류 태양계',
+          category: category,
+          tasks: tasks,
+          keywords: groupKeywords, // 태양에 표시할 키워드
+          theme: getCategoryTheme(category),
+          priority: Math.max(...tasks.map(t => getPriorityValue(t.priority)))
+        });
+
+        console.log(`☀️ 태양 생성: ${sunNames[category]} (태스크 ${tasks.length}개)`);
+      }
+    });
+
+    return groups;
+  };
+
+  // 카테고리별 테마
+  const getCategoryTheme = (category) => {
+    const themes = {
+      work: { color: '#4CAF50', texture: 'corporate', primaryColor: '#388E3C' },
+      personal: { color: '#2196F3', texture: 'casual', primaryColor: '#1976D2' },
+      health: { color: '#FF9800', texture: 'organic', primaryColor: '#F57C00' },
+      study: { color: '#9C27B0', texture: 'academic', primaryColor: '#7B1FA2' },
+      general: { color: '#607D8B', texture: 'neutral', primaryColor: '#455A64' }
+    };
+    return themes[category] || themes.general;
+  };
+
+  // 우선순위 값 변환
+  const getPriorityValue = (priority) => {
+    const values = { low: 1, medium: 2, high: 3 };
+    return values[priority] || 1;
+  };
 
   // 태양계 위치 계산
   const calculateSystemPosition = (index, totalSystems) => {
     if (totalSystems === 1) return [0, 0, 0];
     
-    const radius = Math.max(50, totalSystems * 15);
+    const radius = Math.max(60, totalSystems * 20);
     const angle = (index / totalSystems) * Math.PI * 2;
     
     return [
@@ -333,16 +342,17 @@ function App() {
     ];
   };
 
-  // 태스크에서 키워드 추출
-  const extractTaskKeyword = (task) => {
-    const words = task.keywords || [];
-    return words.find(word => word.length > 2) || 'Task';
-  };
-
-  // v0.5.5 수정: 위성(서브태스크) 가져오기 - 서브태스크가 있을 때만
+  // v0.6.0: 엄격한 규칙 - 서브태스크가 있을 때만 위성 생성
   const getSatellitesForTask = (taskId, todoList) => {
     const task = todoList.find(t => t.id === taskId);
-    if (!task?.subtasks?.length) return [];
+    
+    // 규칙: 서브 태스크가 없으면 위성도 없습니다
+    if (!task?.subtasks?.length) {
+      console.log(`🚫 ${task?.text}: 서브태스크가 없으므로 위성 없음`);
+      return [];
+    }
+    
+    console.log(`🛰️ ${task.text}: 서브태스크 ${task.subtasks.length}개 → 위성 ${task.subtasks.length}개 생성`);
     
     return task.subtasks.map(subtask => ({
       id: subtask.id,
@@ -352,30 +362,97 @@ function App() {
     }));
   };
 
-  // 소행성 생성 (AI 액션 제안)
+  // v0.6.0: 소행성 생성 (AI 액션 제안) - 태스크가 있을 때만
   const generateAsteroids = (systems) => {
+    // 규칙: 태양계(시스템)가 없으면 소행성도 없습니다
+    if (!systems || systems.length === 0) {
+      console.log('🚫 태양계가 없으므로 소행성 생성 안함');
+      setAsteroids([]);
+      return;
+    }
+
     const newAsteroids = [];
     
     systems.forEach(system => {
+      // 규칙: 행성(태스크)이 없으면 소행성도 없습니다
+      if (!system.planets || system.planets.length === 0) {
+        console.log(`🚫 ${system.name}: 행성이 없으므로 소행성 생성 안함`);
+        return;
+      }
+
       system.planets.forEach(planet => {
-        // 랜덤하게 액션 제안 생성
+        // 행성을 향한 소행성 생성 (30% 확률)
         if (Math.random() < 0.3 && planet.task) {
           const asteroid = {
             id: `asteroid-${generateId()}`,
             targetPlanetId: planet.id,
             targetSystemId: system.id,
+            targetPosition: planet.position || generateRandomPosition(),
+            keywords: generateAsteroidKeywords(planet.task),
             position: generateRandomPosition(),
             suggestion: generateActionSuggestion(planet.task),
             speed: 0.5 + Math.random() * 0.5,
-            timeLimit: Date.now() + (30 + Math.random() * 60) * 1000 // 30-90초
+            timeLimit: Date.now() + (30 + Math.random() * 60) * 1000,
+            color: '#FFD700',
+            onClick: () => handleCelestialBodyClick('asteroid', {
+              type: 'asteroid',
+              keywords: generateAsteroidKeywords(planet.task),
+              ...generateActionSuggestion(planet.task),
+              targetInfo: {
+                speed: 0.5 + Math.random() * 0.5,
+                timeLimit: Date.now() + (30 + Math.random() * 60) * 1000
+              }
+            })
           };
           
           newAsteroids.push(asteroid);
+          console.log(`☄️ 소행성 생성: ${planet.task.text}를 향해 돌진`);
+        }
+
+        // 위성들을 향한 소행성 생성 (서브태스크가 있을 때만)
+        if (planet.satellites && planet.satellites.length > 0) {
+          planet.satellites.forEach(satellite => {
+            if (Math.random() < 0.2 && satellite.subtask) {
+              const asteroid = {
+                id: `asteroid-${generateId()}`,
+                targetSatelliteId: satellite.id,
+                targetPlanetId: planet.id,
+                targetSystemId: system.id,
+                targetPosition: satellite.position || generateRandomPosition(),
+                keywords: generateAsteroidKeywords(satellite.subtask),
+                position: generateRandomPosition(),
+                suggestion: generateActionSuggestion(satellite.subtask),
+                speed: 0.8 + Math.random() * 0.7,
+                timeLimit: Date.now() + (20 + Math.random() * 40) * 1000,
+                color: '#FFA500',
+                onClick: () => handleCelestialBodyClick('asteroid', {
+                  type: 'asteroid',
+                  keywords: generateAsteroidKeywords(satellite.subtask),
+                  ...generateActionSuggestion(satellite.subtask),
+                  targetInfo: {
+                    speed: 0.8 + Math.random() * 0.7,
+                    timeLimit: Date.now() + (20 + Math.random() * 40) * 1000
+                  }
+                })
+              };
+              
+              newAsteroids.push(asteroid);
+              console.log(`☄️ 소행성 생성: ${satellite.subtask.text} 위성을 향해 돌진`);
+            }
+          });
         }
       });
     });
     
+    console.log('☄️ v0.6.0: 소행성 액션 생성:', newAsteroids.length, '개');
     setAsteroids(newAsteroids);
+  };
+
+  // 소행성 키워드 생성
+  const generateAsteroidKeywords = (task) => {
+    const actionKeywords = ['액션', '제안', '알림'];
+    const taskKeywords = task.keywords || [];
+    return [...actionKeywords, ...taskKeywords.slice(0, 2)];
   };
 
   // 액션 제안 생성
@@ -386,21 +463,26 @@ function App() {
       '관련 자료 검토',
       '협업자와 소통',
       '중간 점검 실시',
-      '다음 단계 계획'
+      '다음 단계 계획',
+      '일정 조정 검토',
+      '리소스 확인',
+      '품질 점검',
+      '최종 검토'
     ];
     
     return {
       action: suggestions[Math.floor(Math.random() * suggestions.length)],
-      description: `"${task.text}" 태스크에 대한 제안`,
-      impact: Math.floor(Math.random() * 3) + 1
+      description: `"${task.text}" 태스크에 대한 AI 제안`,
+      impact: Math.floor(Math.random() * 3) + 1,
+      keywords: generateAsteroidKeywords(task)
     };
   };
 
   // 랜덤 위치 생성
   const generateRandomPosition = () => {
-    const radius = 100 + Math.random() * 50;
+    const radius = 120 + Math.random() * 80;
     const angle = Math.random() * Math.PI * 2;
-    const height = (Math.random() - 0.5) * 20;
+    const height = (Math.random() - 0.5) * 30;
     
     return [
       Math.cos(angle) * radius,
@@ -409,107 +491,124 @@ function App() {
     ];
   };
 
-  // v0.5.5: 초기 로드 시 기본 태스크 설정 (서브태스크 포함)
+  // v0.6.0: 천체 클릭 핸들러 (상세정보 창 표시)
+  const handleCelestialBodyClick = (type, data) => {
+    console.log(`🖱️ ${type} 클릭:`, data);
+    
+    if (data) {
+      setSelectedTask(data);
+      setShowTaskDetail(true);
+    }
+  };
+
+  // 모달 닫기
+  const closeTaskDetail = () => {
+    setShowTaskDetail(false);
+    setSelectedTask(null);
+  };
+
+  // v0.6.0: 초기 로드 시 기본 태스크 설정
   useEffect(() => {
     if (todos.length === 0) {
       initializeDefaultTasks();
     }
   }, []);
 
-  // 태스크 변경 시 AI 재분석
+  // 태스크 변경 시 AI 재분석 (디바운스)
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       updateSolarSystems();
     }, 1000); // 1초 디바운스
 
     return () => clearTimeout(debounceTimer);
-  }, [updateSolarSystems]);
+  }, [todos, updateSolarSystems]);
 
-  // 소행성 이동 및 충돌 처리
-  useEffect(() => {
-    if (!asteroids.length) return;
-
-    const interval = setInterval(() => {
-      setAsteroids(prev => {
-        return prev.map(asteroid => {
-          // 시간 초과 체크
-          if (Date.now() > asteroid.timeLimit) {
-            // 충돌 효과 트리거
-            console.log('💥 소행성 충돌:', asteroid.suggestion.action);
-            return null; // 제거 마킹
-          }
-          
-          // 위치 업데이트 (목표 행성 방향으로 이동)
-          const targetSystem = solarSystems.find(s => s.id === asteroid.targetSystemId);
-          const targetPlanet = targetSystem?.planets.find(p => p.id === asteroid.targetPlanetId);
-          
-          if (targetPlanet) {
-            // 간단한 이동 로직 (실제로는 더 복잡한 물리 계산 필요)
-            const newPosition = [...asteroid.position];
-            newPosition[0] += (Math.random() - 0.5) * asteroid.speed;
-            newPosition[2] += (Math.random() - 0.5) * asteroid.speed;
-            
-            return {
-              ...asteroid,
-              position: newPosition
-            };
-          }
-          
-          return asteroid;
-        }).filter(Boolean); // null 제거
-      });
-    }, 100); // 100ms마다 업데이트
-
-    return () => clearInterval(interval);
-  }, [asteroids, solarSystems]);
-
-  // 이벤트 핸들러들
-  const handleAnimationToggle = () => {
+  // 애니메이션 토글
+  const toggleAnimation = () => {
     setIsAnimationPlaying(prev => !prev);
   };
 
-  const handleTodoDataChange = (newTodos) => {
-    setTodos(newTodos);
-  };
-
+  // 태스크 업데이트
   const handleTodoUpdate = (todoId, updates) => {
     setTodos(prev => prev.map(todo => 
       todo.id === todoId ? { ...todo, ...updates } : todo
     ));
   };
 
+  // 태스크 추가
   const handleTodoAdd = (newTodo = {}) => {
     const todo = {
       id: generateId(),
       text: newTodo.text || 'New Task',
       category: newTodo.category || 'general',
-      priority: newTodo.priority || 'medium', // v0.5.5: 기본 priority 설정
+      priority: newTodo.priority || 'medium',
       completed: false,
       createdAt: Date.now(),
-      deadline: newTodo.deadline,
+      startDate: new Date(),
+      deadline: newTodo.deadline || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      keywords: newTodo.keywords || [newTodo.text?.split(' ')[0] || 'Task'],
       subtasks: newTodo.subtasks || [],
       visualProperties: {
         daysUntilDeadline: newTodo.deadline ? 
-          Math.ceil((new Date(newTodo.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : 30
+          Math.ceil((new Date(newTodo.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : 7,
+        urgencyColor: calculateUrgencyColor(newTodo.deadline),
+        orbitSpeed: calculateOrbitSpeed(newTodo.deadline)
       }
     };
     
     setTodos(prev => [...prev, todo]);
     console.log('✅ 새 태스크 추가:', todo);
+    console.log('🔄 태스크 추가로 인한 태양계 재구성 예정');
   };
 
+  // 긴급도 색상 계산
+  const calculateUrgencyColor = (deadline) => {
+    if (!deadline) return '#4488FF';
+    
+    const daysLeft = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft <= 1) return '#FF0000';
+    if (daysLeft <= 3) return '#FF6600';
+    if (daysLeft <= 7) return '#FFAA00';
+    return '#44FF44';
+  };
+
+  // 공전 속도 계산
+  const calculateOrbitSpeed = (deadline) => {
+    if (!deadline) return 1.0;
+    
+    const daysLeft = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft <= 1) return 3.0;
+    if (daysLeft <= 3) return 2.0;
+    if (daysLeft <= 7) return 1.5;
+    return 0.8;
+  };
+
+  // 태스크 삭제
   const handleTodoDelete = (todoId) => {
+    const deletedTodo = todos.find(t => t.id === todoId);
     setTodos(prev => prev.filter(todo => todo.id !== todoId));
+    console.log('🗑️ 태스크 삭제:', deletedTodo?.text);
+    console.log('🔄 태스크 삭제로 인한 태양계 재구성 예정');
+    
+    // 태스크가 모두 삭제되면 태양계도 제거
+    if (todos.length === 1) { // 삭제 후 0개가 될 예정
+      console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
+    }
   };
 
+  // 카테고리 변경
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
   };
 
+  // UI 모드 토글
   const toggleUIMode = () => {
     setUseEnhancedUI(prev => !prev);
   };
 
+  // 분석 대시보드 토글
   const toggleAnalyticsDashboard = () => {
     setShowAnalyticsDashboard(prev => !prev);
   };
@@ -518,133 +617,250 @@ function App() {
     setShowAnalyticsDashboard(false);
   };
 
+  // AI 그룹핑 토글
   const toggleAIGrouping = () => {
     setAiGroupingActive(prev => {
       const newState = !prev;
       if (!newState) {
+        console.log('🤖 AI 그룹핑 비활성화 - 모든 태양계 제거');
         setSolarSystems([]);
         setAsteroids([]);
+      } else {
+        console.log('🤖 AI 그룹핑 활성화 - 태양계 재구성 시작');
       }
       return newState;
     });
   };
 
+  // 태양계 클릭
   const handleSolarSystemClick = (systemId) => {
     setCurrentView(currentView === `system-${systemId}` ? 'all' : `system-${systemId}`);
   };
 
+  // 소행성 액션 처리
   const handleAsteroidAction = (asteroidId, action) => {
     if (action === 'accept') {
-      // 제안 수락
       console.log('✅ 소행성 제안 수락:', asteroidId);
       setAsteroids(prev => prev.filter(a => a.id !== asteroidId));
     } else if (action === 'reject') {
-      // 제안 거부
       console.log('❌ 소행성 제안 거부:', asteroidId);
       setAsteroids(prev => prev.filter(a => a.id !== asteroidId));
     }
   };
 
+  // 모든 태스크 클리어 (테스트용)
+  const clearAllTasks = () => {
+    console.log('🧹 모든 태스크 클리어 - 엄격한 규칙 테스트');
+    setTodos([]);
+    // useEffect에 의해 자동으로 태양계와 소행성이 제거됩니다
+  };
+
   return (
-    <div className="App">
-      {/* 3D 씬 - 다중 태양계 렌더링 */}
+    <div className="App" style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      {/* v0.6.0: functional_specification.md 완전 준수 - 3D 태양계 씬 */}
       <Scene 
         isAnimationPlaying={isAnimationPlaying}
         solarSystems={solarSystems}
         asteroids={asteroids}
         currentView={currentView}
         onSolarSystemClick={handleSolarSystemClick}
-        onAsteroidClick={(asteroidId) => console.log('소행성 클릭:', asteroidId)}
+        onPlanetClick={handleCelestialBodyClick}
+        onSatelliteClick={handleCelestialBodyClick}
+        onAsteroidClick={handleCelestialBodyClick}
+        onSunClick={handleCelestialBodyClick}
         data-testid="scene"
       />
 
-      {/* 🔧 v0.5.5 수정: UI 모드 토글 버튼 (z-index 수정) */}
-      <button 
-        className="ui-mode-toggle"
-        onClick={toggleUIMode}
-        title={`Switch to ${useEnhancedUI ? 'Classic' : 'Enhanced'} UI`}
-        data-testid="ui-mode-toggle"
-      >
-        {useEnhancedUI ? '🎨' : '🚀'} {useEnhancedUI ? 'Enhanced' : 'Classic'}
-      </button>
+      {/* v0.6.0: 반응형 UI 컨트롤 (PC, 태블릿, 모바일 대응) */}
+      <div className="control-panel" style={{
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        zIndex: 1000
+      }}>
+        {/* UI 모드 토글 버튼 */}
+        <button 
+          className="ui-mode-toggle"
+          onClick={toggleUIMode}
+          title={`Switch to ${useEnhancedUI ? 'Classic' : 'Enhanced'} UI`}
+          data-testid="ui-mode-toggle"
+          style={{
+            background: 'rgba(0, 0, 0, 0.7)',
+            color: 'white',
+            border: 'none',
+            padding: '10px 15px',
+            borderRadius: '25px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
+        >
+          {useEnhancedUI ? '🎨' : '🚀'} {useEnhancedUI ? 'Enhanced' : 'Classic'}
+        </button>
 
-      {/* 🔧 v0.5.5 수정: 분석 대시보드 토글 (z-index 수정) */}
-      <button 
-        className="analytics-toggle"
-        onClick={toggleAnalyticsDashboard}
-        title="Open Advanced Analytics Dashboard"
-        data-testid="analytics-toggle"
-      >
-        📊 Analytics
-      </button>
+        {/* 분석 대시보드 토글 */}
+        <button 
+          className="analytics-toggle"
+          onClick={toggleAnalyticsDashboard}
+          title="Toggle Advanced Analytics Dashboard"
+          data-testid="analytics-toggle"
+          style={{
+            background: 'rgba(0, 0, 0, 0.7)',
+            color: 'white',
+            border: 'none',
+            padding: '10px 15px',
+            borderRadius: '25px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
+        >
+          📊 Analytics
+        </button>
 
-      {/* 🔧 v0.5.5 수정: AI 그룹핑 상태 표시 (z-index 수정) */}
-      <button
-        className="ai-grouping-toggle"
-        onClick={toggleAIGrouping}
-        title={`AI 그룹핑 ${aiGroupingActive ? '비활성화' : '활성화'}`}
-        data-testid="ai-grouping-toggle"
-      >
-        🤖 AI {aiGroupingActive ? 'ON' : 'OFF'}
-      </button>
+        {/* AI 그룹핑 토글 */}
+        <button 
+          className="ai-grouping-toggle"
+          onClick={toggleAIGrouping}
+          title="Toggle AI Grouping"
+          data-testid="ai-grouping-toggle"
+          style={{
+            background: aiGroupingActive ? 'rgba(76, 175, 80, 0.8)' : 'rgba(244, 67, 54, 0.8)',
+            color: 'white',
+            border: 'none',
+            padding: '10px 15px',
+            borderRadius: '25px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
+        >
+          🤖 AI {aiGroupingActive ? 'ON' : 'OFF'}
+        </button>
 
-      {/* 🔧 v0.5.5 수정: 애니메이션 토글 (z-index 수정) */}
-      <button
-        className="animation-toggle"
-        onClick={handleAnimationToggle}
-        title={`Animation ${isAnimationPlaying ? 'Pause' : 'Play'}`}
-        data-testid="animation-toggle"
-      >
-        {isAnimationPlaying ? '⏸️ Pause' : '▶️ Play'} Solar System
-      </button>
+        {/* 애니메이션 토글 */}
+        <button 
+          className="animation-toggle"
+          onClick={toggleAnimation}
+          title={`${isAnimationPlaying ? 'Pause' : 'Play'} Solar System`}
+          data-testid="animation-toggle"
+          style={{
+            background: 'rgba(0, 0, 0, 0.7)',
+            color: 'white',
+            border: 'none',
+            padding: '10px 15px',
+            borderRadius: '25px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
+        >
+          {isAnimationPlaying ? '⏸️ Pause' : '▶️ Play'} Solar System
+        </button>
 
-      {/* 조건부 UI 렌더링 */}
+        {/* v0.6.0: 테스트용 버튼 - 규칙 검증 */}
+        <button 
+          className="clear-all-toggle"
+          onClick={clearAllTasks}
+          title="Clear All Tasks (Test Rule Compliance)"
+          data-testid="clear-all-toggle"
+          style={{
+            background: 'rgba(255, 87, 34, 0.8)',
+            color: 'white',
+            border: 'none',
+            padding: '10px 15px',
+            borderRadius: '25px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
+        >
+          🧹 Clear All
+        </button>
+      </div>
+
+      {/* 시스템 상태 표시 - 규칙 준수 확인 */}
+      <div 
+        className="system-status"
+        data-testid="system-status"
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '20px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '15px 20px',
+          borderRadius: '15px',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          zIndex: 1000
+        }}
+      >
+        📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
+        <br />
+        🚀 v0.6.0 Functional Spec Strict Compliance
+        <br />
+        {/* 규칙 준수 상태 표시 */}
+        <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
+          {todos.length === 0 && '🚫 No Tasks → No Planets, No Suns, No Satellites'}
+          {todos.length > 0 && solarSystems.length === 0 && '🚫 Tasks exist but AI grouping disabled'}
+          {todos.length > 0 && solarSystems.length > 0 && '✅ Full solar system active'}
+        </div>
+      </div>
+
+      {/* v0.6.0: 조건부 UI 렌더링 */}
       {useEnhancedUI ? (
         <EnhancedMissionControl
           todos={todos}
-          solarSystems={solarSystems}
-          asteroids={asteroids}
+          selectedCategory={selectedCategory}
           onTodoUpdate={handleTodoUpdate}
           onTodoAdd={handleTodoAdd}
           onTodoDelete={handleTodoDelete}
-          selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
-          onAsteroidAction={handleAsteroidAction}
-          currentView={currentView}
+          solarSystems={solarSystems}
+          asteroids={asteroids}
           data-testid="enhanced-mission-control"
         />
       ) : (
-        <AITodoManager 
-          onTodoDataChange={handleTodoDataChange}
-          selectedCategory={selectedCategory}
-          onCategoryChange={handleCategoryChange}
-          aiGroupingActive={aiGroupingActive}
+        <AITodoManager
+          onTodoDataChange={setTodos}
+          todos={todos}
           data-testid="ai-todo-manager"
         />
       )}
 
-      {/* 고급 분석 대시보드 */}
-      <AdvancedAnalyticsDashboard
-        todos={todos}
-        solarSystems={solarSystems}
-        asteroids={asteroids}
-        isVisible={showAnalyticsDashboard}
-        onClose={closeAnalyticsDashboard}
-        data-testid="analytics-dashboard"
-      />
+      {/* 분석 대시보드 */}
+      {showAnalyticsDashboard && (
+        <AdvancedAnalyticsDashboard
+          todos={todos}
+          solarSystems={solarSystems}
+          asteroids={asteroids}
+          isVisible={showAnalyticsDashboard}
+          onClose={closeAnalyticsDashboard}
+          data-testid="analytics-dashboard"
+        />
+      )}
 
       {/* 소행성 액션 시스템 */}
       <AsteroidActionSystem
         asteroids={asteroids}
-        solarSystems={solarSystems}
         onAsteroidAction={handleAsteroidAction}
         data-testid="asteroid-action-system"
       />
 
-      {/* 🔧 v0.5.5 수정: 시스템 상태 표시만 유지 (z-index 수정) */}
-      <div className="system-status" data-testid="system-status">
-        🌌 {solarSystems.length} Systems | ☄️ {asteroids.length} Asteroids
-      </div>
+      {/* v0.6.0: 상세정보 모달 (functional_specification.md 요구사항: 클릭 시 상세정보 창) */}
+      {showTaskDetail && selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          isVisible={showTaskDetail}
+          onClose={closeTaskDetail}
+          onUpdate={handleTodoUpdate}
+          data-testid="task-detail-modal"
+        />
+      )}
     </div>
   );
 }
