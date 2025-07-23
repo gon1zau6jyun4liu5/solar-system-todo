@@ -849,6 +849,7 @@ function App() {
       {/* 소행성 액션 시스템 */}
       <AsteroidActionSystem
         asteroids={asteroids}
+        solarSystems={solarSystems}
         onAsteroidAction={handleAsteroidAction}
         data-testid="asteroid-action-system"
       />
