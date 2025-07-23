@@ -1,6 +1,6 @@
 {
   "name": "solar-system-todo",
-  "version": "0.5.5",
+  "version": "0.8.0",
   "private": true,
   "dependencies": {
     "@react-three/drei": "^10.5.1",
@@ -21,6 +21,7 @@
     "test": "react-scripts test",
     "test:coverage": "react-scripts test --coverage --watchAll=false",
     "test:ci": "cross-env CI=true npm run test:coverage",
+    "test:v0.8.0": "react-scripts test --testPathPattern=v0.8.0",
     "lint": "eslint src/ --ext .js,.jsx",
     "lint:fix": "eslint src/ --ext .js,.jsx --fix",
     "type-check": "tsc --checkJs --noEmit",
