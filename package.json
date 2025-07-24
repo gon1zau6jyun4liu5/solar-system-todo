@@ -1,6 +1,6 @@
 {
   "name": "solar-system-todo",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "private": true,
   "dependencies": {
     "@react-three/drei": "^10.5.1",
@@ -25,6 +25,9 @@
     "test:v0.8.1": "react-scripts test --testPathPattern=v0.8.1",
     "test:v0.8.2": "react-scripts test --testPathPattern=v0.8.2",
     "test:v0.8.3": "react-scripts test --testPathPattern=v0.8.3",
+    "test:v0.8.4": "react-scripts test --testPathPattern=v0.8.4",
+    "test:data-persistence": "react-scripts test --testPathPattern=dataAndFeatures",
+    "test:functional-spec": "react-scripts test --testPathPattern=functionalSpec",
     "lint": "eslint src/ --ext .js,.jsx",
     "lint:fix": "eslint src/ --ext .js,.jsx --fix",
     "type-check": "tsc --checkJs --noEmit",
