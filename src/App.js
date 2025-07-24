@@ -4,14 +4,15 @@ import AITodoManager from './components/AITodoManager';
 import EnhancedMissionControl from './components/EnhancedMissionControl';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
 import TaskDetailModal from './components/TaskDetailModal';
+import dataManager from './utils/dataManager'; // v0.8.4: 데이터 영속성 매니저
 import './App.css';
 
 // 유틸리티 함수들
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// v0.8.3: functional_specification.md 완전 준수
-// CRITICAL FIX 1: 팝업 창 최상위 z-index (3000) - "팝업 창은 어느 것보다 가장 위에 위치합니다"
-// CRITICAL FIX 2: 고급스럽고 깔끔한 UI 개선 - 복잡하지 않으면서 모든 정보 표현
+// v0.8.4: functional_specification.md 완전 준수 + 데이터 영속성 보장
+// CRITICAL FIX: 태스크 삭제 후 새로고침해도 다시 나타나지 않음
+// LocalStorage 기반 완전한 데이터 관리 시스템 적용
 
 function App() {
   // 기본 상태 관리
@@ -31,13 +32,90 @@ function App() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
 
+  // v0.8.4: 데이터 로딩 상태
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // v0.8.4: 설정 로드 및 저장
+  const loadSettingsFromStorage = useCallback(() => {
+    try {
+      const settings = dataManager.loadSettings();
+      setUseEnhancedUI(settings.useEnhancedUI);
+      setShowAnalyticsDashboard(settings.showAnalyticsDashboard);
+      setAiGroupingActive(settings.aiGroupingActive);
+      setIsAnimationPlaying(settings.isAnimationPlaying);
+      setCurrentView(settings.currentView);
+      console.log('⚙️ v0.8.4: 설정 로드 완료');
+    } catch (error) {
+      console.error('❌ 설정 로드 실패:', error);
+    }
+  }, []);
+
+  const saveSettingsToStorage = useCallback(() => {
+    try {
+      const settings = {
+        useEnhancedUI,
+        showAnalyticsDashboard,
+        aiGroupingActive,
+        isAnimationPlaying,
+        currentView
+      };
+      dataManager.saveSettings(settings);
+      console.log('⚙️ v0.8.4: 설정 저장 완료');
+    } catch (error) {
+      console.error('❌ 설정 저장 실패:', error);
+    }
+  }, [useEnhancedUI, showAnalyticsDashboard, aiGroupingActive, isAnimationPlaying, currentView]);
+
+  // v0.8.4: 태스크 데이터 로드
+  const loadTodosFromStorage = useCallback(async () => {
+    try {
+      setIsDataLoading(true);
+      console.log('📋 v0.8.4: 저장된 태스크 로드 시작...');
+      
+      const storedTodos = dataManager.getAllTodos();
+      
+      if (storedTodos && storedTodos.length > 0) {
+        setTodos(storedTodos);
+        console.log('✅ v0.8.4: 저장된 태스크 로드 완료:', storedTodos.length, '개');
+      } else {
+        // 저장된 데이터가 없으면 기본 태스크 생성
+        console.log('📋 v0.8.4: 저장된 태스크 없음 - 기본 태스크 생성');
+        initializeDefaultTasks();
+      }
+      
+      setDataLoaded(true);
+    } catch (error) {
+      console.error('❌ v0.8.4: 태스크 로드 실패:', error);
+      // 오류 시 기본 태스크 생성
+      initializeDefaultTasks();
+    } finally {
+      setIsDataLoading(false);
+    }
+  }, []);
+
+  // v0.8.4: 태스크를 LocalStorage에 저장
+  const saveTodosToStorage = useCallback((updatedTodos) => {
+    try {
+      dataManager.saveAllTodos(updatedTodos);
+      console.log('💾 v0.8.4: 태스크 저장 완료:', updatedTodos.length, '개');
+    } catch (error) {
+      console.error('❌ v0.8.4: 태스크 저장 실패:', error);
+    }
+  }, []);
+
   // 빈 상태 초기화
   const initializeEmptyState = useCallback(() => {
-    setTodos([]);
+    const emptyTodos = [];
+    setTodos(emptyTodos);
     setSolarSystems([]); // 태스크가 없으면 태양계도 없습니다
     setAsteroids([]); // 태스크가 없으면 소행성도 없습니다
-    console.log('🚫 v0.8.3: 태스크 없음 - 모든 태양계 시스템 제거');
-  }, []);
+    
+    // v0.8.4: 저장소에도 반영
+    saveTodosToStorage(emptyTodos);
+    
+    console.log('🚫 v0.8.4: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
+  }, [saveTodosToStorage]);
 
   // 기본 태스크 데이터 (다양한 카테고리로 여러 태양계 생성 테스트)
   const initializeDefaultTasks = useCallback(() => {
@@ -141,8 +219,12 @@ function App() {
     ];
 
     setTodos(defaultTasks);
-    console.log('🌟 v0.8.3: 기본 태스크 초기화 완료 - 다중 카테고리로 여러 태양계 생성 예정');
-  }, []);
+    
+    // v0.8.4: 저장소에 저장
+    saveTodosToStorage(defaultTasks);
+    
+    console.log('🌟 v0.8.4: 기본 태스크 초기화 완료 및 저장 - 다중 카테고리로 여러 태양계 생성 예정');
+  }, [saveTodosToStorage]);
 
   // 카테고리별 테마
   const getCategoryTheme = useCallback((category) => {
@@ -363,7 +445,7 @@ function App() {
       });
     });
     
-    console.log('☄️ v0.8.3: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
+    console.log('☄️ v0.8.4: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
     setAsteroids(newAsteroids);
   }, [calculateUrgencyColor]);
 
@@ -379,7 +461,7 @@ function App() {
 
   // v0.8.0: 다중 태양계 생성 (functional_specification.md 정확한 준수)
   const updateSolarSystems = useCallback(async () => {
-    console.log('🔄 v0.8.3: 다중 태양계 업데이트 시작');
+    console.log('🔄 v0.8.4: 다중 태양계 업데이트 시작');
     console.log('📋 현재 태스크 수:', todos.length);
 
     // 규칙 1: 태스크가 없으면 태양도 없습니다
@@ -485,7 +567,7 @@ function App() {
         return solarSystem;
       });
 
-      console.log('🌌 v0.8.3: 생성된 태양계 시스템:', newSolarSystems.length, '개');
+      console.log('🌌 v0.8.4: 생성된 태양계 시스템:', newSolarSystems.length, '개');
       newSolarSystems.forEach((system, index) => {
         console.log(`  ${index + 1}. ${system.name} - ${system.planets.length}개 행성`);
       });
@@ -508,35 +590,63 @@ function App() {
     setSelectedTask(null);
   }, []);
 
-  // 초기 로드 시 기본 태스크 설정
+  // v0.8.4: 앱 초기화 - 데이터 로드 및 설정 복원
   useEffect(() => {
-    if (todos.length === 0) {
-      initializeDefaultTasks();
-    }
-  }, [todos.length, initializeDefaultTasks]);
+    console.log('🚀 v0.8.4: 앱 초기화 시작...');
+    
+    const initializeApp = async () => {
+      // 설정 로드
+      loadSettingsFromStorage();
+      
+      // 데이터 로드
+      await loadTodosFromStorage();
+      
+      console.log('✅ v0.8.4: 앱 초기화 완료');
+    };
+    
+    initializeApp();
+  }, [loadSettingsFromStorage, loadTodosFromStorage]);
 
-  // 태스크 변경 시 태양계 재생성
+  // v0.8.4: 설정 변경 시 자동 저장
   useEffect(() => {
+    if (dataLoaded) {
+      saveSettingsToStorage();
+    }
+  }, [useEnhancedUI, showAnalyticsDashboard, aiGroupingActive, isAnimationPlaying, currentView, dataLoaded, saveSettingsToStorage]);
+
+  // v0.8.4: 태스크 변경 시 태양계 재생성 및 저장
+  useEffect(() => {
+    if (!dataLoaded || isDataLoading) return;
+
     const debounceTimer = setTimeout(() => {
       updateSolarSystems();
+      // 태스크 변경 시 자동 저장은 개별 함수에서 처리
     }, 1000); // 1초 디바운스
 
     return () => clearTimeout(debounceTimer);
-  }, [todos.length, updateSolarSystems]);
+  }, [todos.length, updateSolarSystems, dataLoaded, isDataLoading]);
 
   // 애니메이션 토글
   const toggleAnimation = useCallback(() => {
     setIsAnimationPlaying(prev => !prev);
   }, []);
 
-  // 태스크 업데이트
+  // v0.8.4: 태스크 업데이트 (영속성 보장)
   const handleTodoUpdate = useCallback((todoId, updates) => {
-    setTodos(prev => prev.map(todo => 
-      todo.id === todoId ? { ...todo, ...updates } : todo
-    ));
-  }, []);
+    setTodos(prev => {
+      const updatedTodos = prev.map(todo => 
+        todo.id === todoId ? { ...todo, ...updates } : todo
+      );
+      
+      // v0.8.4: 즉시 저장
+      saveTodosToStorage(updatedTodos);
+      console.log('✅ v0.8.4: 태스크 업데이트 및 저장:', todoId);
+      
+      return updatedTodos;
+    });
+  }, [saveTodosToStorage]);
 
-  // 태스크 추가
+  // v0.8.4: 태스크 추가 (영속성 보장)
   const handleTodoAdd = useCallback((newTodo = {}) => {
     const todo = {
       id: generateId(),
@@ -551,21 +661,35 @@ function App() {
       subtasks: newTodo.subtasks || []
     };
     
-    setTodos(prev => [...prev, todo]);
-    console.log('✅ 새 태스크 추가:', todo);
-  }, []);
+    setTodos(prev => {
+      const updatedTodos = [...prev, todo];
+      
+      // v0.8.4: 즉시 저장
+      saveTodosToStorage(updatedTodos);
+      console.log('✅ v0.8.4: 새 태스크 추가 및 저장:', todo.text);
+      
+      return updatedTodos;
+    });
+  }, [saveTodosToStorage]);
 
-  // 태스크 삭제
+  // v0.8.4: 태스크 삭제 (영속성 보장) - CRITICAL FIX
   const handleTodoDelete = useCallback((todoId) => {
-    const deletedTodo = todos.find(t => t.id === todoId);
-    setTodos(prev => prev.filter(todo => todo.id !== todoId));
-    console.log('🗑️ 태스크 삭제:', deletedTodo?.text);
-    
-    // 태스크가 모두 삭제되면 태양계도 제거
-    if (todos.length === 1) { // 삭제 후 0개가 될 예정
-      console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
-    }
-  }, [todos]);
+    setTodos(prev => {
+      const deletedTodo = prev.find(t => t.id === todoId);
+      const updatedTodos = prev.filter(todo => todo.id !== todoId);
+      
+      // v0.8.4: 즉시 저장 - 이제 새로고침해도 삭제된 상태 유지
+      saveTodosToStorage(updatedTodos);
+      console.log('🗑️ v0.8.4: 태스크 삭제 및 저장:', deletedTodo?.text);
+      
+      // 태스크가 모두 삭제되면 태양계도 제거
+      if (updatedTodos.length === 0) {
+        console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
+      }
+      
+      return updatedTodos;
+    });
+  }, [saveTodosToStorage]);
 
   // 카테고리 변경
   const handleCategoryChange = useCallback((category) => {
@@ -627,9 +751,30 @@ function App() {
     }
   }, [todos.length, initializeEmptyState, initializeDefaultTasks]);
 
+  // v0.8.4: 로딩 중일 때 표시할 컴포넌트
+  if (isDataLoading) {
+    return (
+      <div className="App" style={{ 
+        width: '100vw', 
+        height: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+        color: 'white'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🌌</div>
+          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.4</div>
+          <div style={{ fontSize: '1rem', opacity: 0.7 }}>데이터 영속성 시스템 로딩중...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="App" style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      {/* v0.8.3: functional_specification.md 완전 준수 - 메인 메뉴를 왼쪽 수직으로 배치 */}
+      {/* v0.8.4: functional_specification.md 완전 준수 - 메인 메뉴를 왼쪽 수직으로 배치 */}
       {/* "메인 메뉴는 화면의 맨 왼쪽에 수직으로 완전히 밀차되어 있습니다" */}
       <div 
         className="main-menu-vertical"
@@ -662,7 +807,7 @@ function App() {
           transform: 'rotate(0deg)',
           lineHeight: '1.2'
         }}>
-          🌌<br/>SOLAR<br/>TODO<br/>v0.8.3
+          🌌<br/>SOLAR<br/>TODO<br/>v0.8.4
         </div>
 
         {/* UI 모드 토글 */}
@@ -813,11 +958,12 @@ function App() {
         }}>
           T:{todos.length}<br/>
           S:{solarSystems.length}<br/>
-          A:{asteroids.length}
+          A:{asteroids.length}<br/>
+          💾
         </div>
       </div>
 
-      {/* v0.8.3: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
+      {/* v0.8.4: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
       <div style={{ marginLeft: '80px', width: 'calc(100vw - 80px)', height: '100vh' }}>
         <Scene 
           isAnimationPlaying={isAnimationPlaying}
@@ -852,18 +998,18 @@ function App() {
       >
         📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
         <br />
-        🚀 v0.8.3 Enhanced Modal UI & Z-Index Fix
+        💾 v0.8.4 Data Persistence Active - LocalStorage
         <br />
         {/* 규칙 준수 상태 표시 */}
         <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
           {todos.length === 0 && '🚫 No Tasks → No Planets, No Suns, No Satellites'}
           {todos.length > 0 && !aiGroupingActive && '🚫 Tasks exist but AI grouping disabled'}
           {todos.length > 0 && solarSystems.length === 0 && aiGroupingActive && '🔄 Processing...'}
-          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 🎨 Enhanced UI Active`}
+          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON`}
         </div>
       </div>
 
-      {/* v0.8.3: 조건부 UI 렌더링 - 메인 메뉴에 겹치지 않도록 위치 조정 */}
+      {/* v0.8.4: 조건부 UI 렌더링 - 메인 메뉴에 겹치지 않도록 위치 조정 */}
       <div style={{ marginLeft: '80px' }}>
         {useEnhancedUI ? (
           <EnhancedMissionControl
@@ -899,7 +1045,7 @@ function App() {
         />
       )}
 
-      {/* v0.8.3 CRITICAL FIX: 팝업 창 최상위 위치 - functional_specification.md 준수 */}
+      {/* v0.8.4 CRITICAL FIX: 팝업 창 최상위 위치 - functional_specification.md 준수 */}
       {/* "팝업 창은 어느 것보다 가장 위에 위치합니다" */}
       {/* CSS에서 z-index: 3000으로 설정되어 어느 것보다 가장 위에 표시 */}
       {showTaskDetail && selectedTask && (
