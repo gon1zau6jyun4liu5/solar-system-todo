@@ -4,24 +4,27 @@ import AITodoManager from './components/AITodoManager';
 import EnhancedMissionControl from './components/EnhancedMissionControl';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
 import TaskDetailModal from './components/TaskDetailModal';
+import dataManager from './utils/dataManager'; // v0.8.4: 데이터 영속성 매니저
 import './App.css';
 
 // 유틸리티 함수들
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// v0.8.3: functional_specification.md 완전 준수
-// CRITICAL FIX 1: 팝업 창 최상위 z-index (3000) - "팝업 창은 어느 것보다 가장 위에 위치합니다"
-// CRITICAL FIX 2: 고급스럽고 깔끔한 UI 개선 - 복잡하지 않으면서 모든 정보 표현
+// v0.8.4: functional_specification.md 완전 준수 + 데이터 영속성 보장
+// NEW FEATURES: 속도 설정, 궤도 표시, 동적 키워드, 포커싱 기능
 
 function App() {
   // 기본 상태 관리
   const [isAnimationPlaying, setIsAnimationPlaying] = useState(true);
+  const [animationSpeed, setAnimationSpeed] = useState(1.0); // NEW: 애니메이션 속도 설정
+  const [showOrbits, setShowOrbits] = useState(true); // NEW: 궤도 표시 여부
   const [todos, setTodos] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [useEnhancedUI, setUseEnhancedUI] = useState(true);
   const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState(false);
   const [aiGroupingActive, setAiGroupingActive] = useState(true);
   const [currentView, setCurrentView] = useState('all');
+  const [focusedSystemId, setFocusedSystemId] = useState(null); // NEW: 포커싱 기능
   
   // v0.8.0: 다중 태양계 시스템 (올바른 구현)
   const [solarSystems, setSolarSystems] = useState([]); // 여러 태양계
@@ -31,12 +34,107 @@ function App() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
 
+  // v0.8.4: 데이터 로딩 상태
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // v0.8.4: 설정 로드 및 저장
+  const loadSettingsFromStorage = useCallback(() => {
+    try {
+      const settings = dataManager.loadSettings();
+      setUseEnhancedUI(settings.useEnhancedUI);
+      setShowAnalyticsDashboard(settings.showAnalyticsDashboard);
+      setAiGroupingActive(settings.aiGroupingActive);
+      setIsAnimationPlaying(settings.isAnimationPlaying);
+      setAnimationSpeed(settings.animationSpeed || 1.0); // NEW
+      setShowOrbits(settings.showOrbits !== false); // NEW: 기본값 true
+      setCurrentView(settings.currentView);
+      setFocusedSystemId(settings.focusedSystemId || null); // NEW
+      console.log('⚙️ v0.8.4: 설정 로드 완료');
+    } catch (error) {
+      console.error('❌ 설정 로드 실패:', error);
+    }
+  }, []);
+
+  const saveSettingsToStorage = useCallback(() => {
+    try {
+      const settings = {
+        useEnhancedUI,
+        showAnalyticsDashboard,
+        aiGroupingActive,
+        isAnimationPlaying,
+        animationSpeed, // NEW
+        showOrbits, // NEW
+        currentView,
+        focusedSystemId // NEW
+      };
+      dataManager.saveSettings(settings);
+      console.log('⚙️ v0.8.4: 설정 저장 완료');
+    } catch (error) {
+      console.error('❌ 설정 저장 실패:', error);
+    }
+  }, [useEnhancedUI, showAnalyticsDashboard, aiGroupingActive, isAnimationPlaying, animationSpeed, showOrbits, currentView, focusedSystemId]);
+
+  // v0.8.4: 태스크 데이터 로드
+  const loadTodosFromStorage = useCallback(async () => {
+    try {
+      setIsDataLoading(true);
+      console.log('📋 v0.8.4: 저장된 태스크 로드 시작...');
+      
+      const storedTodos = dataManager.getAllTodos();
+      
+      if (storedTodos && storedTodos.length > 0) {
+        setTodos(storedTodos);
+        console.log('✅ v0.8.4: 저장된 태스크 로드 완료:', storedTodos.length, '개');
+      } else {
+        // 저장된 데이터가 없으면 기본 태스크 생성
+        console.log('📋 v0.8.4: 저장된 태스크 없음 - 기본 태스크 생성');
+        initializeDefaultTasks();
+      }
+      
+      setDataLoaded(true);
+    } catch (error) {
+      console.error('❌ v0.8.4: 태스크 로드 실패:', error);
+      // 오류 시 기본 태스크 생성
+      initializeDefaultTasks();
+    } finally {
+      setIsDataLoading(false);
+    }
+  }, []);
+
+  // v0.8.4: 태스크를 LocalStorage에 저장
+  const saveTodosToStorage = useCallback((updatedTodos) => {
+    try {
+      dataManager.saveAllTodos(updatedTodos);
+      console.log('💾 v0.8.4: 태스크 저장 완료:', updatedTodos.length, '개');
+    } catch (error) {
+      console.error('❌ v0.8.4: 태스크 저장 실패:', error);
+    }
+  }, []);
+
   // 빈 상태 초기화
   const initializeEmptyState = useCallback(() => {
-    setTodos([]);
+    const emptyTodos = [];
+    setTodos(emptyTodos);
     setSolarSystems([]); // 태스크가 없으면 태양계도 없습니다
     setAsteroids([]); // 태스크가 없으면 소행성도 없습니다
-    console.log('🚫 v0.8.3: 태스크 없음 - 모든 태양계 시스템 제거');
+    setFocusedSystemId(null); // 포커스 해제
+    
+    // v0.8.4: 저장소에도 반영
+    saveTodosToStorage(emptyTodos);
+    
+    console.log('🚫 v0.8.4: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
+  }, [saveTodosToStorage]);
+
+  // NEW: 키워드 정제 함수 (functional_specification.md 준수)
+  const filterKeywords = useCallback((keywords) => {
+    const excludeWords = ['태양계', '행성', '위성', '소행성', '태양', 'planet', 'satellite', 'sun', 'solar', 'system'];
+    return keywords.filter(keyword => 
+      keyword && 
+      keyword.length > 0 && 
+      !excludeWords.includes(keyword.toLowerCase()) &&
+      keyword.length <= 6 // 간결성을 위해 6글자 이하만
+    ).slice(0, 3); // 최대 3개까지만
   }, []);
 
   // 기본 태스크 데이터 (다양한 카테고리로 여러 태양계 생성 테스트)
@@ -52,7 +150,7 @@ function App() {
         createdAt: Date.now(),
         startDate: new Date(),
         deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        keywords: ['기획서', '프로젝트', '작성'],
+        keywords: filterKeywords(['기획서', '프로젝트', '작성', '문서']),
         subtasks: [
           { 
             id: 'subtask-1-1', 
@@ -60,7 +158,7 @@ function App() {
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-            keywords: ['요구사항', '분석']
+            keywords: filterKeywords(['요구사항', '분석'])
           },
           { 
             id: 'subtask-1-2', 
@@ -68,7 +166,7 @@ function App() {
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-            keywords: ['기술', '스택', '선정']
+            keywords: filterKeywords(['기술', '스택', '선정'])
           }
         ]
       },
@@ -81,7 +179,7 @@ function App() {
         createdAt: Date.now(),
         startDate: new Date(),
         deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-        keywords: ['회의', '준비'],
+        keywords: filterKeywords(['회의', '준비']),
         subtasks: [] // 서브태스크가 없으므로 위성도 없습니다
       },
       
@@ -95,7 +193,7 @@ function App() {
         createdAt: Date.now(),
         startDate: new Date(),
         deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-        keywords: ['장보기', '목록'],
+        keywords: filterKeywords(['장보기', '목록']),
         subtasks: [
           {
             id: 'subtask-3-1',
@@ -103,7 +201,7 @@ function App() {
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-            keywords: ['냉장고', '확인']
+            keywords: filterKeywords(['냉장고', '확인'])
           }
         ]
       },
@@ -118,7 +216,7 @@ function App() {
         createdAt: Date.now(),
         startDate: new Date(),
         deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        keywords: ['운동', '계획'],
+        keywords: filterKeywords(['운동', '계획']),
         subtasks: [
           {
             id: 'subtask-4-1',
@@ -126,7 +224,7 @@ function App() {
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-            keywords: ['헬스장', '등록']
+            keywords: filterKeywords(['헬스장', '등록'])
           },
           {
             id: 'subtask-4-2',
@@ -134,15 +232,19 @@ function App() {
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-            keywords: ['스케줄', '작성']
+            keywords: filterKeywords(['스케줄', '작성'])
           }
         ]
       }
     ];
 
     setTodos(defaultTasks);
-    console.log('🌟 v0.8.3: 기본 태스크 초기화 완료 - 다중 카테고리로 여러 태양계 생성 예정');
-  }, []);
+    
+    // v0.8.4: 저장소에 저장
+    saveTodosToStorage(defaultTasks);
+    
+    console.log('🌟 v0.8.4: 기본 태스크 초기화 완료 및 저장 - 다중 카테고리로 여러 태양계 생성 예정');
+  }, [saveTodosToStorage, filterKeywords]);
 
   // 카테고리별 테마
   const getCategoryTheme = useCallback((category) => {
@@ -187,21 +289,21 @@ function App() {
       if (tasks.length > 0) { // 태스크가 있을 때만 태양 생성
         // AI가 결정하는 태양 이름 (그룹명)
         const sunNames = {
-          work: '업무 태양계',
-          personal: '개인 태양계', 
-          health: '건강 태양계',
-          study: '학습 태양계',
-          general: '일반 태양계'
+          work: '업무',
+          personal: '개인', 
+          health: '건강',
+          study: '학습',
+          general: '일반'
         };
 
-        // 그룹 키워드 생성 (모든 태스크의 키워드 수집)
-        const groupKeywords = [...new Set(tasks.flatMap(task => task.keywords || []))];
+        // 그룹 키워드 생성 (모든 태스크의 키워드 수집 후 정제)
+        const groupKeywords = filterKeywords([...new Set(tasks.flatMap(task => task.keywords || []))]);
 
         groups.push({
-          sunName: sunNames[category] || '미분류 태양계',
+          sunName: sunNames[category] || '미분류',
           category: category,
           tasks: tasks,
-          keywords: groupKeywords, // 태양에 표시할 키워드
+          keywords: groupKeywords, // 태양에 표시할 키워드 (정제됨)
           theme: getCategoryTheme(category),
           priority: Math.max(...tasks.map(t => getPriorityValue(t.priority)))
         });
@@ -212,7 +314,7 @@ function App() {
 
     console.log(`🌌 AI 그룹핑 결과: ${groups.length}개의 태양계 그룹`);
     return groups;
-  }, [getCategoryTheme, getPriorityValue]);
+  }, [getCategoryTheme, getPriorityValue, filterKeywords]);
 
   // 태양계 위치 계산 (여러 태양계를 적절히 배치)
   const calculateSystemPosition = useCallback((index, totalSystems) => {
@@ -240,17 +342,19 @@ function App() {
     return '#44FF44';                          // 초록색 (여유)
   }, []);
 
-  // 공전 속도 계산 (데드라인 기반)
+  // 공전 속도 계산 (데드라인 기반 + 전역 속도 설정)
   const calculateOrbitSpeed = useCallback((deadline) => {
-    if (!deadline) return 1.0;
+    if (!deadline) return 1.0 * animationSpeed;
     
     const daysLeft = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
     
-    if (daysLeft <= 1) return 3.0;     // 매우 빠름
-    if (daysLeft <= 3) return 2.0;     // 빠름
-    if (daysLeft <= 7) return 1.5;     // 보통
-    return 0.8;                        // 느림
-  }, []);
+    let baseSpeed = 0.8;
+    if (daysLeft <= 1) baseSpeed = 3.0;     // 매우 빠름
+    else if (daysLeft <= 3) baseSpeed = 2.0;     // 빠름
+    else if (daysLeft <= 7) baseSpeed = 1.5;     // 보통
+    
+    return baseSpeed * animationSpeed; // 전역 속도 설정 적용
+  }, [animationSpeed]);
 
   // 행성 위치 계산 (태양 주위 공전)
   const calculatePlanetOrbit = useCallback((index, totalPlanets) => {
@@ -304,7 +408,7 @@ function App() {
             targetId: planet.id,
             targetSystemId: system.id,
             targetPosition: planet.position || [0, 0, 0],
-            keywords: ['액션', '제안', ...planet.keywords.slice(0, 2)],
+            keywords: filterKeywords(['액션', '제안', ...planet.keywords.slice(0, 2)]), // 키워드 정제
             position: [
               (Math.random() - 0.5) * 100,
               (Math.random() - 0.5) * 20,
@@ -315,7 +419,7 @@ function App() {
               description: `${planet.task.text}에 대한 AI 제안`,
               impact: Math.floor(Math.random() * 3) + 1
             },
-            speed: 0.5 + Math.random() * 0.5,
+            speed: (0.5 + Math.random() * 0.5) * animationSpeed, // 전역 속도 적용
             timeLimit: Date.now() + (30 + Math.random() * 60) * 1000,
             color: calculateUrgencyColor(planet.task.deadline),
             startDate: planet.task.startDate,
@@ -337,7 +441,7 @@ function App() {
                 targetPlanetId: planet.id,
                 targetSystemId: system.id,
                 targetPosition: satellite.position || [0, 0, 0],
-                keywords: ['서브액션', '알림', ...satellite.keywords.slice(0, 2)],
+                keywords: filterKeywords(['서브액션', '알림', ...satellite.keywords.slice(0, 2)]), // 키워드 정제
                 position: [
                   (Math.random() - 0.5) * 80,
                   (Math.random() - 0.5) * 15,
@@ -348,7 +452,7 @@ function App() {
                   description: `${satellite.subtask.text}에 대한 AI 제안`,
                   impact: Math.floor(Math.random() * 2) + 1
                 },
-                speed: 0.8 + Math.random() * 0.7,
+                speed: (0.8 + Math.random() * 0.7) * animationSpeed, // 전역 속도 적용
                 timeLimit: Date.now() + (20 + Math.random() * 40) * 1000,
                 color: calculateUrgencyColor(satellite.subtask.deadline),
                 startDate: satellite.subtask.startDate,
@@ -363,9 +467,9 @@ function App() {
       });
     });
     
-    console.log('☄️ v0.8.3: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
+    console.log('☄️ v0.8.4: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
     setAsteroids(newAsteroids);
-  }, [calculateUrgencyColor]);
+  }, [calculateUrgencyColor, animationSpeed, filterKeywords]);
 
   // 천체 클릭 핸들러 (상세정보 창 표시)
   const handleCelestialBodyClick = useCallback((type, data) => {
@@ -377,9 +481,22 @@ function App() {
     }
   }, []);
 
+  // NEW: 포커싱 기능 - 특정 태양계만 표시
+  const handleSolarSystemFocus = useCallback((systemId) => {
+    if (focusedSystemId === systemId) {
+      // 이미 포커스된 태양계를 다시 클릭하면 포커스 해제
+      setFocusedSystemId(null);
+      console.log('🔍 포커스 해제: 모든 태양계 표시');
+    } else {
+      // 새로운 태양계 포커스
+      setFocusedSystemId(systemId);
+      console.log('🔍 태양계 포커스:', systemId);
+    }
+  }, [focusedSystemId]);
+
   // v0.8.0: 다중 태양계 생성 (functional_specification.md 정확한 준수)
   const updateSolarSystems = useCallback(async () => {
-    console.log('🔄 v0.8.3: 다중 태양계 업데이트 시작');
+    console.log('🔄 v0.8.4: 다중 태양계 업데이트 시작');
     console.log('📋 현재 태스크 수:', todos.length);
 
     // 규칙 1: 태스크가 없으면 태양도 없습니다
@@ -387,6 +504,7 @@ function App() {
       console.log('🚫 태스크가 없으므로 모든 태양계 제거');
       setSolarSystems([]);
       setAsteroids([]);
+      setFocusedSystemId(null); // 포커스 해제
       return;
     }
 
@@ -398,6 +516,7 @@ function App() {
         console.log('🚫 태스크 그룹이 없으므로 태양계 없음');
         setSolarSystems([]);
         setAsteroids([]);
+        setFocusedSystemId(null); // 포커스 해제
         return;
       }
 
@@ -419,7 +538,7 @@ function App() {
                 return {
                   id: `satellite-${subtask.id}`,
                   name: subtask.text,
-                  keywords: subtask.keywords || [],
+                  keywords: filterKeywords(subtask.keywords || []), // 키워드 정제
                   subtask: subtask,
                   completed: subtask.completed,
                   orbitRadius: satOrbitInfo.orbitRadius,
@@ -438,7 +557,7 @@ function App() {
           return {
             id: `planet-${task.id}`,
             name: task.text,
-            keywords: task.keywords || [],
+            keywords: filterKeywords(task.keywords || []), // 키워드 정제
             task: task,
             completed: task.completed,
             orbitRadius: orbitInfo.orbitRadius,
@@ -462,7 +581,7 @@ function App() {
           sun: {
             id: `sun-${generateId()}`,
             name: group.sunName,
-            keywords: group.keywords, // 키워드 항상 표시
+            keywords: group.keywords, // 키워드 항상 표시 (정제됨)
             totalTasks: group.tasks.length,
             category: group.category,
             theme: group.theme,
@@ -485,12 +604,18 @@ function App() {
         return solarSystem;
       });
 
-      console.log('🌌 v0.8.3: 생성된 태양계 시스템:', newSolarSystems.length, '개');
+      console.log('🌌 v0.8.4: 생성된 태양계 시스템:', newSolarSystems.length, '개');
       newSolarSystems.forEach((system, index) => {
         console.log(`  ${index + 1}. ${system.name} - ${system.planets.length}개 행성`);
       });
       
       setSolarSystems(newSolarSystems);
+      
+      // 포커스된 태양계가 더 이상 존재하지 않으면 포커스 해제
+      if (focusedSystemId && !newSolarSystems.find(s => s.id === focusedSystemId)) {
+        setFocusedSystemId(null);
+        console.log('🔍 포커스된 태양계가 없어져서 포커스 해제');
+      }
       
       // 소행성 시스템 업데이트 (패널 없음)
       generateAsteroids(newSolarSystems);
@@ -499,8 +624,9 @@ function App() {
       console.error('태양계 생성 오류:', error);
       setSolarSystems([]);
       setAsteroids([]);
+      setFocusedSystemId(null);
     }
-  }, [todos, aiGroupingActive, groupTasksByAI, calculateSystemPosition, calculatePlanetOrbit, calculateSatelliteOrbit, calculateOrbitSpeed, calculateUrgencyColor, handleCelestialBodyClick, generateAsteroids]);
+  }, [todos, aiGroupingActive, groupTasksByAI, calculateSystemPosition, calculatePlanetOrbit, calculateSatelliteOrbit, calculateOrbitSpeed, calculateUrgencyColor, handleCelestialBodyClick, generateAsteroids, focusedSystemId, filterKeywords]);
 
   // 모달 닫기
   const closeTaskDetail = useCallback(() => {
@@ -508,35 +634,83 @@ function App() {
     setSelectedTask(null);
   }, []);
 
-  // 초기 로드 시 기본 태스크 설정
+  // v0.8.4: 앱 초기화 - 데이터 로드 및 설정 복원
   useEffect(() => {
-    if (todos.length === 0) {
-      initializeDefaultTasks();
-    }
-  }, [todos.length, initializeDefaultTasks]);
+    console.log('🚀 v0.8.4: 앱 초기화 시작...');
+    
+    const initializeApp = async () => {
+      // 설정 로드
+      loadSettingsFromStorage();
+      
+      // 데이터 로드
+      await loadTodosFromStorage();
+      
+      console.log('✅ v0.8.4: 앱 초기화 완료');
+    };
+    
+    initializeApp();
+  }, [loadSettingsFromStorage, loadTodosFromStorage]);
 
-  // 태스크 변경 시 태양계 재생성
+  // v0.8.4: 설정 변경 시 자동 저장
   useEffect(() => {
+    if (dataLoaded) {
+      saveSettingsToStorage();
+    }
+  }, [useEnhancedUI, showAnalyticsDashboard, aiGroupingActive, isAnimationPlaying, animationSpeed, showOrbits, currentView, focusedSystemId, dataLoaded, saveSettingsToStorage]);
+
+  // v0.8.4: 태스크 변경 시 태양계 재생성 및 저장
+  useEffect(() => {
+    if (!dataLoaded || isDataLoading) return;
+
     const debounceTimer = setTimeout(() => {
       updateSolarSystems();
+      // 태스크 변경 시 자동 저장은 개별 함수에서 처리
     }, 1000); // 1초 디바운스
 
     return () => clearTimeout(debounceTimer);
-  }, [todos.length, updateSolarSystems]);
+  }, [todos.length, updateSolarSystems, dataLoaded, isDataLoading]);
 
   // 애니메이션 토글
   const toggleAnimation = useCallback(() => {
     setIsAnimationPlaying(prev => !prev);
   }, []);
 
-  // 태스크 업데이트
-  const handleTodoUpdate = useCallback((todoId, updates) => {
-    setTodos(prev => prev.map(todo => 
-      todo.id === todoId ? { ...todo, ...updates } : todo
-    ));
+  // NEW: 속도 설정 기능
+  const handleSpeedChange = useCallback((newSpeed) => {
+    setAnimationSpeed(Math.max(0.1, Math.min(5.0, newSpeed))); // 0.1 ~ 5.0 범위
+    console.log('⚡ 애니메이션 속도 변경:', newSpeed);
   }, []);
 
-  // 태스크 추가
+  // NEW: 궤도 표시 토글
+  const toggleOrbits = useCallback(() => {
+    setShowOrbits(prev => !prev);
+    console.log('🌀 궤도 표시 토글:', !showOrbits);
+  }, [showOrbits]);
+
+  // v0.8.4: 태스크 업데이트 (영속성 보장)
+  const handleTodoUpdate = useCallback((todoId, updates) => {
+    setTodos(prev => {
+      const updatedTodos = prev.map(todo => {
+        if (todo.id === todoId) {
+          const updated = { ...todo, ...updates };
+          // 키워드 업데이트 시 정제 적용
+          if (updates.keywords) {
+            updated.keywords = filterKeywords(updates.keywords);
+          }
+          return updated;
+        }
+        return todo;
+      });
+      
+      // v0.8.4: 즉시 저장
+      saveTodosToStorage(updatedTodos);
+      console.log('✅ v0.8.4: 태스크 업데이트 및 저장:', todoId);
+      
+      return updatedTodos;
+    });
+  }, [saveTodosToStorage, filterKeywords]);
+
+  // v0.8.4: 태스크 추가 (영속성 보장)
   const handleTodoAdd = useCallback((newTodo = {}) => {
     const todo = {
       id: generateId(),
@@ -547,25 +721,40 @@ function App() {
       createdAt: Date.now(),
       startDate: new Date(),
       deadline: newTodo.deadline || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      keywords: newTodo.keywords || [newTodo.text?.split(' ')[0] || 'Task'],
+      keywords: filterKeywords(newTodo.keywords || [newTodo.text?.split(' ')[0] || 'Task']),
       subtasks: newTodo.subtasks || []
     };
     
-    setTodos(prev => [...prev, todo]);
-    console.log('✅ 새 태스크 추가:', todo);
-  }, []);
+    setTodos(prev => {
+      const updatedTodos = [...prev, todo];
+      
+      // v0.8.4: 즉시 저장
+      saveTodosToStorage(updatedTodos);
+      console.log('✅ v0.8.4: 새 태스크 추가 및 저장:', todo.text);
+      
+      return updatedTodos;
+    });
+  }, [saveTodosToStorage, filterKeywords]);
 
-  // 태스크 삭제
+  // v0.8.4: 태스크 삭제 (영속성 보장) - CRITICAL FIX
   const handleTodoDelete = useCallback((todoId) => {
-    const deletedTodo = todos.find(t => t.id === todoId);
-    setTodos(prev => prev.filter(todo => todo.id !== todoId));
-    console.log('🗑️ 태스크 삭제:', deletedTodo?.text);
-    
-    // 태스크가 모두 삭제되면 태양계도 제거
-    if (todos.length === 1) { // 삭제 후 0개가 될 예정
-      console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
-    }
-  }, [todos]);
+    setTodos(prev => {
+      const deletedTodo = prev.find(t => t.id === todoId);
+      const updatedTodos = prev.filter(todo => todo.id !== todoId);
+      
+      // v0.8.4: 즉시 저장 - 이제 새로고침해도 삭제된 상태 유지
+      saveTodosToStorage(updatedTodos);
+      console.log('🗑️ v0.8.4: 태스크 삭제 및 저장:', deletedTodo?.text);
+      
+      // 태스크가 모두 삭제되면 태양계도 제거
+      if (updatedTodos.length === 0) {
+        console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
+        setFocusedSystemId(null); // 포커스 해제
+      }
+      
+      return updatedTodos;
+    });
+  }, [saveTodosToStorage]);
 
   // 카테고리 변경
   const handleCategoryChange = useCallback((category) => {
@@ -594,6 +783,7 @@ function App() {
         console.log('🤖 AI 그룹핑 비활성화 - 모든 태양계 제거');
         setSolarSystems([]);
         setAsteroids([]);
+        setFocusedSystemId(null);
       } else {
         console.log('🤖 AI 그룹핑 활성화 - 태양계 재구성 시작');
       }
@@ -627,10 +817,30 @@ function App() {
     }
   }, [todos.length, initializeEmptyState, initializeDefaultTasks]);
 
+  // v0.8.4: 로딩 중일 때 표시할 컴포넌트
+  if (isDataLoading) {
+    return (
+      <div className="App" style={{ 
+        width: '100vw', 
+        height: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+        color: 'white'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🌌</div>
+          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.4</div>
+          <div style={{ fontSize: '1rem', opacity: 0.7 }}>데이터 영속성 시스템 로딩중...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="App" style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      {/* v0.8.3: functional_specification.md 완전 준수 - 메인 메뉴를 왼쪽 수직으로 배치 */}
-      {/* "메인 메뉴는 화면의 맨 왼쪽에 수직으로 완전히 밀차되어 있습니다" */}
+      {/* v0.8.4: functional_specification.md 완전 준수 - 메인 메뉴를 왼쪽 수직으로 배치 */}
       <div 
         className="main-menu-vertical"
         data-testid="main-menu-vertical"
@@ -648,7 +858,7 @@ function App() {
           alignItems: 'center',
           padding: '20px 10px',
           gap: '15px',
-          zIndex: 2000, // 메인 메뉴가 위에 위치 (사양서 요구사항)
+          zIndex: 2000,
           boxShadow: '2px 0 20px rgba(0, 0, 0, 0.3)'
         }}
       >
@@ -662,7 +872,7 @@ function App() {
           transform: 'rotate(0deg)',
           lineHeight: '1.2'
         }}>
-          🌌<br/>SOLAR<br/>TODO<br/>v0.8.3
+          🌌<br/>SOLAR<br/>TODO<br/>v0.8.4
         </div>
 
         {/* UI 모드 토글 */}
@@ -777,6 +987,34 @@ function App() {
           {isAnimationPlaying ? '⏸️' : '▶️'}
         </button>
 
+        {/* NEW: 궤도 표시 토글 */}
+        <button 
+          className="menu-button"
+          onClick={toggleOrbits}
+          title="Toggle Orbit Visualization"
+          data-testid="orbit-toggle"
+          style={{
+            background: showOrbits 
+              ? 'linear-gradient(135deg, #8b5cf6, #a855f7)' 
+              : 'linear-gradient(135deg, #6b7280, #9ca3af)',
+            color: 'white',
+            border: 'none',
+            padding: '12px',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            fontSize: '18px',
+            width: '50px',
+            height: '50px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          🌀
+        </button>
+
         {/* Clear All 테스트 버튼 */}
         <button 
           className="menu-button"
@@ -803,9 +1041,38 @@ function App() {
           🧹
         </button>
 
-        {/* 상태 표시 (축약형) */}
+        {/* NEW: 속도 설정 슬라이더 */}
         <div style={{
           marginTop: 'auto',
+          marginBottom: '10px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '5px'
+        }}>
+          <div style={{ color: '#888', fontSize: '10px' }}>속도</div>
+          <input
+            type="range"
+            min="0.1"
+            max="3.0"
+            step="0.1"
+            value={animationSpeed}
+            onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
+            data-testid="speed-slider"
+            style={{
+              width: '60px',
+              height: '20px',
+              transform: 'rotate(-90deg)',
+              transformOrigin: 'center'
+            }}
+          />
+          <div style={{ color: '#888', fontSize: '8px' }}>
+            {animationSpeed.toFixed(1)}x
+          </div>
+        </div>
+
+        {/* 상태 표시 (축약형) */}
+        <div style={{
           fontSize: '10px',
           color: '#888',
           textAlign: 'center',
@@ -813,18 +1080,24 @@ function App() {
         }}>
           T:{todos.length}<br/>
           S:{solarSystems.length}<br/>
-          A:{asteroids.length}
+          A:{asteroids.length}<br/>
+          {focusedSystemId && '🔍'}<br/>
+          💾
         </div>
       </div>
 
-      {/* v0.8.3: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
+      {/* v0.8.4: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
       <div style={{ marginLeft: '80px', width: 'calc(100vw - 80px)', height: '100vh' }}>
         <Scene 
           isAnimationPlaying={isAnimationPlaying}
-          solarSystems={solarSystems} // 다중 태양계 시스템
+          animationSpeed={animationSpeed} // NEW: 속도 전달
+          showOrbits={showOrbits} // NEW: 궤도 표시 전달
+          solarSystems={solarSystems}
           asteroids={asteroids}
           currentView={currentView}
+          focusedSystemId={focusedSystemId} // NEW: 포커싱 전달
           onSolarSystemClick={handleSolarSystemClick}
+          onSolarSystemFocus={handleSolarSystemFocus} // NEW: 포커싱 핸들러
           onPlanetClick={handleCelestialBodyClick}
           onSatelliteClick={handleCelestialBodyClick}
           onAsteroidClick={handleCelestialBodyClick}
@@ -840,7 +1113,7 @@ function App() {
         style={{
           position: 'fixed',
           bottom: '20px',
-          left: '100px', // 메인 메뉴 뒤에 위치
+          left: '100px',
           background: 'rgba(0, 0, 0, 0.8)',
           color: 'white',
           padding: '15px 20px',
@@ -851,19 +1124,20 @@ function App() {
         }}
       >
         📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
+        {focusedSystemId && ` | 🔍 Focus: ${solarSystems.find(s => s.id === focusedSystemId)?.name || 'Unknown'}`}
         <br />
-        🚀 v0.8.3 Enhanced Modal UI & Z-Index Fix
+        💾 v0.8.4 Enhanced Features - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
         <br />
         {/* 규칙 준수 상태 표시 */}
         <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
           {todos.length === 0 && '🚫 No Tasks → No Planets, No Suns, No Satellites'}
           {todos.length > 0 && !aiGroupingActive && '🚫 Tasks exist but AI grouping disabled'}
           {todos.length > 0 && solarSystems.length === 0 && aiGroupingActive && '🔄 Processing...'}
-          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 🎨 Enhanced UI Active`}
+          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON`}
         </div>
       </div>
 
-      {/* v0.8.3: 조건부 UI 렌더링 - 메인 메뉴에 겹치지 않도록 위치 조정 */}
+      {/* v0.8.4: 조건부 UI 렌더링 - 메인 메뉴에 겹치지 않도록 위치 조정 */}
       <div style={{ marginLeft: '80px' }}>
         {useEnhancedUI ? (
           <EnhancedMissionControl
@@ -873,7 +1147,7 @@ function App() {
             onTodoAdd={handleTodoAdd}
             onTodoDelete={handleTodoDelete}
             onCategoryChange={handleCategoryChange}
-            solarSystems={solarSystems} // 다중 시스템 전달
+            solarSystems={solarSystems}
             asteroids={asteroids}
             data-testid="enhanced-mission-control"
           />
@@ -890,18 +1164,16 @@ function App() {
       {showAnalyticsDashboard && (
         <AdvancedAnalyticsDashboard
           todos={todos}
-          solarSystems={solarSystems} // 다중 시스템 전달
+          solarSystems={solarSystems}
           asteroids={asteroids}
           isVisible={showAnalyticsDashboard}
           onClose={closeAnalyticsDashboard}
           data-testid="analytics-dashboard"
-          style={{ zIndex: 1500 }} // 메인 메뉴(2000)보다 낮음
+          style={{ zIndex: 1500 }}
         />
       )}
 
-      {/* v0.8.3 CRITICAL FIX: 팝업 창 최상위 위치 - functional_specification.md 준수 */}
-      {/* "팝업 창은 어느 것보다 가장 위에 위치합니다" */}
-      {/* CSS에서 z-index: 3000으로 설정되어 어느 것보다 가장 위에 표시 */}
+      {/* v0.8.4: 팝업 창 최상위 위치 - functional_specification.md 준수 */}
       {showTaskDetail && selectedTask && (
         <TaskDetailModal
           task={selectedTask}
