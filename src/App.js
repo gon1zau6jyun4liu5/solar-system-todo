@@ -3,17 +3,15 @@ import Scene from './components/Scene';
 import AITodoManager from './components/AITodoManager';
 import EnhancedMissionControl from './components/EnhancedMissionControl';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
-import AsteroidActionSystem from './components/AsteroidActionSystem';
 import TaskDetailModal from './components/TaskDetailModal';
 import './App.css';
 
 // 유틸리티 함수들
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// v0.8.1: functional_specification.md 완전 준수
-// CRITICAL FIX: 메인 메뉴를 왼쪽 수직으로 배치 (사양서 요구사항)
-// "메인 메뉴는 화면의 맨 왼쪽에 수직으로 완전히 밀차되어 있습니다"
-// "메인 메뉴와 패널이 겹치는 경우, 메인 메뉴가 위에 위치합니다"
+// v0.8.2: functional_specification.md 완전 준수
+// FIX 1: 소행성 액션 제안 패널 제거 - "소행성 액션에 대한 제안 패널은 필요 없습니다"
+// FIX 2: 팝업 창 최상위 위치 - "팝업 창은 어느 것보다 가장 위에 위치합니다"
 
 function App() {
   // 기본 상태 관리
@@ -38,7 +36,7 @@ function App() {
     setTodos([]);
     setSolarSystems([]); // 태스크가 없으면 태양계도 없습니다
     setAsteroids([]); // 태스크가 없으면 소행성도 없습니다
-    console.log('🚫 v0.8.1: 태스크 없음 - 모든 태양계 시스템 제거');
+    console.log('🚫 v0.8.2: 태스크 없음 - 모든 태양계 시스템 제거');
   }, []);
 
   // 기본 태스크 데이터 (다양한 카테고리로 여러 태양계 생성 테스트)
@@ -143,7 +141,7 @@ function App() {
     ];
 
     setTodos(defaultTasks);
-    console.log('🌟 v0.8.1: 기본 태스크 초기화 완료 - 다중 카테고리로 여러 태양계 생성 예정');
+    console.log('🌟 v0.8.2: 기본 태스크 초기화 완료 - 다중 카테고리로 여러 태양계 생성 예정');
   }, []);
 
   // 카테고리별 테마
@@ -278,7 +276,8 @@ function App() {
     };
   }, []);
 
-  // 소행성 생성 (AI가 랜덤으로 생성)
+  // v0.8.2: 소행성 생성 (AI가 랜덤으로 생성, 패널 없음)
+  // functional_specification.md: "소행성 액션에 대한 제안 패널은 필요 없습니다. 예고 없이 나타나는 겁니다"
   const generateAsteroids = useCallback((systems) => {
     // 규칙: 태양계가 없으면 소행성도 없습니다
     if (!systems || systems.length === 0) {
@@ -324,7 +323,7 @@ function App() {
           };
           
           newAsteroids.push(asteroid);
-          console.log(`☄️ 소행성 생성: ${planet.task.text}를 향해 돌진`);
+          console.log(`☄️ 소행성 생성: ${planet.task.text}를 향해 돌진 (패널 없음)`);
         }
 
         // 위성들을 향한 소행성 (서브태스크가 있을 때만)
@@ -357,14 +356,14 @@ function App() {
               };
               
               newAsteroids.push(asteroid);
-              console.log(`☄️ 소행성 생성: ${satellite.subtask.text} 위성을 향해 돌진`);
+              console.log(`☄️ 소행성 생성: ${satellite.subtask.text} 위성을 향해 돌진 (패널 없음)`);
             }
           });
         }
       });
     });
     
-    console.log('☄️ v0.8.1: 생성된 소행성:', newAsteroids.length, '개');
+    console.log('☄️ v0.8.2: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
     setAsteroids(newAsteroids);
   }, [calculateUrgencyColor]);
 
@@ -380,7 +379,7 @@ function App() {
 
   // v0.8.0: 다중 태양계 생성 (functional_specification.md 정확한 준수)
   const updateSolarSystems = useCallback(async () => {
-    console.log('🔄 v0.8.1: 다중 태양계 업데이트 시작');
+    console.log('🔄 v0.8.2: 다중 태양계 업데이트 시작');
     console.log('📋 현재 태스크 수:', todos.length);
 
     // 규칙 1: 태스크가 없으면 태양도 없습니다
@@ -486,14 +485,14 @@ function App() {
         return solarSystem;
       });
 
-      console.log('🌌 v0.8.1: 생성된 태양계 시스템:', newSolarSystems.length, '개');
+      console.log('🌌 v0.8.2: 생성된 태양계 시스템:', newSolarSystems.length, '개');
       newSolarSystems.forEach((system, index) => {
         console.log(`  ${index + 1}. ${system.name} - ${system.planets.length}개 행성`);
       });
       
       setSolarSystems(newSolarSystems);
       
-      // 소행성 시스템 업데이트
+      // 소행성 시스템 업데이트 (패널 없음)
       generateAsteroids(newSolarSystems);
       
     } catch (error) {
@@ -607,13 +606,14 @@ function App() {
     setCurrentView(currentView === `system-${systemId}` ? 'all' : `system-${systemId}`);
   }, [currentView]);
 
-  // 소행성 액션 처리
+  // v0.8.2: 소행성 액션 처리 (패널 없이 직접 처리)
+  // functional_specification.md: "소행성 액션에 대한 제안 패널은 필요 없습니다"
   const handleAsteroidAction = useCallback((asteroidId, action) => {
     if (action === 'accept') {
-      console.log('✅ 소행성 제안 수락:', asteroidId);
+      console.log('✅ 소행성 제안 수락 (패널 없음):', asteroidId);
       setAsteroids(prev => prev.filter(a => a.id !== asteroidId));
     } else if (action === 'reject') {
-      console.log('❌ 소행성 제안 거부:', asteroidId);
+      console.log('❌ 소행성 제안 거부 (패널 없음):', asteroidId);
       setAsteroids(prev => prev.filter(a => a.id !== asteroidId));
     }
   }, []);
@@ -629,7 +629,7 @@ function App() {
 
   return (
     <div className="App" style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      {/* v0.8.1: functional_specification.md 완전 준수 - 메인 메뉴를 왼쪽 수직으로 배치 */}
+      {/* v0.8.2: functional_specification.md 완전 준수 - 메인 메뉴를 왼쪽 수직으로 배치 */}
       {/* "메인 메뉴는 화면의 맨 왼쪽에 수직으로 완전히 밀차되어 있습니다" */}
       <div 
         className="main-menu-vertical"
@@ -662,7 +662,7 @@ function App() {
           transform: 'rotate(0deg)',
           lineHeight: '1.2'
         }}>
-          🌌<br/>SOLAR<br/>TODO<br/>v0.8.1
+          🌌<br/>SOLAR<br/>TODO<br/>v0.8.2
         </div>
 
         {/* UI 모드 토글 */}
@@ -817,7 +817,7 @@ function App() {
         </div>
       </div>
 
-      {/* v0.8.1: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
+      {/* v0.8.2: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
       <div style={{ marginLeft: '80px', width: 'calc(100vw - 80px)', height: '100vh' }}>
         <Scene 
           isAnimationPlaying={isAnimationPlaying}
@@ -852,18 +852,18 @@ function App() {
       >
         📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
         <br />
-        🚀 v0.8.1 Complete Functional Specification Compliance
+        🚀 v0.8.2 Complete Functional Specification Compliance
         <br />
         {/* 규칙 준수 상태 표시 */}
         <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
           {todos.length === 0 && '🚫 No Tasks → No Planets, No Suns, No Satellites'}
           {todos.length > 0 && !aiGroupingActive && '🚫 Tasks exist but AI grouping disabled'}
           {todos.length > 0 && solarSystems.length === 0 && aiGroupingActive && '🔄 Processing...'}
-          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active`}
+          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 🚫 Asteroid panel removed`}
         </div>
       </div>
 
-      {/* v0.8.1: 조건부 UI 렌더링 - 메인 메뉴에 겹치지 않도록 위치 조정 */}
+      {/* v0.8.2: 조건부 UI 렌더링 - 메인 메뉴에 겹치지 않도록 위치 조정 */}
       <div style={{ marginLeft: '80px' }}>
         {useEnhancedUI ? (
           <EnhancedMissionControl
@@ -899,16 +899,8 @@ function App() {
         />
       )}
 
-      {/* 소행성 액션 시스템 - 메인 메뉴보다 낮은 z-index */}
-      <AsteroidActionSystem
-        asteroids={asteroids}
-        solarSystems={solarSystems} // 다중 시스템 전달
-        onAsteroidAction={handleAsteroidAction}
-        data-testid="asteroid-action-system"
-        style={{ zIndex: 1200 }} // 메인 메뉴(2000)보다 낮음
-      />
-
-      {/* v0.8.1: 상세정보 모달 - 메인 메뉴와 동일한 z-index */}
+      {/* v0.8.2 CRITICAL FIX: 팝업 창 최상위 위치 - functional_specification.md 준수 */}
+      {/* "팝업 창은 어느 것보다 가장 위에 위치합니다" */}
       {showTaskDetail && selectedTask && (
         <TaskDetailModal
           task={selectedTask}
@@ -916,7 +908,7 @@ function App() {
           onClose={closeTaskDetail}
           onUpdate={handleTodoUpdate}
           data-testid="task-detail-modal"
-          style={{ zIndex: 2000 }} // 메인 메뉴와 같은 레벨
+          style={{ zIndex: 3000 }} // 어느 것보다 가장 위에 위치 (메인 메뉴 2000보다 높음)
         />
       )}
     </div>
