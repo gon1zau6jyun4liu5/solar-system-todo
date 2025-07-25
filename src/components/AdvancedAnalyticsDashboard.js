@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
-import * as THREE from 'three';
 import './AdvancedAnalyticsDashboard.css';
 
 /**
- * Advanced Analytics Dashboard v0.4.3
+ * Advanced Analytics Dashboard v0.4.4
  * Comprehensive productivity analytics with 3D visualization
  * Features:
  * - Real-time performance metrics
@@ -112,7 +111,7 @@ const AdvancedAnalyticsDashboard = ({ todos = [], isVisible = false, onClose }) 
       <div className="analytics-dashboard">
         {/* Header */}
         <div className="dashboard-header">
-          <h2>📊 Advanced Analytics Dashboard v0.4.3</h2>
+          <h2>📊 Advanced Analytics Dashboard v0.4.4</h2>
           <div className="header-controls">
             <select 
               value={timeRange} 
@@ -376,47 +375,11 @@ const AdvancedAnalyticsDashboard = ({ todos = [], isVisible = false, onClose }) 
           </div>
           <div className="footer-stat">
             <span className="stat-label">Version:</span>
-            <span className="stat-value">v0.4.3</span>
+            <span className="stat-value">v0.4.4</span>
           </div>
         </div>
       </div>
     </div>
-  );
-};
-
-// 3D Chart Component for reusability
-const Chart3D = ({ data, animationEnabled }) => {
-  return (
-    <Canvas camera={{ position: [5, 5, 5], fov: 60 }}>
-      <ambientLight intensity={0.6} />
-      <pointLight position={[10, 10, 10]} intensity={0.8} />
-      
-      {data.map((item, index) => (
-        <group key={index} position={item.position}>
-          <mesh>
-            <boxGeometry args={[0.8, item.value * 0.5, 0.8]} />
-            <meshStandardMaterial color={item.color} />
-          </mesh>
-          <Text
-            position={[0, item.value * 0.5 + 0.5, 0]}
-            fontSize={0.3}
-            color="white"
-            anchorX="center"
-            anchorY="middle"
-          >
-            {item.label}
-          </Text>
-        </group>
-      ))}
-      
-      <gridHelper args={[10, 10, '#444444', '#444444']} />
-      <OrbitControls 
-        enableDamping 
-        dampingFactor={0.05}
-        autoRotate={animationEnabled}
-        autoRotateSpeed={2}
-      />
-    </Canvas>
   );
 };
 
