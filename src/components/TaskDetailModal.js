@@ -459,7 +459,7 @@ const TaskDetailModal = ({ task, isVisible, onClose, onUpdate, onDelete, onAddSu
                   <strong>Deadline:</strong> {new Date(task.deadline).toLocaleDateString()}
                   <span className={`deadline-status ${
                     new Date(task.deadline) < new Date() ? 'overdue' : 
-                    newDate(task.deadline) - new Date() < 3 * 24 * 60 * 60 * 1000 ? 'urgent' : 'normal'
+                    new Date(task.deadline) - new Date() < 3 * 24 * 60 * 60 * 1000 ? 'urgent' : 'normal'
                   }`}>
                     {new Date(task.deadline) < new Date() ? ' (Overdue)' : 
                      new Date(task.deadline) - new Date() < 3 * 24 * 60 * 60 * 1000 ? ' (Urgent)' : ''}
