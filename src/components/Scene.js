@@ -3,8 +3,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-// v0.8.5: functional_specification.md NG 항목들 수정
-// CRITICAL FIXES: 서브태스크 공전 수정, 소행성 충돌 시스템, 종료일 색상/속도 변화
+// v0.8.6: functional_specification.md NG 항목 키워드 표시 수정
+// CRITICAL FIXES: 키워드를 행성 표면에 직접 표시, 입체감 추가, 네모 박스 제거
 
 // 헬퍼 함수
 const hexToRgb = (hex) => {
@@ -16,8 +16,9 @@ const hexToRgb = (hex) => {
   ] : [255, 215, 0];
 };
 
-// 동적 키워드 컴포넌트 (표면을 시계방향으로 달려가는 효과)
-function DynamicKeywords({ keywords, radius, color, isAnimationPlaying, animationSpeed }) {
+// v0.8.6 CRITICAL FIX: 키워드를 천체 표면에 직접 표시하는 컴포넌트
+// functional_specification.md: "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
+function SurfaceKeywords({ keywords, radius, color, isAnimationPlaying, animationSpeed }) {
   const groupRef = useRef();
   
   useFrame(() => {
@@ -29,24 +30,33 @@ function DynamicKeywords({ keywords, radius, color, isAnimationPlaying, animatio
 
   if (!keywords || keywords.length === 0) return null;
 
+  // functional_specification.md: "키워드는 핵심 단어만 간결하게 표시됩니다. "태양계","행성", "위성"이런 단어는 필요 없습니다"
+  const filteredKeywords = keywords
+    .filter(keyword => !['태양계', '행성', '위성', '소행성', '태스크', '할일'].includes(keyword))
+    .slice(0, 3);
+
   return (
     <group ref={groupRef}>
-      {keywords.slice(0, 3).map((keyword, index) => {
-        const angle = (index / keywords.length) * Math.PI * 2;
-        const x = Math.cos(angle) * (radius + 0.5);
-        const z = Math.sin(angle) * (radius + 0.5);
+      {filteredKeywords.map((keyword, index) => {
+        const angle = (index / Math.max(filteredKeywords.length, 1)) * Math.PI * 2;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
         
         return (
           <Text
             key={`${keyword}-${index}`}
             position={[x, 0, z]}
             rotation={[0, -angle + Math.PI/2, 0]}
-            fontSize={0.4}
+            fontSize={radius * 0.2} // 반지름에 비례한 크기
             color={color}
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.02}
-            outlineColor="#000000"
+            // v0.8.6 CRITICAL FIX: 네모 박스 제거, 표면에 직접 표시
+            outlineWidth={0}
+            strokeWidth={0}
+            fillOpacity={0.9}
+            // 천체 표면에 맞게 위치 조정
+            renderOrder={1000}
           >
             {keyword}
           </Text>
@@ -120,7 +130,7 @@ function OrbitVisualization({ radius, color, showOrbits, isAnimationPlaying, ani
   );
 }
 
-// 태양 컴포넌트 (태스크 그룹명)
+// 태양 컴포넌트 (태스크 그룹명) - v0.8.6 입체감 개선
 function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, systemId }) {
   const meshRef = useRef();
   const [isHovered, setIsHovered] = useState(false);
@@ -147,7 +157,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
 
   return (
     <group position={systemPosition} visible={shouldShow}>
-      {/* 태양 본체 */}
+      {/* v0.8.6 CRITICAL FIX: 태양 입체감 개선 */}
       <mesh 
         ref={meshRef} 
         position={[0, 0, 0]}
@@ -164,23 +174,26 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
           setIsHovered(false);
         }}
       >
-        <sphereGeometry args={[4, 32, 32]} />
+        <sphereGeometry args={[4, 64, 64]} />
         <meshStandardMaterial 
           color={sunData.theme?.color || "#FFD700"}
           emissive={sunData.theme?.color || "#FFA500"}
           emissiveIntensity={isFocused ? 0.8 : (isHovered ? 0.6 : 0.5)}
+          // v0.8.6 입체감 개선
+          roughness={0.2}
+          metalness={0.1}
           transparent
           opacity={opacity}
         />
       </mesh>
       
-      {/* 태양 후광 효과 */}
+      {/* 태양 후광 효과 - 더 부드럽게 */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[5, 16, 16]} />
+        <sphereGeometry args={[5, 32, 32]} />
         <meshBasicMaterial 
           color={sunData.theme?.color || "#FFD700"}
           transparent
-          opacity={0.2 * opacity}
+          opacity={0.15 * opacity}
         />
       </mesh>
       
@@ -196,16 +209,16 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
         </mesh>
       )}
       
-      {/* 동적 키워드 (시계방향으로 달려가는 효과) */}
-      <DynamicKeywords 
+      {/* v0.8.6 CRITICAL FIX: 표면 키워드 (네모 박스 없음) */}
+      <SurfaceKeywords 
         keywords={sunData.keywords}
-        radius={6}
+        radius={4.5} // 태양 표면에 가깝게
         color={sunData.theme?.color || "#FFD700"}
         isAnimationPlaying={isAnimationPlaying}
         animationSpeed={animationSpeed}
       />
       
-      {/* 태양 정보 표시 */}
+      {/* 태양 정보 표시 - 간소화 */}
       <Html position={[0, 8, 0]} center>
         <div style={{
           background: `rgba(${sunData.theme?.color ? 
@@ -233,7 +246,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
   );
 }
 
-// 행성 컴포넌트 (태스크)
+// v0.8.6 CRITICAL FIX: 행성 컴포넌트 - 입체감 개선 및 표면 키워드
 function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -303,7 +316,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           animationSpeed={animationSpeed}
         />
         
-        {/* 행성 본체 */}
+        {/* v0.8.6 CRITICAL FIX: 행성 입체감 개선 */}
         <mesh 
           ref={meshRef}
           position={[planetData.orbitRadius, 0, 0]}
@@ -314,28 +327,31 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           onPointerOver={() => document.body.style.cursor = 'pointer'}
           onPointerOut={() => document.body.style.cursor = 'default'}
         >
-          <sphereGeometry args={[1.5, 16, 16]} />
+          <sphereGeometry args={[1.5, 32, 32]} />
           <meshStandardMaterial 
             color={deadlineEffects.color} // 종료일 기반 색상
             emissive={planetData.completed ? '#004400' : '#000000'}
             emissiveIntensity={planetData.completed ? 0.3 : 0}
+            // v0.8.6 입체감 개선
+            roughness={0.7}
+            metalness={0.3}
             transparent
             opacity={opacity}
           />
         </mesh>
         
-        {/* 동적 키워드 (행성 표면을 달려가는 효과) */}
+        {/* v0.8.6 CRITICAL FIX: 행성 표면 키워드 (네모 박스 없음) */}
         <group position={[planetData.orbitRadius, 0, 0]}>
-          <DynamicKeywords 
+          <SurfaceKeywords 
             keywords={planetData.keywords}
-            radius={2}
+            radius={1.7} // 행성 표면에 가깝게
             color={deadlineEffects.color}
             isAnimationPlaying={isAnimationPlaying}
             animationSpeed={animationSpeed}
           />
         </group>
         
-        {/* 행성 정보 표시 */}
+        {/* 행성 정보 표시 - 간소화 */}
         <Html position={[planetData.orbitRadius, 3, 0]} center>
           <div style={{
             background: 'rgba(0, 0, 0, 0.8)',
@@ -373,7 +389,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   );
 }
 
-// v0.8.5 CRITICAL FIX: 위성 컴포넌트 (서브태스크) - 부모 태스크(행성)를 공전하도록 수정
+// v0.8.6 CRITICAL FIX: 위성 컴포넌트 - 입체감 개선 및 표면 키워드
 function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -446,7 +462,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       )}
       
-      {/* 위성 본체 */}
+      {/* v0.8.6 CRITICAL FIX: 위성 입체감 개선 */}
       <mesh 
         ref={meshRef}
         position={[satelliteData.orbitRadius, 0, 0]}
@@ -457,28 +473,31 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         onPointerOver={() => document.body.style.cursor = 'pointer'}
         onPointerOut={() => document.body.style.cursor = 'default'}
       >
-        <sphereGeometry args={[0.5, 8, 8]} />
+        <sphereGeometry args={[0.5, 16, 16]} />
         <meshStandardMaterial 
           color={deadlineEffects.color} // 종료일 기반 색상
           emissive={satelliteData.completed ? '#004400' : '#000000'}
           emissiveIntensity={satelliteData.completed ? 0.3 : 0}
+          // v0.8.6 입체감 개선
+          roughness={0.8}
+          metalness={0.2}
           transparent
           opacity={opacity}
         />
       </mesh>
       
-      {/* 동적 키워드 (위성 표면을 달려가는 효과) */}
+      {/* v0.8.6 CRITICAL FIX: 위성 표면 키워드 (네모 박스 없음) */}
       <group position={[satelliteData.orbitRadius, 0, 0]}>
-        <DynamicKeywords 
+        <SurfaceKeywords 
           keywords={satelliteData.keywords}
-          radius={0.8}
+          radius={0.7} // 위성 표면에 가깝게
           color={deadlineEffects.color}
           isAnimationPlaying={isAnimationPlaying}
           animationSpeed={animationSpeed}
         />
       </group>
       
-      {/* 위성 정보 표시 */}
+      {/* 위성 정보 표시 - 간소화 */}
       <Html position={[satelliteData.orbitRadius, 1.5, 0]} center>
         <div style={{
           background: 'rgba(0, 0, 0, 0.7)',
@@ -499,7 +518,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
   );
 }
 
-// v0.8.5 CRITICAL FIX: 소행성 컴포넌트 - 충돌 및 폭발 시스템 추가
+// v0.8.6 CRITICAL FIX: 소행성 컴포넌트 - 입체감 개선 및 표면 키워드
 function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, onCollision }) {
   const meshRef = useRef();
   const explosionRef = useRef();
@@ -599,7 +618,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
     <group visible={shouldShow}>
       {!isExploding ? (
         <>
-          {/* 소행성 본체 */}
+          {/* v0.8.6 CRITICAL FIX: 소행성 입체감 개선 */}
           <mesh 
             ref={meshRef} 
             position={position}
@@ -616,17 +635,19 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
               color={urgencyColor}
               emissive={urgencyColor}
               emissiveIntensity={0.3}
-              roughness={0.8}
+              // v0.8.6 입체감 개선
+              roughness={0.9}
+              metalness={0.1}
               transparent
               opacity={opacity}
             />
           </mesh>
           
-          {/* 동적 키워드 (소행성 주변을 달려가는 효과) */}
+          {/* v0.8.6 CRITICAL FIX: 소행성 표면 키워드 (네모 박스 없음) */}
           <group position={position}>
-            <DynamicKeywords 
+            <SurfaceKeywords 
               keywords={asteroidData.keywords}
-              radius={1.2}
+              radius={1.0} // 소행성 표면에 가깝게
               color={urgencyColor}
               isAnimationPlaying={isAnimationPlaying}
               animationSpeed={animationSpeed}
@@ -643,7 +664,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
             />
           </mesh>
           
-          {/* 소행성 정보 표시 */}
+          {/* 소행성 정보 표시 - 간소화 */}
           <Html position={[position[0], position[1] + 2, position[2]]} center>
             <div style={{
               background: 'rgba(0,0,0,0.8)',
@@ -766,7 +787,7 @@ const Scene = ({
   onSatelliteClick,
   onAsteroidClick,
   onSunClick,
-  onAsteroidCollision, // v0.8.5 NEW: 소행성 충돌 콜백
+  onAsteroidCollision,
   ...props
 }) => {
   
@@ -791,11 +812,12 @@ const Scene = ({
           focusedSystemId={focusedSystemId}
         />
         
-        {/* 조명 설정 */}
-        <ambientLight intensity={0.3} />
+        {/* 조명 설정 - v0.8.6 입체감 개선을 위한 조명 강화 */}
+        <ambientLight intensity={0.4} />
         <pointLight position={[0, 0, 0]} intensity={2} />
-        <pointLight position={[100, 100, 100]} intensity={0.8} />
-        <pointLight position={[-100, -100, -100]} intensity={0.4} />
+        <pointLight position={[100, 100, 100]} intensity={1.2} />
+        <pointLight position={[-100, -100, -100]} intensity={0.6} />
+        <directionalLight position={[50, 50, 50]} intensity={0.8} />
         
         {/* 카메라 컨트롤 */}
         <OrbitControls
@@ -825,11 +847,11 @@ const Scene = ({
           fade={true}
         />
         
-        {/* v0.8.5: 다중 태양계 렌더링 (모든 수정사항 적용) */}
+        {/* v0.8.6: 다중 태양계 렌더링 (키워드 표면 표시 적용) */}
         {solarSystems && solarSystems.length > 0 ? (
           solarSystems.map((system) => (
             <group key={system.id}>
-              {/* 태양 (태스크 그룹명) - 포커싱 지원 */}
+              {/* 태양 (태스크 그룹명) - v0.8.6 개선 적용 */}
               <Sun 
                 sunData={system.sun}
                 systemPosition={system.position}
@@ -848,7 +870,7 @@ const Scene = ({
                 }}
               />
               
-              {/* 행성들 (태스크들) - v0.8.5 모든 수정사항 적용 */}
+              {/* 행성들 (태스크들) - v0.8.6 모든 개선사항 적용 */}
               {system.planets && system.planets.map((planet) => (
                 <Planet
                   key={planet.id}
@@ -883,17 +905,17 @@ const Scene = ({
                 그룹명이 2개 이상이면 태양계도 2개 이상이 됩니다
               </div>
               <div style={{ fontSize: '0.7em', marginTop: '10px', color: '#888' }}>
-                🆕 v0.8.5 NG 항목 수정:<br />
-                • 서브태스크가 부모 태스크를 공전<br />
-                • 소행성 충돌 및 폭발 시스템<br />
-                • 종료일 기반 색상 및 속도 변화<br />
+                🆕 v0.8.6 키워드 표면 표시:<br />
+                • 네모 박스 제거, 천체 표면에 직접 표시<br />
+                • 불필요한 단어 필터링 (태양계, 행성, 위성 등)<br />
+                • 입체감 개선된 천체들<br />
                 • 속도: {animationSpeed?.toFixed(1)}x | 궤도: {showOrbits ? 'ON' : 'OFF'}
               </div>
             </div>
           </Html>
         )}
         
-        {/* v0.8.5: 소행성들 - 충돌 시스템 적용 */}
+        {/* v0.8.6: 소행성들 - 표면 키워드 적용 */}
         {asteroids && asteroids.map((asteroid) => (
           <Asteroid
             key={asteroid.id}

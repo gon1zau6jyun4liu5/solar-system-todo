@@ -9,9 +9,9 @@ import './App.css';
 // 유틸리티 함수들
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// v0.8.5: functional_specification.md NG 항목들 완전 수정
-// CRITICAL FIXES: Enhanced Mission Control 제거, 모든 CRUD를 TaskDetailModal로 통합
-// NEW FEATURES: 소행성 충돌 시스템, 완전한 TaskDetailModal CRUD
+// v0.8.6: functional_specification.md 키워드 표면 표시 및 입체감 개선
+// CRITICAL FIXES: 네모 박스 제거, 키워드를 천체 표면에 직접 표시, 입체감 개선
+// CONTINUED: v0.8.5의 모든 수정사항 유지 (Enhanced Mission Control 제거, 완전한 CRUD)
 
 function App() {
   // 기본 상태 관리
@@ -50,7 +50,7 @@ function App() {
       setShowOrbits(settings.showOrbits !== false);
       setCurrentView(settings.currentView);
       setFocusedSystemId(settings.focusedSystemId || null);
-      console.log('⚙️ v0.8.5: 설정 로드 완료');
+      console.log('⚙️ v0.8.6: 설정 로드 완료');
     } catch (error) {
       console.error('❌ 설정 로드 실패:', error);
     }
@@ -69,7 +69,7 @@ function App() {
         focusedSystemId
       };
       dataManager.saveSettings(settings);
-      console.log('⚙️ v0.8.5: 설정 저장 완료');
+      console.log('⚙️ v0.8.6: 설정 저장 완료');
     } catch (error) {
       console.error('❌ 설정 저장 실패:', error);
     }
@@ -79,21 +79,21 @@ function App() {
   const loadTodosFromStorage = useCallback(async () => {
     try {
       setIsDataLoading(true);
-      console.log('📋 v0.8.5: 저장된 태스크 로드 시작...');
+      console.log('📋 v0.8.6: 저장된 태스크 로드 시작...');
       
       const storedTodos = dataManager.getAllTodos();
       
       if (storedTodos && storedTodos.length > 0) {
         setTodos(storedTodos);
-        console.log('✅ v0.8.5: 저장된 태스크 로드 완료:', storedTodos.length, '개');
+        console.log('✅ v0.8.6: 저장된 태스크 로드 완료:', storedTodos.length, '개');
       } else {
-        console.log('📋 v0.8.5: 저장된 태스크 없음 - 기본 태스크 생성');
+        console.log('📋 v0.8.6: 저장된 태스크 없음 - 기본 태스크 생성');
         initializeDefaultTasks();
       }
       
       setDataLoaded(true);
     } catch (error) {
-      console.error('❌ v0.8.5: 태스크 로드 실패:', error);
+      console.error('❌ v0.8.6: 태스크 로드 실패:', error);
       initializeDefaultTasks();
     } finally {
       setIsDataLoading(false);
@@ -104,9 +104,9 @@ function App() {
   const saveTodosToStorage = useCallback((updatedTodos) => {
     try {
       dataManager.saveAllTodos(updatedTodos);
-      console.log('💾 v0.8.5: 태스크 저장 완료:', updatedTodos.length, '개');
+      console.log('💾 v0.8.6: 태스크 저장 완료:', updatedTodos.length, '개');
     } catch (error) {
-      console.error('❌ v0.8.5: 태스크 저장 실패:', error);
+      console.error('❌ v0.8.6: 태스크 저장 실패:', error);
     }
   }, []);
 
@@ -120,18 +120,22 @@ function App() {
     
     saveTodosToStorage(emptyTodos);
     
-    console.log('🚫 v0.8.5: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
+    console.log('🚫 v0.8.6: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
   }, [saveTodosToStorage]);
 
-  // 키워드 정제 함수 (functional_specification.md 준수)
+  // v0.8.6 CRITICAL FIX: 키워드 정제 함수 (functional_specification.md 준수)
+  // "키워드는 핵심 단어만 간결하게 표시됩니다. '태양계','행성', '위성'이런 단어는 필요 없습니다"
   const filterKeywords = useCallback((keywords) => {
-    const excludeWords = ['태양계', '행성', '위성', '소행성', '태양', 'planet', 'satellite', 'sun', 'solar', 'system'];
+    const excludeWords = [
+      '태양계', '행성', '위성', '소행성', '태양', '태스크', '할일',
+      'planet', 'satellite', 'sun', 'solar', 'system', 'task', 'todo'
+    ];
     return keywords.filter(keyword => 
       keyword && 
       keyword.length > 0 && 
       !excludeWords.includes(keyword.toLowerCase()) &&
       keyword.length <= 6
-    ).slice(0, 3);
+    ).slice(0, 3); // 최대 3개로 제한
   }, []);
 
   // 기본 태스크 데이터
@@ -233,7 +237,7 @@ function App() {
     setTodos(defaultTasks);
     saveTodosToStorage(defaultTasks);
     
-    console.log('🌟 v0.8.5: 기본 태스크 초기화 완료 및 저장');
+    console.log('🌟 v0.8.6: 기본 태스크 초기화 완료 및 저장');
   }, [saveTodosToStorage, filterKeywords]);
 
   // 카테고리별 테마
@@ -447,7 +451,7 @@ function App() {
       });
     });
     
-    console.log('☄️ v0.8.5: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
+    console.log('☄️ v0.8.6: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
     setAsteroids(newAsteroids);
   }, [calculateUrgencyColor, animationSpeed, filterKeywords]);
 
@@ -474,7 +478,7 @@ function App() {
 
   // v0.8.5: 다중 태양계 생성
   const updateSolarSystems = useCallback(async () => {
-    console.log('🔄 v0.8.5: 다중 태양계 업데이트 시작');
+    console.log('🔄 v0.8.6: 다중 태양계 업데이트 시작');
     console.log('📋 현재 태스크 수:', todos.length);
 
     if (!aiGroupingActive || todos.length === 0) {
@@ -574,7 +578,7 @@ function App() {
         return solarSystem;
       });
 
-      console.log('🌌 v0.8.5: 생성된 태양계 시스템:', newSolarSystems.length, '개');
+      console.log('🌌 v0.8.6: 생성된 태양계 시스템:', newSolarSystems.length, '개');
       newSolarSystems.forEach((system, index) => {
         console.log(`  ${index + 1}. ${system.name} - ${system.planets.length}개 행성`);
       });
@@ -604,12 +608,12 @@ function App() {
 
   // v0.8.5: 앱 초기화
   useEffect(() => {
-    console.log('🚀 v0.8.5: 앱 초기화 시작...');
+    console.log('🚀 v0.8.6: 앱 초기화 시작...');
     
     const initializeApp = async () => {
       loadSettingsFromStorage();
       await loadTodosFromStorage();
-      console.log('✅ v0.8.5: 앱 초기화 완료');
+      console.log('✅ v0.8.6: 앱 초기화 완료');
     };
     
     initializeApp();
@@ -665,7 +669,7 @@ function App() {
       });
       
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.5: 태스크 업데이트 및 저장:', todoId);
+      console.log('✅ v0.8.6: 태스크 업데이트 및 저장:', todoId);
       
       return updatedTodos;
     });
@@ -689,7 +693,7 @@ function App() {
     setTodos(prev => {
       const updatedTodos = [...prev, todo];
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.5: 새 태스크 추가 및 저장:', todo.text);
+      console.log('✅ v0.8.6: 새 태스크 추가 및 저장:', todo.text);
       return updatedTodos;
     });
   }, [saveTodosToStorage, filterKeywords]);
@@ -701,7 +705,7 @@ function App() {
       const updatedTodos = prev.filter(todo => todo.id !== todoId);
       
       saveTodosToStorage(updatedTodos);
-      console.log('🗑️ v0.8.5: 태스크 삭제 및 저장:', deletedTodo?.text);
+      console.log('🗑️ v0.8.6: 태스크 삭제 및 저장:', deletedTodo?.text);
       
       if (updatedTodos.length === 0) {
         console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
@@ -732,7 +736,7 @@ function App() {
       });
       
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.5: 서브태스크 추가 및 저장:', subtaskData.text);
+      console.log('✅ v0.8.6: 서브태스크 추가 및 저장:', subtaskData.text);
       
       return updatedTodos;
     });
@@ -799,7 +803,7 @@ function App() {
     }
   }, [todos.length, initializeEmptyState, initializeDefaultTasks]);
 
-  // v0.8.5: 로딩 중일 때 표시할 컴포넌트
+  // v0.8.6: 로딩 중일 때 표시할 컴포넌트
   if (isDataLoading) {
     return (
       <div className="App" style={{ 
@@ -813,8 +817,8 @@ function App() {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🌌</div>
-          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.5</div>
-          <div style={{ fontSize: '1rem', opacity: 0.7 }}>NG 항목 수정 및 완전한 CRUD 시스템 로딩중...</div>
+          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.6</div>
+          <div style={{ fontSize: '1rem', opacity: 0.7 }}>키워드 표면 표시 및 입체감 개선 로딩중...</div>
         </div>
       </div>
     );
@@ -854,7 +858,7 @@ function App() {
           transform: 'rotate(0deg)',
           lineHeight: '1.2'
         }}>
-          🌌<br/>SOLAR<br/>TODO<br/>v0.8.5
+          🌌<br/>SOLAR<br/>TODO<br/>v0.8.6
         </div>
 
         {/* UI 모드 토글 */}
@@ -1068,7 +1072,7 @@ function App() {
         </div>
       </div>
 
-      {/* v0.8.5: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
+      {/* v0.8.6: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
       <div style={{ marginLeft: '80px', width: 'calc(100vw - 80px)', height: '100vh' }}>
         <Scene 
           isAnimationPlaying={isAnimationPlaying}
@@ -1089,7 +1093,7 @@ function App() {
         />
       </div>
 
-      {/* 시스템 상태 표시 - 위치 조정 */}
+      {/* 시스템 상태 표시 - v0.8.6 업데이트 */}
       <div 
         className="system-status"
         data-testid="system-status"
@@ -1109,14 +1113,14 @@ function App() {
         📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
         {focusedSystemId && ` | 🔍 Focus: ${solarSystems.find(s => s.id === focusedSystemId)?.name || 'Unknown'}`}
         <br />
-        💾 v0.8.5 NG Fix Complete - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
+        💾 v0.8.6 Surface Keywords - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
         <br />
         {/* 규칙 준수 상태 표시 */}
         <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
           {todos.length === 0 && '🚫 No Tasks → No Planets, No Suns, No Satellites'}
           {todos.length > 0 && !aiGroupingActive && '🚫 Tasks exist but AI grouping disabled'}
           {todos.length > 0 && solarSystems.length === 0 && aiGroupingActive && '🔄 Processing...'}
-          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON | 🎯 All CRUD via Modal`}
+          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON | 🎯 Keywords on Surface | 📦 No Keyword Box`}
         </div>
       </div>
 
