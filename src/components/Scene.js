@@ -3,8 +3,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-// v0.8.4: functional_specification.md 완전 준수
-// NEW: 속도 설정, 궤도 표시, 포커싱 기능, 동적 키워드
+// v0.8.5: functional_specification.md NG 항목들 수정
+// CRITICAL FIXES: 서브태스크 공전 수정, 소행성 충돌 시스템, 종료일 색상/속도 변화
 
 // 헬퍼 함수
 const hexToRgb = (hex) => {
@@ -16,12 +16,13 @@ const hexToRgb = (hex) => {
   ] : [255, 215, 0];
 };
 
-// NEW: 동적 키워드 컴포넌트 (표면을 시계방향으로 달려가는 효과)
+// 동적 키워드 컴포넌트 (표면을 시계방향으로 달려가는 효과)
 function DynamicKeywords({ keywords, radius, color, isAnimationPlaying, animationSpeed }) {
   const groupRef = useRef();
   
   useFrame(() => {
     if (groupRef.current && isAnimationPlaying) {
+      // functional_specification.md: "시계방향으로 달려가는 식으로 표시"
       groupRef.current.rotation.y += 0.02 * animationSpeed;
     }
   });
@@ -55,7 +56,7 @@ function DynamicKeywords({ keywords, radius, color, isAnimationPlaying, animatio
   );
 }
 
-// NEW: 궤도 컴포넌트 (리얼타임 궤도 표시)
+// 궤도 컴포넌트 (리얼타임 궤도 표시)
 function OrbitVisualization({ radius, color, showOrbits, isAnimationPlaying, animationSpeed }) {
   const orbitRef = useRef();
   const [trailPoints, setTrailPoints] = useState([]);
@@ -195,7 +196,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
         </mesh>
       )}
       
-      {/* NEW: 동적 키워드 (시계방향으로 달려가는 효과) */}
+      {/* 동적 키워드 (시계방향으로 달려가는 효과) */}
       <DynamicKeywords 
         keywords={sunData.keywords}
         radius={6}
@@ -240,13 +241,44 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   // 포커스 상태 확인
   const isFocused = focusedSystemId === systemId;
   const shouldShow = !focusedSystemId || isFocused;
+
+  // v0.8.5 CRITICAL FIX: 종료일 기반 색상 및 공전 속도 계산
+  const calculateDeadlineEffects = (deadline) => {
+    if (!deadline) return { color: planetData.color, speedMultiplier: 1.0 };
+    
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const daysLeft = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
+    
+    let color = planetData.color;
+    let speedMultiplier = 1.0;
+    
+    // functional_specification.md: "종료일이 가까워 질수록 색깔이 변합니다. 공전속도가 빨라집니다"
+    if (daysLeft <= 1) {
+      color = '#FF0000'; // 빨간색 (긴급)
+      speedMultiplier = 3.0; // 매우 빠른 공전
+    } else if (daysLeft <= 3) {
+      color = '#FF6600'; // 주황색 (경고)
+      speedMultiplier = 2.5; // 빠른 공전
+    } else if (daysLeft <= 7) {
+      color = '#FFAA00'; // 노란색 (주의)
+      speedMultiplier = 1.8; // 약간 빠른 공전
+    } else {
+      color = '#44FF44'; // 초록색 (여유)
+      speedMultiplier = 1.0; // 정상 공전
+    }
+    
+    return { color, speedMultiplier };
+  };
+
+  const deadlineEffects = calculateDeadlineEffects(planetData.task?.deadline);
   
   useFrame((state) => {
     if (!shouldShow) return;
     
     if (orbitRef.current && isAnimationPlaying) {
-      // 태양 주위 공전
-      orbitRef.current.rotation.y += planetData.orbitSpeed * 0.01 * animationSpeed;
+      // 태양 주위 공전 (종료일 기반 속도 적용)
+      orbitRef.current.rotation.y += planetData.orbitSpeed * 0.01 * animationSpeed * deadlineEffects.speedMultiplier;
     }
     
     if (meshRef.current && isAnimationPlaying) {
@@ -262,10 +294,10 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   return (
     <group position={systemPosition} visible={shouldShow}>
       <group ref={orbitRef} rotation={[0, planetData.initialAngle || 0, 0]}>
-        {/* NEW: 궤도 시각화 */}
+        {/* 궤도 시각화 */}
         <OrbitVisualization 
           radius={planetData.orbitRadius}
-          color={planetData.color}
+          color={deadlineEffects.color} // 종료일 기반 색상
           showOrbits={showOrbits}
           isAnimationPlaying={isAnimationPlaying}
           animationSpeed={animationSpeed}
@@ -284,7 +316,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
         >
           <sphereGeometry args={[1.5, 16, 16]} />
           <meshStandardMaterial 
-            color={planetData.color}
+            color={deadlineEffects.color} // 종료일 기반 색상
             emissive={planetData.completed ? '#004400' : '#000000'}
             emissiveIntensity={planetData.completed ? 0.3 : 0}
             transparent
@@ -292,12 +324,12 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           />
         </mesh>
         
-        {/* NEW: 동적 키워드 (행성 표면을 달려가는 효과) */}
+        {/* 동적 키워드 (행성 표면을 달려가는 효과) */}
         <group position={[planetData.orbitRadius, 0, 0]}>
           <DynamicKeywords 
             keywords={planetData.keywords}
             radius={2}
-            color={planetData.color}
+            color={deadlineEffects.color}
             isAnimationPlaying={isAnimationPlaying}
             animationSpeed={animationSpeed}
           />
@@ -307,13 +339,13 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
         <Html position={[planetData.orbitRadius, 3, 0]} center>
           <div style={{
             background: 'rgba(0, 0, 0, 0.8)',
-            color: planetData.color,
+            color: deadlineEffects.color,
             padding: '6px 10px',
             borderRadius: '12px',
             fontSize: '0.8em',
             fontWeight: 'bold',
             textAlign: 'center',
-            border: `1px solid ${planetData.color}`,
+            border: `1px solid ${deadlineEffects.color}`,
             whiteSpace: 'nowrap',
             opacity: opacity
           }}>
@@ -321,12 +353,13 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           </div>
         </Html>
         
-        {/* 위성들 렌더링 (서브태스크가 있을 때만) */}
+        {/* v0.8.5 CRITICAL FIX: 위성들이 행성을 공전하도록 수정 */}
+        {/* functional_specification.md: "서브 태스크는 부모 태스크를 공전합니다" */}
         {planetData.satellites && planetData.satellites.map((satellite, index) => (
           <Satellite 
             key={satellite.id}
             satelliteData={satellite}
-            planetRadius={planetData.orbitRadius}
+            planetPosition={[planetData.orbitRadius, 0, 0]} // 행성 위치를 전달
             isAnimationPlaying={isAnimationPlaying}
             animationSpeed={animationSpeed}
             showOrbits={showOrbits}
@@ -340,21 +373,53 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   );
 }
 
-// 위성 컴포넌트 (서브태스크)
-function Satellite({ satelliteData, planetRadius, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
+// v0.8.5 CRITICAL FIX: 위성 컴포넌트 (서브태스크) - 부모 태스크(행성)를 공전하도록 수정
+function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
   
   // 포커스 상태 확인
   const isFocused = focusedSystemId === systemId;
   const shouldShow = !focusedSystemId || isFocused;
+
+  // v0.8.5 CRITICAL FIX: 종료일 기반 색상 및 공전 속도 계산
+  const calculateDeadlineEffects = (deadline) => {
+    if (!deadline) return { color: satelliteData.color, speedMultiplier: 1.0 };
+    
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const daysLeft = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
+    
+    let color = satelliteData.color;
+    let speedMultiplier = 1.0;
+    
+    // functional_specification.md: "종료일이 가까워 질수록 색깔이 변합니다. 공전속도가 빨라집니다"
+    if (daysLeft <= 1) {
+      color = '#FF0000'; // 빨간색 (긴급)
+      speedMultiplier = 3.5; // 위성은 행성보다 더 빠름
+    } else if (daysLeft <= 3) {
+      color = '#FF6600'; // 주황색 (경고)
+      speedMultiplier = 2.8;
+    } else if (daysLeft <= 7) {
+      color = '#FFAA00'; // 노란색 (주의)
+      speedMultiplier = 2.0;
+    } else {
+      color = '#44FF44'; // 초록색 (여유)
+      speedMultiplier = 1.2; // 위성은 기본적으로 행성보다 빠름
+    }
+    
+    return { color, speedMultiplier };
+  };
+
+  const deadlineEffects = calculateDeadlineEffects(satelliteData.subtask?.deadline);
   
   useFrame((state) => {
     if (!shouldShow) return;
     
     if (orbitRef.current && isAnimationPlaying) {
-      // 행성 주위 공전
-      orbitRef.current.rotation.y += satelliteData.orbitSpeed * 0.02 * animationSpeed;
+      // functional_specification.md: "서브 태스크는 부모 태스크를 공전합니다"
+      // 행성(부모 태스크) 주위 공전 (종료일 기반 속도 적용)
+      orbitRef.current.rotation.y += satelliteData.orbitSpeed * 0.02 * animationSpeed * deadlineEffects.speedMultiplier;
     }
     
     if (meshRef.current && isAnimationPlaying) {
@@ -368,12 +433,13 @@ function Satellite({ satelliteData, planetRadius, isAnimationPlaying, animationS
   const opacity = focusedSystemId && !isFocused ? 0.3 : 1.0;
 
   return (
-    <group ref={orbitRef} position={[planetRadius, 0, 0]} rotation={[0, satelliteData.initialAngle || 0, 0]}>
-      {/* NEW: 위성 궤도 시각화 */}
+    // v0.8.5 CRITICAL FIX: 행성 위치를 기준으로 공전하도록 수정
+    <group ref={orbitRef} position={planetPosition} rotation={[0, satelliteData.initialAngle || 0, 0]}>
+      {/* 위성 궤도 시각화 */}
       {showOrbits && (
         <OrbitVisualization 
           radius={satelliteData.orbitRadius}
-          color={satelliteData.color}
+          color={deadlineEffects.color} // 종료일 기반 색상
           showOrbits={showOrbits}
           isAnimationPlaying={isAnimationPlaying}
           animationSpeed={animationSpeed}
@@ -393,7 +459,7 @@ function Satellite({ satelliteData, planetRadius, isAnimationPlaying, animationS
       >
         <sphereGeometry args={[0.5, 8, 8]} />
         <meshStandardMaterial 
-          color={satelliteData.color}
+          color={deadlineEffects.color} // 종료일 기반 색상
           emissive={satelliteData.completed ? '#004400' : '#000000'}
           emissiveIntensity={satelliteData.completed ? 0.3 : 0}
           transparent
@@ -401,12 +467,12 @@ function Satellite({ satelliteData, planetRadius, isAnimationPlaying, animationS
         />
       </mesh>
       
-      {/* NEW: 동적 키워드 (위성 표면을 달려가는 효과) */}
+      {/* 동적 키워드 (위성 표면을 달려가는 효과) */}
       <group position={[satelliteData.orbitRadius, 0, 0]}>
         <DynamicKeywords 
           keywords={satelliteData.keywords}
           radius={0.8}
-          color={satelliteData.color}
+          color={deadlineEffects.color}
           isAnimationPlaying={isAnimationPlaying}
           animationSpeed={animationSpeed}
         />
@@ -416,13 +482,13 @@ function Satellite({ satelliteData, planetRadius, isAnimationPlaying, animationS
       <Html position={[satelliteData.orbitRadius, 1.5, 0]} center>
         <div style={{
           background: 'rgba(0, 0, 0, 0.7)',
-          color: satelliteData.color,
+          color: deadlineEffects.color,
           padding: '4px 8px',
           borderRadius: '8px',
           fontSize: '0.6em',
           fontWeight: 'bold',
           textAlign: 'center',
-          border: `1px solid ${satelliteData.color}`,
+          border: `1px solid ${deadlineEffects.color}`,
           whiteSpace: 'nowrap',
           opacity: opacity
         }}>
@@ -433,16 +499,21 @@ function Satellite({ satelliteData, planetRadius, isAnimationPlaying, animationS
   );
 }
 
-// 소행성 컴포넌트 (AI 액션 제안)
-function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, focusedSystemId }) {
+// v0.8.5 CRITICAL FIX: 소행성 컴포넌트 - 충돌 및 폭발 시스템 추가
+function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, onCollision }) {
   const meshRef = useRef();
+  const explosionRef = useRef();
   const [position, setPosition] = useState(asteroidData.position);
+  const [isExploding, setIsExploding] = useState(false);
+  const [explosionScale, setExplosionScale] = useState(0);
   
   // 포커스 상태에 따른 표시 여부
   const shouldShow = !focusedSystemId || focusedSystemId === asteroidData.targetSystemId;
   
   useFrame((state) => {
-    if (meshRef.current && isAnimationPlaying && shouldShow) {
+    if (!meshRef.current || !isAnimationPlaying || !shouldShow) return;
+
+    if (!isExploding) {
       // 불규칙한 회전
       meshRef.current.rotation.x += 0.03 * animationSpeed;
       meshRef.current.rotation.z += 0.02 * animationSpeed;
@@ -451,13 +522,29 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
       const scale = 0.8 + Math.sin(state.clock.elapsedTime * 4 * animationSpeed) * 0.2;
       meshRef.current.scale.setScalar(scale);
       
-      // 목표 방향으로 이동
+      // functional_specification.md: "소행성은 관련 행성, 위성을 향해 돌진하며"
       if (asteroidData.targetPosition) {
+        const currentPos = new THREE.Vector3(...position);
+        const targetPos = new THREE.Vector3(...asteroidData.targetPosition);
+        const distance = currentPos.distanceTo(targetPos);
+        
+        // 충돌 거리 체크
+        if (distance < 2.0) {
+          // functional_specification.md: "주어진 시간이 다 되면 행성에 충돌해서 폭발과 함께 소멸 됩니다"
+          setIsExploding(true);
+          console.log('💥 소행성 충돌!', asteroidData.id);
+          
+          // 충돌 콜백 호출
+          if (onCollision) {
+            onCollision(asteroidData.id);
+          }
+          
+          return;
+        }
+        
+        // 목표 방향으로 이동
         const direction = new THREE.Vector3()
-          .subVectors(
-            new THREE.Vector3(...asteroidData.targetPosition),
-            new THREE.Vector3(...position)
-          )
+          .subVectors(targetPos, currentPos)
           .normalize()
           .multiplyScalar(asteroidData.speed * 0.1 * animationSpeed);
         
@@ -466,6 +553,36 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
           prev[1] + direction.y,
           prev[2] + direction.z
         ]);
+      }
+      
+      // 시간 제한 체크
+      const timeLeft = Math.max(0, (asteroidData.timeLimit - Date.now()) / 1000);
+      if (timeLeft <= 0) {
+        setIsExploding(true);
+        console.log('⏰ 소행성 시간 만료로 폭발!', asteroidData.id);
+        
+        if (onCollision) {
+          onCollision(asteroidData.id);
+        }
+      }
+    } else {
+      // 폭발 애니메이션
+      setExplosionScale(prev => {
+        const newScale = prev + 0.2 * animationSpeed;
+        if (newScale > 5) {
+          // 폭발 완료 - 소행성 제거
+          setTimeout(() => {
+            if (onCollision) {
+              onCollision(asteroidData.id, true); // 완전 제거
+            }
+          }, 100);
+        }
+        return newScale;
+      });
+      
+      if (explosionRef.current) {
+        explosionRef.current.scale.setScalar(explosionScale);
+        explosionRef.current.material.opacity = Math.max(0, 1 - explosionScale / 5);
       }
     }
   });
@@ -480,74 +597,113 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
 
   return (
     <group visible={shouldShow}>
-      <mesh 
-        ref={meshRef} 
-        position={position}
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick && onClick('asteroid', asteroidData);
-        }}
-        onPointerOver={() => document.body.style.cursor = 'pointer'}
-        onPointerOut={() => document.body.style.cursor = 'default'}
-      >
-        {/* 불규칙한 소행성 형태 */}
-        <dodecahedronGeometry args={[0.8, 0]} />
-        <meshStandardMaterial 
-          color={urgencyColor}
-          emissive={urgencyColor}
-          emissiveIntensity={0.3}
-          roughness={0.8}
-          transparent
-          opacity={opacity}
-        />
-      </mesh>
-      
-      {/* NEW: 동적 키워드 (소행성 주변을 달려가는 효과) */}
-      <group position={position}>
-        <DynamicKeywords 
-          keywords={asteroidData.keywords}
-          radius={1.2}
-          color={urgencyColor}
-          isAnimationPlaying={isAnimationPlaying}
-          animationSpeed={animationSpeed}
-        />
-      </group>
-      
-      {/* 소행성 트레일 효과 */}
-      <mesh position={position}>
-        <sphereGeometry args={[1.2, 8, 6]} />
-        <meshBasicMaterial 
-          color={urgencyColor}
-          transparent
-          opacity={0.2 * opacity}
-        />
-      </mesh>
-      
-      {/* 소행성 정보 표시 */}
-      <Html position={[position[0], position[1] + 2, position[2]]} center>
-        <div style={{
-          background: 'rgba(0,0,0,0.8)',
-          color: urgencyColor,
-          padding: '5px 10px',
-          borderRadius: '10px',
-          fontSize: '0.7em',
-          border: `1px solid ${urgencyColor}`,
-          whiteSpace: 'nowrap',
-          textAlign: 'center',
-          opacity: opacity
-        }}>
-          ☄️ {asteroidData.suggestion?.action || 'AI Action'}
-          <br />
-          <div style={{ fontSize: '0.5em', marginTop: '2px' }}>
-            ⏱️ {Math.ceil(timeLeft)}초 남음
-          </div>
-        </div>
-      </Html>
+      {!isExploding ? (
+        <>
+          {/* 소행성 본체 */}
+          <mesh 
+            ref={meshRef} 
+            position={position}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick && onClick('asteroid', asteroidData);
+            }}
+            onPointerOver={() => document.body.style.cursor = 'pointer'}
+            onPointerOut={() => document.body.style.cursor = 'default'}
+          >
+            {/* 불규칙한 소행성 형태 */}
+            <dodecahedronGeometry args={[0.8, 0]} />
+            <meshStandardMaterial 
+              color={urgencyColor}
+              emissive={urgencyColor}
+              emissiveIntensity={0.3}
+              roughness={0.8}
+              transparent
+              opacity={opacity}
+            />
+          </mesh>
+          
+          {/* 동적 키워드 (소행성 주변을 달려가는 효과) */}
+          <group position={position}>
+            <DynamicKeywords 
+              keywords={asteroidData.keywords}
+              radius={1.2}
+              color={urgencyColor}
+              isAnimationPlaying={isAnimationPlaying}
+              animationSpeed={animationSpeed}
+            />
+          </group>
+          
+          {/* 소행성 트레일 효과 */}
+          <mesh position={position}>
+            <sphereGeometry args={[1.2, 8, 6]} />
+            <meshBasicMaterial 
+              color={urgencyColor}
+              transparent
+              opacity={0.2 * opacity}
+            />
+          </mesh>
+          
+          {/* 소행성 정보 표시 */}
+          <Html position={[position[0], position[1] + 2, position[2]]} center>
+            <div style={{
+              background: 'rgba(0,0,0,0.8)',
+              color: urgencyColor,
+              padding: '5px 10px',
+              borderRadius: '10px',
+              fontSize: '0.7em',
+              border: `1px solid ${urgencyColor}`,
+              whiteSpace: 'nowrap',
+              textAlign: 'center',
+              opacity: opacity
+            }}>
+              ☄️ {asteroidData.suggestion?.action || 'AI Action'}
+              <br />
+              <div style={{ fontSize: '0.5em', marginTop: '2px' }}>
+                ⏱️ {Math.ceil(timeLeft)}초 남음
+              </div>
+            </div>
+          </Html>
+        </>
+      ) : (
+        // v0.8.5 CRITICAL FIX: 폭발 효과
+        <>
+          <mesh 
+            ref={explosionRef}
+            position={position}
+          >
+            <sphereGeometry args={[1, 16, 16]} />
+            <meshBasicMaterial 
+              color="#FF4500"
+              transparent
+              opacity={1}
+            />
+          </mesh>
+          
+          {/* 폭발 파티클들 */}
+          {[...Array(8)].map((_, i) => (
+            <mesh 
+              key={i}
+              position={[
+                position[0] + (Math.random() - 0.5) * explosionScale,
+                position[1] + (Math.random() - 0.5) * explosionScale,
+                position[2] + (Math.random() - 0.5) * explosionScale
+              ]}
+            >
+              <sphereGeometry args={[0.2, 8, 8]} />
+              <meshBasicMaterial 
+                color={['#FF4500', '#FF6600', '#FFAA00', '#FF0000'][i % 4]}
+                transparent
+                opacity={Math.max(0, 1 - explosionScale / 5)}
+              />
+            </mesh>
+          ))}
+        </>
+      )}
     </group>
   );
 }
 
-// NEW: 카메라 컨트롤러 (포커싱 기능 지원)
+// 카메라 컨트롤러 (포커싱 기능 지원)
 function CameraController({ solarSystems, currentView, focusedSystemId }) {
   const { camera } = useThree();
   
@@ -598,20 +754,29 @@ function CameraController({ solarSystems, currentView, focusedSystemId }) {
 // 메인 Scene 컴포넌트
 const Scene = ({ 
   isAnimationPlaying = true,
-  animationSpeed = 1.0, // NEW: 속도 설정
-  showOrbits = true, // NEW: 궤도 표시 여부
+  animationSpeed = 1.0,
+  showOrbits = true,
   solarSystems = [],
   asteroids = [],
   currentView = 'all',
-  focusedSystemId = null, // NEW: 포커싱 기능
+  focusedSystemId = null,
   onSolarSystemClick,
-  onSolarSystemFocus, // NEW: 포커싱 핸들러
+  onSolarSystemFocus,
   onPlanetClick,
   onSatelliteClick,
   onAsteroidClick,
   onSunClick,
+  onAsteroidCollision, // v0.8.5 NEW: 소행성 충돌 콜백
   ...props
 }) => {
+  
+  // v0.8.5: 소행성 충돌 핸들러
+  const handleAsteroidCollision = (asteroidId, remove = false) => {
+    console.log('💥 소행성 충돌 처리:', asteroidId, remove ? '(완전 제거)' : '(폭발 시작)');
+    if (onAsteroidCollision) {
+      onAsteroidCollision(asteroidId, remove);
+    }
+  };
   
   return (
     <Canvas
@@ -660,7 +825,7 @@ const Scene = ({
           fade={true}
         />
         
-        {/* v0.8.4: 다중 태양계 렌더링 (포커싱 지원) */}
+        {/* v0.8.5: 다중 태양계 렌더링 (모든 수정사항 적용) */}
         {solarSystems && solarSystems.length > 0 ? (
           solarSystems.map((system) => (
             <group key={system.id}>
@@ -683,7 +848,7 @@ const Scene = ({
                 }}
               />
               
-              {/* 행성들 (태스크들) - 새로운 기능 지원 */}
+              {/* 행성들 (태스크들) - v0.8.5 모든 수정사항 적용 */}
               {system.planets && system.planets.map((planet) => (
                 <Planet
                   key={planet.id}
@@ -718,17 +883,17 @@ const Scene = ({
                 그룹명이 2개 이상이면 태양계도 2개 이상이 됩니다
               </div>
               <div style={{ fontSize: '0.7em', marginTop: '10px', color: '#888' }}>
-                🆕 v0.8.4 새로운 기능:<br />
-                • 속도 설정: {animationSpeed.toFixed(1)}x<br />
-                • 궤도 표시: {showOrbits ? 'ON' : 'OFF'}<br />
-                • 동적 키워드: 천체 표면을 달려가는 효과<br />
-                • 포커싱: 태양 클릭으로 해당 태양계만 표시
+                🆕 v0.8.5 NG 항목 수정:<br />
+                • 서브태스크가 부모 태스크를 공전<br />
+                • 소행성 충돌 및 폭발 시스템<br />
+                • 종료일 기반 색상 및 속도 변화<br />
+                • 속도: {animationSpeed?.toFixed(1)}x | 궤도: {showOrbits ? 'ON' : 'OFF'}
               </div>
             </div>
           </Html>
         )}
         
-        {/* 소행성들 (AI 액션 제안) - 새로운 기능 지원 */}
+        {/* v0.8.5: 소행성들 - 충돌 시스템 적용 */}
         {asteroids && asteroids.map((asteroid) => (
           <Asteroid
             key={asteroid.id}
@@ -737,6 +902,7 @@ const Scene = ({
             animationSpeed={animationSpeed}
             focusedSystemId={focusedSystemId}
             onClick={onAsteroidClick}
+            onCollision={handleAsteroidCollision}
           />
         ))}
         
