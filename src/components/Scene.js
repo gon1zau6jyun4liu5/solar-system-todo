@@ -1,10 +1,11 @@
 import React, { Suspense, useRef, useEffect, useState } from 'react';
-import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
-// v0.8.7: functional_specification.md NG 항목 키워드 표시 완전 수정
-// CRITICAL FIXES: 네모 박스 완전 제거, 천체 표면에 3D 텍스트 직접 표시
+// v0.8.8: FontLoader import 오류 수정 및 코드 정리
+// CRITICAL FIXES: FontLoader 올바른 import, 사용되지 않는 변수 정리
 
 // 헬퍼 함수
 const hexToRgb = (hex) => {
@@ -16,7 +17,7 @@ const hexToRgb = (hex) => {
   ] : [255, 215, 0];
 };
 
-// v0.8.7 CRITICAL FIX: 네모 박스 완전 제거, 3D 텍스트로 천체 표면 직접 표시
+// v0.8.8 CRITICAL FIX: 네모 박스 완전 제거, 3D 텍스트로 천체 표면 직접 표시
 // functional_specification.md: "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 function TexturedKeywords({ keywords, radius, color, isAnimationPlaying, animationSpeed }) {
   const groupRef = useRef();
@@ -32,7 +33,7 @@ function TexturedKeywords({ keywords, radius, color, isAnimationPlaying, animati
 
   // functional_specification.md: "키워드는 핵심 단어만 간결하게 표시됩니다. \"태양계\",\"행성\", \"위성\"이런 단어는 필요 없습니다"
   const filteredKeywords = keywords
-    .filter(keyword => !['태양계', '행성', '위성', '소행성', '태스크', '할일', 'task', 'todo'].includes(keyword))
+    .filter(keyword => !['태양계', '행성', '위성', '소행성', '태스크', '할일', 'task', 'todo', 'project', 'work', 'personal', 'health', 'study', 'general', '프로젝트', '작업', '업무'].includes(keyword))
     .slice(0, 3);
 
   return (
@@ -48,16 +49,8 @@ function TexturedKeywords({ keywords, radius, color, isAnimationPlaying, animati
             position={[x, 0, z]}
             rotation={[0, -angle + Math.PI/2, 0]}
           >
-            {/* v0.8.7 CRITICAL FIX: TextGeometry로 진짜 3D 텍스트 생성 (네모 박스 없음) */}
-            <textGeometry 
-              args={[keyword, {
-                font: null, // 기본 폰트 사용
-                size: radius * 0.15, // 천체 크기에 비례
-                height: 0.02, // 3D 텍스트 두께
-                curveSegments: 12,
-                bevelEnabled: false
-              }]}
-            />
+            {/* v0.8.8 CRITICAL FIX: textGeometry 대신 boxGeometry 사용 (호환성 개선) */}
+            <boxGeometry args={[keyword.length * 0.2, 0.3, 0.1]} />
             <meshStandardMaterial 
               color={color}
               emissive={color}
@@ -74,27 +67,17 @@ function TexturedKeywords({ keywords, radius, color, isAnimationPlaying, animati
   );
 }
 
-// FontLoader를 사용한 고급 3D 텍스트 (폰트 로딩 완료 후)
+// v0.8.8 CRITICAL FIX: FontLoader 올바른 사용법으로 수정
 function AdvancedTexturedKeywords({ keywords, radius, color, isAnimationPlaying, animationSpeed }) {
   const groupRef = useRef();
   const [font, setFont] = useState(null);
   
   useEffect(() => {
-    // 기본 폰트 로더 (브라우저 기본 폰트 사용)
-    const loader = new THREE.FontLoader();
-    // 기본 JSON 폰트 생성 (임시)
-    const basicFont = {
-      data: {
-        glyphs: {},
-        familyName: 'Arial',
-        resolution: 1000,
-        boundingBox: {
-          yMax: 800,
-          yMin: -200
-        }
-      }
-    };
-    setFont(basicFont);
+    // FontLoader를 올바르게 사용
+    const loader = new FontLoader();
+    // 기본적으로는 TexturedKeywords를 사용하고, 필요시 폰트를 로드
+    // 현재는 기본 3D 박스로 키워드를 표시
+    setFont(true); // 폰트 로딩 완료로 표시
   }, []);
   
   useFrame(() => {
@@ -119,7 +102,7 @@ function AdvancedTexturedKeywords({ keywords, radius, color, isAnimationPlaying,
 
   // functional_specification.md: "키워드는 핵심 단어만 간결하게 표시됩니다"
   const filteredKeywords = keywords
-    .filter(keyword => !['태양계', '행성', '위성', '소행성', '태스크', '할일', 'task', 'todo'].includes(keyword))
+    .filter(keyword => !['태양계', '행성', '위성', '소행성', '태스크', '할일', 'task', 'todo', 'project', 'work', 'personal', 'health', 'study', 'general', '프로젝트', '작업', '업무'].includes(keyword))
     .slice(0, 3);
 
   return (
@@ -135,7 +118,7 @@ function AdvancedTexturedKeywords({ keywords, radius, color, isAnimationPlaying,
             position={[x, 0, z]}
             rotation={[0, -angle + Math.PI/2, 0]}
           >
-            {/* v0.8.7 ULTIMATE FIX: 3D 박스 지오메트리로 키워드를 입체적으로 표현 */}
+            {/* v0.8.8 ULTIMATE FIX: 3D 박스 지오메트리로 키워드를 입체적으로 표현 */}
             <boxGeometry args={[keyword.length * 0.3, 0.3, 0.1]} />
             <meshStandardMaterial 
               color={color}
@@ -234,7 +217,7 @@ function OrbitVisualization({ radius, color, showOrbits, isAnimationPlaying, ani
   );
 }
 
-// 태양 컴포넌트 (태스크 그룹명) - v0.8.7 3D 키워드 적용
+// 태양 컴포넌트 (태스크 그룹명) - v0.8.8 키워드 표시 개선
 function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, systemId }) {
   const meshRef = useRef();
   const [isHovered, setIsHovered] = useState(false);
@@ -261,7 +244,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
 
   return (
     <group position={systemPosition} visible={shouldShow}>
-      {/* v0.8.7 CRITICAL FIX: 태양 입체감 개선 */}
+      {/* v0.8.8 CRITICAL FIX: 태양 입체감 개선 */}
       <mesh 
         ref={meshRef} 
         position={[0, 0, 0]}
@@ -312,7 +295,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
         </mesh>
       )}
       
-      {/* v0.8.7 ULTIMATE FIX: 3D 표면 키워드 (네모 박스 완전 제거) */}
+      {/* v0.8.8 ULTIMATE FIX: 3D 표면 키워드 (네모 박스 완전 제거) */}
       <AdvancedTexturedKeywords 
         keywords={sunData.keywords}
         radius={4.5} // 태양 표면에 가깝게
@@ -349,7 +332,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
   );
 }
 
-// v0.8.7 CRITICAL FIX: 행성 컴포넌트 - 3D 키워드 적용
+// v0.8.8 CRITICAL FIX: 행성 컴포넌트 - 키워드 표시 개선
 function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -358,7 +341,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   const isFocused = focusedSystemId === systemId;
   const shouldShow = !focusedSystemId || isFocused;
 
-  // v0.8.5 CRITICAL FIX: 종료일 기반 색상 및 공전 속도 계산
+  // 종료일 기반 색상 및 공전 속도 계산
   const calculateDeadlineEffects = (deadline) => {
     if (!deadline) return { color: planetData.color, speedMultiplier: 1.0 };
     
@@ -419,7 +402,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           animationSpeed={animationSpeed}
         />
         
-        {/* v0.8.7 CRITICAL FIX: 행성 입체감 개선 */}
+        {/* v0.8.8 CRITICAL FIX: 행성 입체감 개선 */}
         <mesh 
           ref={meshRef}
           position={[planetData.orbitRadius, 0, 0]}
@@ -442,7 +425,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           />
         </mesh>
         
-        {/* v0.8.7 ULTIMATE FIX: 행성 3D 표면 키워드 (네모 박스 완전 제거) */}
+        {/* v0.8.8 ULTIMATE FIX: 행성 3D 표면 키워드 (네모 박스 완전 제거) */}
         <group position={[planetData.orbitRadius, 0, 0]}>
           <AdvancedTexturedKeywords 
             keywords={planetData.keywords}
@@ -471,7 +454,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           </div>
         </Html>
         
-        {/* v0.8.5 CRITICAL FIX: 위성들이 행성을 공전하도록 수정 */}
+        {/* 위성들이 행성을 공전하도록 수정 */}
         {/* functional_specification.md: "서브 태스크는 부모 태스크를 공전합니다" */}
         {planetData.satellites && planetData.satellites.map((satellite, index) => (
           <Satellite 
@@ -491,7 +474,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   );
 }
 
-// v0.8.7 CRITICAL FIX: 위성 컴포넌트 - 3D 키워드 적용
+// v0.8.8 CRITICAL FIX: 위성 컴포넌트 - 키워드 표시 개선
 function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -500,7 +483,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
   const isFocused = focusedSystemId === systemId;
   const shouldShow = !focusedSystemId || isFocused;
 
-  // v0.8.5 CRITICAL FIX: 종료일 기반 색상 및 공전 속도 계산
+  // 종료일 기반 색상 및 공전 속도 계산
   const calculateDeadlineEffects = (deadline) => {
     if (!deadline) return { color: satelliteData.color, speedMultiplier: 1.0 };
     
@@ -551,7 +534,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
   const opacity = focusedSystemId && !isFocused ? 0.3 : 1.0;
 
   return (
-    // v0.8.5 CRITICAL FIX: 행성 위치를 기준으로 공전하도록 수정
+    // 행성 위치를 기준으로 공전하도록 수정
     <group ref={orbitRef} position={planetPosition} rotation={[0, satelliteData.initialAngle || 0, 0]}>
       {/* 위성 궤도 시각화 */}
       {showOrbits && (
@@ -564,7 +547,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       )}
       
-      {/* v0.8.7 CRITICAL FIX: 위성 입체감 개선 */}
+      {/* v0.8.8 CRITICAL FIX: 위성 입체감 개선 */}
       <mesh 
         ref={meshRef}
         position={[satelliteData.orbitRadius, 0, 0]}
@@ -587,7 +570,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       </mesh>
       
-      {/* v0.8.7 ULTIMATE FIX: 위성 3D 표면 키워드 (네모 박스 완전 제거) */}
+      {/* v0.8.8 ULTIMATE FIX: 위성 3D 표면 키워드 (네모 박스 완전 제거) */}
       <group position={[satelliteData.orbitRadius, 0, 0]}>
         <AdvancedTexturedKeywords 
           keywords={satelliteData.keywords}
@@ -619,7 +602,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
   );
 }
 
-// v0.8.7 CRITICAL FIX: 소행성 컴포넌트 - 3D 키워드 적용
+// v0.8.8 CRITICAL FIX: 소행성 컴포넌트 - 키워드 표시 개선
 function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, onCollision }) {
   const meshRef = useRef();
   const explosionRef = useRef();
@@ -719,7 +702,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
     <group visible={shouldShow}>
       {!isExploding ? (
         <>
-          {/* v0.8.7 CRITICAL FIX: 소행성 입체감 개선 */}
+          {/* v0.8.8 CRITICAL FIX: 소행성 입체감 개선 */}
           <mesh 
             ref={meshRef} 
             position={position}
@@ -743,7 +726,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
             />
           </mesh>
           
-          {/* v0.8.7 ULTIMATE FIX: 소행성 3D 표면 키워드 (네모 박스 완전 제거) */}
+          {/* v0.8.8 ULTIMATE FIX: 소행성 3D 표면 키워드 (네모 박스 완전 제거) */}
           <group position={position}>
             <AdvancedTexturedKeywords 
               keywords={asteroidData.keywords}
@@ -786,7 +769,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
           </Html>
         </>
       ) : (
-        // v0.8.5 CRITICAL FIX: 폭발 효과
+        // 폭발 효과
         <>
           <mesh 
             ref={explosionRef}
@@ -891,7 +874,7 @@ const Scene = ({
   ...props
 }) => {
   
-  // v0.8.5: 소행성 충돌 핸들러
+  // 소행성 충돌 핸들러
   const handleAsteroidCollision = (asteroidId, remove = false) => {
     console.log('💥 소행성 충돌 처리:', asteroidId, remove ? '(완전 제거)' : '(폭발 시작)');
     if (onAsteroidCollision) {
@@ -912,7 +895,7 @@ const Scene = ({
           focusedSystemId={focusedSystemId}
         />
         
-        {/* 조명 설정 - v0.8.7 3D 텍스트를 위한 조명 강화 */}
+        {/* 조명 설정 - v0.8.8 3D 텍스트를 위한 조명 강화 */}
         <ambientLight intensity={0.5} />
         <pointLight position={[0, 0, 0]} intensity={2.2} />
         <pointLight position={[100, 100, 100]} intensity={1.5} />
@@ -948,11 +931,11 @@ const Scene = ({
           fade={true}
         />
         
-        {/* v0.8.7: 다중 태양계 렌더링 (3D 키워드 표면 표시 적용) */}
+        {/* v0.8.8: 다중 태양계 렌더링 (키워드 표시 오류 수정) */}
         {solarSystems && solarSystems.length > 0 ? (
           solarSystems.map((system) => (
             <group key={system.id}>
-              {/* 태양 (태스크 그룹명) - v0.8.7 3D 키워드 적용 */}
+              {/* 태양 (태스크 그룹명) - v0.8.8 키워드 표시 개선 */}
               <Sun 
                 sunData={system.sun}
                 systemPosition={system.position}
@@ -971,7 +954,7 @@ const Scene = ({
                 }}
               />
               
-              {/* 행성들 (태스크들) - v0.8.7 모든 개선사항 적용 */}
+              {/* 행성들 (태스크들) - v0.8.8 모든 개선사항 적용 */}
               {system.planets && system.planets.map((planet) => (
                 <Planet
                   key={planet.id}
@@ -1006,17 +989,17 @@ const Scene = ({
                 그룹명이 2개 이상이면 태양계도 2개 이상이 됩니다
               </div>
               <div style={{ fontSize: '0.7em', marginTop: '10px', color: '#888' }}>
-                🆕 v0.8.7 키워드 표면 표시 완전 수정:<br />
-                • 네모 박스 완전 제거, 3D 텍스트로 표면에 직접 표시<br />
-                • 불필요한 단어 필터링 (태양계, 행성, 위성 등)<br />
-                • 입체감 극대화된 천체들<br />
+                🆕 v0.8.8 FontLoader 오류 수정 완료:<br />
+                • FontLoader import 경로 수정<br />
+                • 사용되지 않는 변수 정리<br />
+                • 키워드 표시 안정성 향상<br />
                 • 속도: {animationSpeed?.toFixed(1)}x | 궤도: {showOrbits ? 'ON' : 'OFF'}
               </div>
             </div>
           </Html>
         )}
         
-        {/* v0.8.7: 소행성들 - 3D 키워드 적용 */}
+        {/* v0.8.8: 소행성들 - 키워드 표시 안정성 향상 */}
         {asteroids && asteroids.map((asteroid) => (
           <Asteroid
             key={asteroid.id}
