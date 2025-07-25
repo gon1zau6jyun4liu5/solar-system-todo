@@ -1,5 +1,6 @@
-/* TaskDetailModal.css - v0.8.3 */
+/* TaskDetailModal.css - v0.8.5 */
 /* functional_specification.md 요구사항: "팝업 창은 어느 것보다 가장 위에 위치합니다" */
+/* v0.8.5: CRUD 기능을 위한 새로운 스타일 추가 */
 
 .task-detail-modal-backdrop {
   position: fixed;
@@ -107,6 +108,7 @@
   display: flex;
   align-items: flex-start;
   gap: 20px;
+  flex: 1;
 }
 
 .task-type-icon {
@@ -137,12 +139,63 @@
   line-height: 1.3;
 }
 
+/* v0.8.5: 제목 편집 입력 필드 */
+.edit-title-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(79, 70, 229, 0.5);
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  width: 100%;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.edit-title-input:focus {
+  outline: none;
+  border-color: rgba(79, 70, 229, 1);
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+}
+
 .task-type-description {
   margin: 0;
   color: #cbd5e1;
   font-size: 0.95rem;
   font-weight: 500;
   opacity: 0.8;
+}
+
+/* v0.8.5: 액션 버튼들 */
+.modal-action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.modal-action-btn.edit-btn:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+.modal-action-btn.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
 }
 
 .modal-close-btn {
@@ -222,6 +275,47 @@
     transparent 100%
   );
   margin-left: 16px;
+}
+
+/* v0.8.5: 편집 폼 스타일 */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-row label {
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.edit-input, .edit-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.edit-input:focus, .edit-select:focus {
+  outline: none;
+  border-color: rgba(79, 70, 229, 0.5);
+  box-shadow: 0 0 15px rgba(79, 70, 229, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.edit-select option {
+  background: #1a1a2e;
+  color: #ffffff;
 }
 
 .keywords-display {
@@ -322,6 +416,31 @@
   text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
 }
 
+/* v0.8.5: 우선순위 색상 */
+.status-value.priority-high {
+  color: #ef4444;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.status-value.priority-medium {
+  color: #f59e0b;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.status-value.priority-low {
+  color: #10b981;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+/* v0.8.5: 서브태스크 관리 */
+.add-subtask-form {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
 .subtasks-list {
   display: flex;
   flex-direction: column;
@@ -369,25 +488,41 @@
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
 }
 
-.subtask-status {
+/* v0.8.5: 서브태스크 토글 버튼 */
+.subtask-toggle-btn {
+  background: none;
+  border: none;
   font-size: 1.2rem;
-  margin-top: 2px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
   filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
 }
 
-.subtask-text {
+.subtask-toggle-btn:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+.subtask-content {
   flex: 1;
+}
+
+.subtask-text {
   font-size: 0.95rem;
   line-height: 1.5;
   color: #f1f5f9;
   font-weight: 500;
+  display: block;
+  margin-bottom: 8px;
 }
 
 .subtask-keywords {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 12px;
+  margin-bottom: 8px;
 }
 
 .mini-keyword {
@@ -404,6 +539,12 @@
 .mini-keyword:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
+}
+
+.subtask-deadline {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 .timeline-info {
@@ -433,6 +574,44 @@
 .timeline-item strong {
   color: #ffffff;
   font-weight: 600;
+}
+
+/* v0.8.5: 마감일 상태 색상 */
+.deadline-status.overdue {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.deadline-status.urgent {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.deadline-status.normal {
+  color: #10b981;
+}
+
+/* v0.8.5: 소행성 정보 */
+.asteroid-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.asteroid-action,
+.asteroid-description,
+.asteroid-impact {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.asteroid-action strong,
+.asteroid-description strong,
+.asteroid-impact strong {
+  color: #fbbf24;
+  margin-right: 8px;
 }
 
 .modal-footer {
@@ -474,6 +653,12 @@
 
 .btn:hover::before {
   left: 100%;
+}
+
+/* v0.8.5: 버튼 크기 변형 */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.85rem;
 }
 
 .btn-secondary {
@@ -523,7 +708,8 @@
     font-size: 2rem;
   }
   
-  .modal-title h2 {
+  .modal-title h2,
+  .edit-title-input {
     font-size: 1.5rem;
   }
   
@@ -536,6 +722,15 @@
     padding: 12px 20px;
     font-size: 0.9rem;
   }
+
+  .form-row {
+    gap: 6px;
+  }
+
+  .edit-input,
+  .edit-select {
+    padding: 10px 12px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -545,7 +740,8 @@
     padding: 20px;
   }
   
-  .modal-title h2 {
+  .modal-title h2,
+  .edit-title-input {
     font-size: 1.3rem;
   }
   
@@ -560,5 +756,19 @@
   .btn {
     width: 100%;
     text-align: center;
+  }
+
+  .modal-action-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .subtask-item {
+    padding: 14px;
+  }
+
+  .add-subtask-form {
+    padding: 16px;
   }
 }
