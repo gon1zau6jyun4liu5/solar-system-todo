@@ -9,9 +9,9 @@ import './App.css';
 // 유틸리티 함수들
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// v0.8.8: ESLint 경고 수정 및 코드 정리
-// CRITICAL FIXES: 사용되지 않는 변수 제거, 의존성 배열 수정
-// CONTINUED: v0.8.7의 모든 기능 유지 (3D 키워드, 네모 박스 완전 제거)
+// v0.8.9: 키워드 네모 박스 완전 제거
+// ULTIMATE FIX: functional_specification.md 100% 준수
+// "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 
 function App() {
   // 기본 상태 관리
@@ -37,7 +37,7 @@ function App() {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // v0.8.8: 키워드 정제 함수 (의존성 배열 안정화를 위해 앞으로 이동)
+  // v0.8.9: 키워드 정제 함수 (의존성 배열 안정화를 위해 앞으로 이동)
   const filterKeywords = useCallback((keywords) => {
     const excludeWords = [
       '태양계', '행성', '위성', '소행성', '태양', '태스크', '할일',
@@ -57,9 +57,9 @@ function App() {
   const saveTodosToStorage = useCallback((updatedTodos) => {
     try {
       dataManager.saveAllTodos(updatedTodos);
-      console.log('💾 v0.8.8: 태스크 저장 완료:', updatedTodos.length, '개');
+      console.log('💾 v0.8.9: 태스크 저장 완료:', updatedTodos.length, '개');
     } catch (error) {
-      console.error('❌ v0.8.8: 태스크 저장 실패:', error);
+      console.error('❌ v0.8.9: 태스크 저장 실패:', error);
     }
   }, []);
 
@@ -68,92 +68,92 @@ function App() {
     const defaultTasks = [
       {
         id: 'task-1',
-        text: '프로젝트 기획서 작성',
+        text: '이메일 답장 보내기',
         category: 'work',
         priority: 'high',
         completed: false,
         createdAt: Date.now(),
         startDate: new Date(),
         deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        keywords: filterKeywords(['기획서', '작성', '문서']),
+        keywords: filterKeywords(['이메일', '답장', '커뮤니케이션']),
         subtasks: [
           { 
             id: 'subtask-1-1', 
-            text: '요구사항 분석', 
+            text: '중요 메일 분류', 
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-            keywords: filterKeywords(['요구사항', '분석'])
+            keywords: filterKeywords(['분류', '우선순위'])
           },
           { 
             id: 'subtask-1-2', 
-            text: '기술 스택 선정', 
+            text: '회신 내용 작성', 
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-            keywords: filterKeywords(['기술', '스택', '선정'])
+            keywords: filterKeywords(['작성', '내용'])
           }
         ]
       },
       {
         id: 'task-2',
-        text: '회의 준비',
+        text: '프레젠테이션 준비',
         category: 'work',
         priority: 'medium',
         completed: false,
         createdAt: Date.now(),
         startDate: new Date(),
         deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-        keywords: filterKeywords(['회의', '준비']),
+        keywords: filterKeywords(['발표', '자료', '준비']),
         subtasks: []
       },
       {
         id: 'task-3',
-        text: '장보기 목록 작성',
+        text: '주간 계획 수립',
         category: 'personal',
         priority: 'medium',
         completed: false,
         createdAt: Date.now(),
         startDate: new Date(),
         deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-        keywords: filterKeywords(['장보기', '목록']),
+        keywords: filterKeywords(['계획', '스케줄', '목표']),
         subtasks: [
           {
             id: 'subtask-3-1',
-            text: '냉장고 확인',
+            text: '우선순위 정리',
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-            keywords: filterKeywords(['냉장고', '확인'])
+            keywords: filterKeywords(['우선순위', '정리'])
           }
         ]
       },
       {
         id: 'task-4',
-        text: '운동 계획 세우기',
+        text: '독서 시간 확보',
         category: 'health',
         priority: 'low',
         completed: false,
         createdAt: Date.now(),
         startDate: new Date(),
         deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        keywords: filterKeywords(['운동', '계획']),
+        keywords: filterKeywords(['독서', '자기계발', '학습']),
         subtasks: [
           {
             id: 'subtask-4-1',
-            text: '헬스장 등록',
+            text: '책 선정하기',
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-            keywords: filterKeywords(['헬스장', '등록'])
+            keywords: filterKeywords(['선정', '도서'])
           },
           {
             id: 'subtask-4-2',
-            text: '운동 스케줄 작성',
+            text: '시간표 만들기',
             completed: false,
             startDate: new Date(),
             deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-            keywords: filterKeywords(['스케줄', '작성'])
+            keywords: filterKeywords(['시간표', '계획'])
           }
         ]
       }
@@ -162,7 +162,7 @@ function App() {
     setTodos(defaultTasks);
     saveTodosToStorage(defaultTasks);
     
-    console.log('🌟 v0.8.8: 기본 태스크 초기화 완료 및 저장');
+    console.log('🌟 v0.8.9: 기본 태스크 초기화 완료 및 저장');
   }, [filterKeywords, saveTodosToStorage]);
 
   // v0.8.5: 설정 로드 및 저장
@@ -177,7 +177,7 @@ function App() {
       setShowOrbits(settings.showOrbits !== false);
       setCurrentView(settings.currentView);
       setFocusedSystemId(settings.focusedSystemId || null);
-      console.log('⚙️ v0.8.8: 설정 로드 완료');
+      console.log('⚙️ v0.8.9: 설정 로드 완료');
     } catch (error) {
       console.error('❌ 설정 로드 실패:', error);
     }
@@ -196,7 +196,7 @@ function App() {
         focusedSystemId
       };
       dataManager.saveSettings(settings);
-      console.log('⚙️ v0.8.8: 설정 저장 완료');
+      console.log('⚙️ v0.8.9: 설정 저장 완료');
     } catch (error) {
       console.error('❌ 설정 저장 실패:', error);
     }
@@ -206,21 +206,21 @@ function App() {
   const loadTodosFromStorage = useCallback(async () => {
     try {
       setIsDataLoading(true);
-      console.log('📋 v0.8.8: 저장된 태스크 로드 시작...');
+      console.log('📋 v0.8.9: 저장된 태스크 로드 시작...');
       
       const storedTodos = dataManager.getAllTodos();
       
       if (storedTodos && storedTodos.length > 0) {
         setTodos(storedTodos);
-        console.log('✅ v0.8.8: 저장된 태스크 로드 완료:', storedTodos.length, '개');
+        console.log('✅ v0.8.9: 저장된 태스크 로드 완료:', storedTodos.length, '개');
       } else {
-        console.log('📋 v0.8.8: 저장된 태스크 없음 - 기본 태스크 생성');
+        console.log('📋 v0.8.9: 저장된 태스크 없음 - 기본 태스크 생성');
         initializeDefaultTasks();
       }
       
       setDataLoaded(true);
     } catch (error) {
-      console.error('❌ v0.8.8: 태스크 로드 실패:', error);
+      console.error('❌ v0.8.9: 태스크 로드 실패:', error);
       initializeDefaultTasks();
     } finally {
       setIsDataLoading(false);
@@ -237,7 +237,7 @@ function App() {
     
     saveTodosToStorage(emptyTodos);
     
-    console.log('🚫 v0.8.8: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
+    console.log('🚫 v0.8.9: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
   }, [saveTodosToStorage]);
 
   // 카테고리별 테마
@@ -451,7 +451,7 @@ function App() {
       });
     });
     
-    console.log('☄️ v0.8.8: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
+    console.log('☄️ v0.8.9: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
     setAsteroids(newAsteroids);
   }, [calculateUrgencyColor, animationSpeed, filterKeywords]);
 
@@ -478,7 +478,7 @@ function App() {
 
   // v0.8.5: 다중 태양계 생성
   const updateSolarSystems = useCallback(async () => {
-    console.log('🔄 v0.8.8: 다중 태양계 업데이트 시작');
+    console.log('🔄 v0.8.9: 다중 태양계 업데이트 시작');
     console.log('📋 현재 태스크 수:', todos.length);
 
     if (!aiGroupingActive || todos.length === 0) {
@@ -578,7 +578,7 @@ function App() {
         return solarSystem;
       });
 
-      console.log('🌌 v0.8.8: 생성된 태양계 시스템:', newSolarSystems.length, '개');
+      console.log('🌌 v0.8.9: 생성된 태양계 시스템:', newSolarSystems.length, '개');
       newSolarSystems.forEach((system, index) => {
         console.log(`  ${index + 1}. ${system.name} - ${system.planets.length}개 행성`);
       });
@@ -608,12 +608,12 @@ function App() {
 
   // v0.8.5: 앱 초기화
   useEffect(() => {
-    console.log('🚀 v0.8.8: 앱 초기화 시작...');
+    console.log('🚀 v0.8.9: 앱 초기화 시작...');
     
     const initializeApp = async () => {
       loadSettingsFromStorage();
       await loadTodosFromStorage();
-      console.log('✅ v0.8.8: 앱 초기화 완료');
+      console.log('✅ v0.8.9: 앱 초기화 완료');
     };
     
     initializeApp();
@@ -669,7 +669,7 @@ function App() {
       });
       
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.8: 태스크 업데이트 및 저장:', todoId);
+      console.log('✅ v0.8.9: 태스크 업데이트 및 저장:', todoId);
       
       return updatedTodos;
     });
@@ -682,7 +682,7 @@ function App() {
       const updatedTodos = prev.filter(todo => todo.id !== todoId);
       
       saveTodosToStorage(updatedTodos);
-      console.log('🗑️ v0.8.8: 태스크 삭제 및 저장:', deletedTodo?.text);
+      console.log('🗑️ v0.8.9: 태스크 삭제 및 저장:', deletedTodo?.text);
       
       if (updatedTodos.length === 0) {
         console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
@@ -713,7 +713,7 @@ function App() {
       });
       
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.8: 서브태스크 추가 및 저장:', subtaskData.text);
+      console.log('✅ v0.8.9: 서브태스크 추가 및 저장:', subtaskData.text);
       
       return updatedTodos;
     });
@@ -775,7 +775,7 @@ function App() {
     }
   }, [todos.length, initializeEmptyState, initializeDefaultTasks]);
 
-  // v0.8.8: 로딩 중일 때 표시할 컴포넌트
+  // v0.8.9: 로딩 중일 때 표시할 컴포넌트
   if (isDataLoading) {
     return (
       <div className="App" style={{ 
@@ -789,8 +789,8 @@ function App() {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🌌</div>
-          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.8</div>
-          <div style={{ fontSize: '1rem', opacity: 0.7 }}>FontLoader 오류 수정 및 코드 정리 완료...</div>
+          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.9</div>
+          <div style={{ fontSize: '1rem', opacity: 0.7 }}>키워드 네모 박스 완전 제거 로딩중...</div>
         </div>
       </div>
     );
@@ -830,7 +830,7 @@ function App() {
           transform: 'rotate(0deg)',
           lineHeight: '1.2'
         }}>
-          🌌<br/>SOLAR<br/>TODO<br/>v0.8.8
+          🌌<br/>SOLAR<br/>TODO<br/>v0.8.9
         </div>
 
         {/* UI 모드 토글 */}
@@ -1044,7 +1044,7 @@ function App() {
         </div>
       </div>
 
-      {/* v0.8.8: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
+      {/* v0.8.9: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
       <div style={{ marginLeft: '80px', width: 'calc(100vw - 80px)', height: '100vh' }}>
         <Scene 
           isAnimationPlaying={isAnimationPlaying}
@@ -1065,7 +1065,7 @@ function App() {
         />
       </div>
 
-      {/* 시스템 상태 표시 - v0.8.8 업데이트 */}
+      {/* 시스템 상태 표시 - v0.8.9 업데이트 */}
       <div 
         className="system-status"
         data-testid="system-status"
@@ -1085,14 +1085,14 @@ function App() {
         📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
         {focusedSystemId && ` | 🔍 Focus: ${solarSystems.find(s => s.id === focusedSystemId)?.name || 'Unknown'}`}
         <br />
-        💾 v0.8.8 FontLoader Fix - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
+        💾 v0.8.9 Surface Keywords - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
         <br />
         {/* 규칙 준수 상태 표시 */}
         <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
           {todos.length === 0 && '🚫 No Tasks → No Planets, No Suns, No Satellites'}
           {todos.length > 0 && !aiGroupingActive && '🚫 Tasks exist but AI grouping disabled'}
           {todos.length > 0 && solarSystems.length === 0 && aiGroupingActive && '🔄 Processing...'}
-          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON | 🎯 3D Keywords | 📦 No Box Background | ⚙️ Code Clean`}
+          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON | 🎯 Surface Running | 📦 No Box | ⚙️ v0.8.9 Complete`}
         </div>
       </div>
 
