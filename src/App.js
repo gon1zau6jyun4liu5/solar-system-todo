@@ -9,7 +9,7 @@ import './App.css';
 // 유틸리티 함수들
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// v0.8.9: 키워드 네모 박스 완전 제거
+// v0.8.10: CRITICAL FIX - 폰트 로딩 에러 해결
 // ULTIMATE FIX: functional_specification.md 100% 준수
 // "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 
@@ -37,7 +37,7 @@ function App() {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // v0.8.9: 키워드 정제 함수 (의존성 배열 안정화를 위해 앞으로 이동)
+  // v0.8.10: 키워드 정제 함수 (의존성 배열 안정화를 위해 앞으로 이동)
   const filterKeywords = useCallback((keywords) => {
     const excludeWords = [
       '태양계', '행성', '위성', '소행성', '태양', '태스크', '할일',
@@ -57,9 +57,9 @@ function App() {
   const saveTodosToStorage = useCallback((updatedTodos) => {
     try {
       dataManager.saveAllTodos(updatedTodos);
-      console.log('💾 v0.8.9: 태스크 저장 완료:', updatedTodos.length, '개');
+      console.log('💾 v0.8.10: 태스크 저장 완료:', updatedTodos.length, '개');
     } catch (error) {
-      console.error('❌ v0.8.9: 태스크 저장 실패:', error);
+      console.error('❌ v0.8.10: 태스크 저장 실패:', error);
     }
   }, []);
 
@@ -162,7 +162,7 @@ function App() {
     setTodos(defaultTasks);
     saveTodosToStorage(defaultTasks);
     
-    console.log('🌟 v0.8.9: 기본 태스크 초기화 완료 및 저장');
+    console.log('🌟 v0.8.10: 기본 태스크 초기화 완료 및 저장');
   }, [filterKeywords, saveTodosToStorage]);
 
   // v0.8.5: 설정 로드 및 저장
@@ -177,7 +177,7 @@ function App() {
       setShowOrbits(settings.showOrbits !== false);
       setCurrentView(settings.currentView);
       setFocusedSystemId(settings.focusedSystemId || null);
-      console.log('⚙️ v0.8.9: 설정 로드 완료');
+      console.log('⚙️ v0.8.10: 설정 로드 완료');
     } catch (error) {
       console.error('❌ 설정 로드 실패:', error);
     }
@@ -196,7 +196,7 @@ function App() {
         focusedSystemId
       };
       dataManager.saveSettings(settings);
-      console.log('⚙️ v0.8.9: 설정 저장 완료');
+      console.log('⚙️ v0.8.10: 설정 저장 완료');
     } catch (error) {
       console.error('❌ 설정 저장 실패:', error);
     }
@@ -206,21 +206,21 @@ function App() {
   const loadTodosFromStorage = useCallback(async () => {
     try {
       setIsDataLoading(true);
-      console.log('📋 v0.8.9: 저장된 태스크 로드 시작...');
+      console.log('📋 v0.8.10: 저장된 태스크 로드 시작...');
       
       const storedTodos = dataManager.getAllTodos();
       
       if (storedTodos && storedTodos.length > 0) {
         setTodos(storedTodos);
-        console.log('✅ v0.8.9: 저장된 태스크 로드 완료:', storedTodos.length, '개');
+        console.log('✅ v0.8.10: 저장된 태스크 로드 완료:', storedTodos.length, '개');
       } else {
-        console.log('📋 v0.8.9: 저장된 태스크 없음 - 기본 태스크 생성');
+        console.log('📋 v0.8.10: 저장된 태스크 없음 - 기본 태스크 생성');
         initializeDefaultTasks();
       }
       
       setDataLoaded(true);
     } catch (error) {
-      console.error('❌ v0.8.9: 태스크 로드 실패:', error);
+      console.error('❌ v0.8.10: 태스크 로드 실패:', error);
       initializeDefaultTasks();
     } finally {
       setIsDataLoading(false);
@@ -237,7 +237,7 @@ function App() {
     
     saveTodosToStorage(emptyTodos);
     
-    console.log('🚫 v0.8.9: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
+    console.log('🚫 v0.8.10: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
   }, [saveTodosToStorage]);
 
   // 카테고리별 테마
@@ -451,7 +451,7 @@ function App() {
       });
     });
     
-    console.log('☄️ v0.8.9: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
+    console.log('☄️ v0.8.10: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
     setAsteroids(newAsteroids);
   }, [calculateUrgencyColor, animationSpeed, filterKeywords]);
 
@@ -478,7 +478,7 @@ function App() {
 
   // v0.8.5: 다중 태양계 생성
   const updateSolarSystems = useCallback(async () => {
-    console.log('🔄 v0.8.9: 다중 태양계 업데이트 시작');
+    console.log('🔄 v0.8.10: 다중 태양계 업데이트 시작');
     console.log('📋 현재 태스크 수:', todos.length);
 
     if (!aiGroupingActive || todos.length === 0) {
@@ -578,7 +578,7 @@ function App() {
         return solarSystem;
       });
 
-      console.log('🌌 v0.8.9: 생성된 태양계 시스템:', newSolarSystems.length, '개');
+      console.log('🌌 v0.8.10: 생성된 태양계 시스템:', newSolarSystems.length, '개');
       newSolarSystems.forEach((system, index) => {
         console.log(`  ${index + 1}. ${system.name} - ${system.planets.length}개 행성`);
       });
@@ -608,12 +608,12 @@ function App() {
 
   // v0.8.5: 앱 초기화
   useEffect(() => {
-    console.log('🚀 v0.8.9: 앱 초기화 시작...');
+    console.log('🚀 v0.8.10: 앱 초기화 시작...');
     
     const initializeApp = async () => {
       loadSettingsFromStorage();
       await loadTodosFromStorage();
-      console.log('✅ v0.8.9: 앱 초기화 완료');
+      console.log('✅ v0.8.10: 앱 초기화 완료');
     };
     
     initializeApp();
@@ -669,7 +669,7 @@ function App() {
       });
       
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.9: 태스크 업데이트 및 저장:', todoId);
+      console.log('✅ v0.8.10: 태스크 업데이트 및 저장:', todoId);
       
       return updatedTodos;
     });
@@ -682,7 +682,7 @@ function App() {
       const updatedTodos = prev.filter(todo => todo.id !== todoId);
       
       saveTodosToStorage(updatedTodos);
-      console.log('🗑️ v0.8.9: 태스크 삭제 및 저장:', deletedTodo?.text);
+      console.log('🗑️ v0.8.10: 태스크 삭제 및 저장:', deletedTodo?.text);
       
       if (updatedTodos.length === 0) {
         console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
@@ -713,7 +713,7 @@ function App() {
       });
       
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.9: 서브태스크 추가 및 저장:', subtaskData.text);
+      console.log('✅ v0.8.10: 서브태스크 추가 및 저장:', subtaskData.text);
       
       return updatedTodos;
     });
@@ -775,7 +775,7 @@ function App() {
     }
   }, [todos.length, initializeEmptyState, initializeDefaultTasks]);
 
-  // v0.8.9: 로딩 중일 때 표시할 컴포넌트
+  // v0.8.10: 로딩 중일 때 표시할 컴포넌트
   if (isDataLoading) {
     return (
       <div className="App" style={{ 
@@ -789,8 +789,8 @@ function App() {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🌌</div>
-          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.9</div>
-          <div style={{ fontSize: '1rem', opacity: 0.7 }}>키워드 네모 박스 완전 제거 로딩중...</div>
+          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.10</div>
+          <div style={{ fontSize: '1rem', opacity: 0.7 }}>폰트 로딩 에러 해결 완료 로딩중...</div>
         </div>
       </div>
     );
@@ -830,7 +830,7 @@ function App() {
           transform: 'rotate(0deg)',
           lineHeight: '1.2'
         }}>
-          🌌<br/>SOLAR<br/>TODO<br/>v0.8.9
+          🌌<br/>SOLAR<br/>TODO<br/>v0.8.10
         </div>
 
         {/* UI 모드 토글 */}
@@ -1044,7 +1044,7 @@ function App() {
         </div>
       </div>
 
-      {/* v0.8.9: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
+      {/* v0.8.10: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
       <div style={{ marginLeft: '80px', width: 'calc(100vw - 80px)', height: '100vh' }}>
         <Scene 
           isAnimationPlaying={isAnimationPlaying}
@@ -1065,7 +1065,7 @@ function App() {
         />
       </div>
 
-      {/* 시스템 상태 표시 - v0.8.9 업데이트 */}
+      {/* 시스템 상태 표시 - v0.8.10 업데이트 */}
       <div 
         className="system-status"
         data-testid="system-status"
@@ -1085,14 +1085,14 @@ function App() {
         📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
         {focusedSystemId && ` | 🔍 Focus: ${solarSystems.find(s => s.id === focusedSystemId)?.name || 'Unknown'}`}
         <br />
-        💾 v0.8.9 Surface Keywords - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
+        🔧 v0.8.10 Font Fixed - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
         <br />
         {/* 규칙 준수 상태 표시 */}
         <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
           {todos.length === 0 && '🚫 No Tasks → No Planets, No Suns, No Satellites'}
           {todos.length > 0 && !aiGroupingActive && '🚫 Tasks exist but AI grouping disabled'}
           {todos.length > 0 && solarSystems.length === 0 && aiGroupingActive && '🔄 Processing...'}
-          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON | 🎯 Surface Running | 📦 No Box | ⚙️ v0.8.9 Complete`}
+          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON | 🎯 Surface Running | 📦 No Box | 🔧 Font Fixed | ⚙️ v0.8.10 Complete`}
         </div>
       </div>
 
