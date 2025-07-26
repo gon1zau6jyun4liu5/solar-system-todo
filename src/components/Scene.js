@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-// v0.8.10: CRITICAL FIX - 폰트 로딩 에러 해결
+// v0.8.11: ULTIMATE FIX - 키워드 표면 표시 + 소행성 폭발 이펙트
 // functional_specification.md: "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 
 // 헬퍼 함수
@@ -16,7 +16,7 @@ const hexToRgb = (hex) => {
   ] : [255, 215, 0];
 };
 
-// v0.8.10 CRITICAL FIX: 폰트 에러 해결된 표면 키워드 시스템
+// v0.8.11 ULTIMATE FIX: 완전한 표면 키워드 시스템 (네모 박스 없음)
 // functional_specification.md 요구사항:
 // 1. "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 // 2. "키워드는 핵심 단어만 간결하게 표시됩니다"
@@ -44,35 +44,35 @@ function SurfaceRunningKeywords({ keywords, radius, color, isAnimationPlaying, a
     <group ref={groupRef}>
       {filteredKeywords.map((keyword, index) => {
         const angle = (index / Math.max(filteredKeywords.length, 1)) * Math.PI * 2;
-        const x = Math.cos(angle) * radius; // 정확히 표면에 위치
-        const z = Math.sin(angle) * radius;
+        const x = Math.cos(angle) * (radius + 0.1); // 표면에서 약간 떨어짐
+        const z = Math.sin(angle) * (radius + 0.1);
         
         return (
           <Text
             key={`${keyword}-${index}`}
             position={[x, 0, z]}
             rotation={[0, -angle + Math.PI/2, 0]}
-            fontSize={radius * 0.15}
+            fontSize={radius * 0.2}
             color={color}
             anchorX="center"
             anchorY="middle"
-            // v0.8.10 CRITICAL: 네모 박스 완전 제거 + 폰트 에러 해결
+            // v0.8.11 ULTIMATE FIX: 네모 박스 완전 제거
             outlineWidth={0}
             outlineColor="transparent"
             strokeWidth={0}
             strokeColor="transparent"
             fillOpacity={1}
-            // 배경 제거
-            maxWidth={radius * 2}
+            maxWidth={radius * 3}
             textAlign="center"
-            // v0.8.10 CRITICAL FIX: 폰트 파일 제거 - 기본 폰트 사용
-            // font="/fonts/Inter-Bold.woff" // 제거됨
-            // 3D 효과
+            // 3D 효과 제거로 깔끔하게
             bevelEnabled={false}
             bevelSize={0}
             bevelThickness={0}
-            // 렌더링 순서
-            renderOrder={1000}
+            // 렌더링 순서 최상위
+            renderOrder={2000}
+            // 글자 두께 조정
+            letterSpacing={0.02}
+            lineHeight={1}
           >
             {keyword}
           </Text>
@@ -146,7 +146,7 @@ function OrbitVisualization({ radius, color, showOrbits, isAnimationPlaying, ani
   );
 }
 
-// 태양 컴포넌트 (태스크 그룹명) - v0.8.10 폰트 에러 해결
+// 태양 컴포넌트 (태스크 그룹명) - v0.8.11 표면 키워드만 표시
 function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, systemId }) {
   const meshRef = useRef();
   const [isHovered, setIsHovered] = useState(false);
@@ -173,7 +173,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
 
   return (
     <group position={systemPosition} visible={shouldShow}>
-      {/* v0.8.10 태양 입체감 개선 */}
+      {/* v0.8.11 태양 입체감 개선 */}
       <mesh 
         ref={meshRef} 
         position={[0, 0, 0]}
@@ -224,44 +224,19 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
         </mesh>
       )}
       
-      {/* v0.8.10 CRITICAL FIX: 태양 표면 시계방향 달려가는 키워드 (폰트 에러 해결) */}
+      {/* v0.8.11 ULTIMATE FIX: 태양 표면 시계방향 달려가는 키워드 (네모 박스 없음) */}
       <SurfaceRunningKeywords 
         keywords={sunData.keywords}
-        radius={4.2} // 태양 표면에 정확히 위치
-        color={sunData.theme?.color || "#FFD700"}
+        radius={4} // 태양 반지름과 일치
+        color="#FFFFFF" // 태양에서는 흰색 키워드로 가독성 확보
         isAnimationPlaying={isAnimationPlaying}
         animationSpeed={animationSpeed}
       />
-      
-      {/* 태양 정보 표시 - 간소화 */}
-      <Html position={[0, 8, 0]} center>
-        <div style={{
-          background: `rgba(${sunData.theme?.color ? 
-            hexToRgb(sunData.theme.color).join(',') : '255, 215, 0'}, 0.9)`,
-          color: 'black',
-          padding: '8px 12px',
-          borderRadius: '15px',
-          fontSize: '0.9em',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          border: `2px solid ${sunData.theme?.color || '#FFA500'}`,
-          boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-          opacity: opacity,
-          transform: isFocused ? 'scale(1.1)' : 'scale(1)',
-          transition: 'all 0.3s ease'
-        }}>
-          ☀️ {sunData.name}
-          <br />
-          <div style={{ fontSize: '0.6em', marginTop: '2px' }}>
-            {sunData.totalTasks}개 태스크 {isFocused ? '(포커스됨)' : ''}
-          </div>
-        </div>
-      </Html>
     </group>
   );
 }
 
-// v0.8.10 행성 컴포넌트 - 폰트 에러 해결된 키워드 표면 달려가기
+// v0.8.11 행성 컴포넌트 - 표면 키워드만 표시 (정보 박스 제거)
 function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -331,7 +306,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           animationSpeed={animationSpeed}
         />
         
-        {/* v0.8.10 행성 입체감 개선 */}
+        {/* v0.8.11 행성 입체감 개선 */}
         <mesh 
           ref={meshRef}
           position={[planetData.orbitRadius, 0, 0]}
@@ -354,34 +329,16 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           />
         </mesh>
         
-        {/* v0.8.10 CRITICAL FIX: 행성 표면 시계방향 달려가는 키워드 (폰트 에러 해결) */}
+        {/* v0.8.11 ULTIMATE FIX: 행성 표면 시계방향 달려가는 키워드 (네모 박스 없음) */}
         <group position={[planetData.orbitRadius, 0, 0]}>
           <SurfaceRunningKeywords 
             keywords={planetData.keywords}
-            radius={1.6} // 행성 표면에 정확히 위치
-            color={deadlineEffects.color}
+            radius={1.5} // 행성 반지름과 일치
+            color="#FFFFFF" // 흰색으로 가독성 확보
             isAnimationPlaying={isAnimationPlaying}
             animationSpeed={animationSpeed}
           />
         </group>
-        
-        {/* 행성 정보 표시 - 간소화 */}
-        <Html position={[planetData.orbitRadius, 3, 0]} center>
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.8)',
-            color: deadlineEffects.color,
-            padding: '6px 10px',
-            borderRadius: '12px',
-            fontSize: '0.8em',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            border: `1px solid ${deadlineEffects.color}`,
-            whiteSpace: 'nowrap',
-            opacity: opacity
-          }}>
-            🪐 {planetData.name.length > 15 ? planetData.name.substring(0, 15) + '...' : planetData.name}
-          </div>
-        </Html>
         
         {/* 위성들이 행성을 공전하도록 수정 */}
         {/* functional_specification.md: "서브 태스크는 부모 태스크를 공전합니다" */}
@@ -403,7 +360,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   );
 }
 
-// v0.8.10 위성 컴포넌트 - 폰트 에러 해결된 키워드 표면 달려가기
+// v0.8.11 위성 컴포넌트 - 표면 키워드만 표시 (정보 박스 제거)
 function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -476,7 +433,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       )}
       
-      {/* v0.8.10 위성 입체감 개선 */}
+      {/* v0.8.11 위성 입체감 개선 */}
       <mesh 
         ref={meshRef}
         position={[satelliteData.orbitRadius, 0, 0]}
@@ -499,45 +456,28 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       </mesh>
       
-      {/* v0.8.10 CRITICAL FIX: 위성 표면 시계방향 달려가는 키워드 (폰트 에러 해결) */}
+      {/* v0.8.11 ULTIMATE FIX: 위성 표면 시계방향 달려가는 키워드 (네모 박스 없음) */}
       <group position={[satelliteData.orbitRadius, 0, 0]}>
         <SurfaceRunningKeywords 
           keywords={satelliteData.keywords}
-          radius={0.6} // 위성 표면에 정확히 위치
-          color={deadlineEffects.color}
+          radius={0.5} // 위성 반지름과 일치
+          color="#FFFFFF" // 흰색으로 가독성 확보
           isAnimationPlaying={isAnimationPlaying}
           animationSpeed={animationSpeed}
         />
       </group>
-      
-      {/* 위성 정보 표시 - 간소화 */}
-      <Html position={[satelliteData.orbitRadius, 1.5, 0]} center>
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          color: deadlineEffects.color,
-          padding: '4px 8px',
-          borderRadius: '8px',
-          fontSize: '0.6em',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          border: `1px solid ${deadlineEffects.color}`,
-          whiteSpace: 'nowrap',
-          opacity: opacity
-        }}>
-          🛰️ {satelliteData.name.length > 10 ? satelliteData.name.substring(0, 10) + '...' : satelliteData.name}
-        </div>
-      </Html>
     </group>
   );
 }
 
-// v0.8.10 소행성 컴포넌트 - 폰트 에러 해결된 키워드 표면 달려가기
+// v0.8.11 소행성 컴포넌트 - 향상된 폭발 이펙트 + 표면 키워드
 function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, onCollision }) {
   const meshRef = useRef();
   const explosionRef = useRef();
   const [position, setPosition] = useState(asteroidData.position);
   const [isExploding, setIsExploding] = useState(false);
   const [explosionScale, setExplosionScale] = useState(0);
+  const [explosionParticles, setExplosionParticles] = useState([]);
   
   // 포커스 상태에 따른 표시 여부
   const shouldShow = !focusedSystemId || focusedSystemId === asteroidData.targetSystemId;
@@ -566,6 +506,23 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
           setIsExploding(true);
           console.log('💥 소행성 충돌!', asteroidData.id);
           
+          // 폭발 파티클 생성
+          const particles = [];
+          for (let i = 0; i < 15; i++) {
+            particles.push({
+              id: i,
+              position: [...position],
+              velocity: [
+                (Math.random() - 0.5) * 10,
+                (Math.random() - 0.5) * 10,
+                (Math.random() - 0.5) * 10
+              ],
+              color: ['#FF4500', '#FF6600', '#FFAA00', '#FF0000', '#FFD700'][i % 5],
+              life: 1.0
+            });
+          }
+          setExplosionParticles(particles);
+          
           // 충돌 콜백 호출
           if (onCollision) {
             onCollision(asteroidData.id);
@@ -593,6 +550,23 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
         setIsExploding(true);
         console.log('⏰ 소행성 시간 만료로 폭발!', asteroidData.id);
         
+        // 폭발 파티클 생성
+        const particles = [];
+        for (let i = 0; i < 12; i++) {
+          particles.push({
+            id: i,
+            position: [...position],
+            velocity: [
+              (Math.random() - 0.5) * 8,
+              (Math.random() - 0.5) * 8,
+              (Math.random() - 0.5) * 8
+            ],
+            color: ['#FF4500', '#FF6600', '#FFAA00', '#FF0000'][i % 4],
+            life: 1.0
+          });
+        }
+        setExplosionParticles(particles);
+        
         if (onCollision) {
           onCollision(asteroidData.id);
         }
@@ -600,9 +574,9 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
     } else {
       // 폭발 애니메이션
       setExplosionScale(prev => {
-        const newScale = prev + 0.2 * animationSpeed;
-        if (newScale > 5) {
-          // 폭발 완료 - 소행성 제거
+        const newScale = prev + 0.15 * animationSpeed;
+        if (newScale > 8) {
+          // 폭발 완료 - 소행성 완전 제거
           setTimeout(() => {
             if (onCollision) {
               onCollision(asteroidData.id, true); // 완전 제거
@@ -612,9 +586,22 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
         return newScale;
       });
       
+      // 폭발 파티클 업데이트
+      setExplosionParticles(prev => 
+        prev.map(particle => ({
+          ...particle,
+          position: [
+            particle.position[0] + particle.velocity[0] * 0.02 * animationSpeed,
+            particle.position[1] + particle.velocity[1] * 0.02 * animationSpeed,
+            particle.position[2] + particle.velocity[2] * 0.02 * animationSpeed
+          ],
+          life: Math.max(0, particle.life - 0.03 * animationSpeed)
+        })).filter(particle => particle.life > 0)
+      );
+      
       if (explosionRef.current) {
         explosionRef.current.scale.setScalar(explosionScale);
-        explosionRef.current.material.opacity = Math.max(0, 1 - explosionScale / 5);
+        explosionRef.current.material.opacity = Math.max(0, 1 - explosionScale / 8);
       }
     }
   });
@@ -631,7 +618,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
     <group visible={shouldShow}>
       {!isExploding ? (
         <>
-          {/* v0.8.10 소행성 입체감 개선 */}
+          {/* v0.8.11 소행성 입체감 개선 */}
           <mesh 
             ref={meshRef} 
             position={position}
@@ -655,12 +642,12 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
             />
           </mesh>
           
-          {/* v0.8.10 CRITICAL FIX: 소행성 표면 시계방향 달려가는 키워드 (폰트 에러 해결) */}
+          {/* v0.8.11 ULTIMATE FIX: 소행성 표면 시계방향 달려가는 키워드 (네모 박스 없음) */}
           <group position={position}>
             <SurfaceRunningKeywords 
               keywords={asteroidData.keywords}
-              radius={0.9} // 소행성 표면에 정확히 위치
-              color={urgencyColor}
+              radius={0.8} // 소행성 반지름과 일치
+              color="#FFFFFF" // 흰색으로 가독성 확보
               isAnimationPlaying={isAnimationPlaying}
               animationSpeed={animationSpeed}
             />
@@ -675,31 +662,11 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
               opacity={0.2 * opacity}
             />
           </mesh>
-          
-          {/* 소행성 정보 표시 - 간소화 */}
-          <Html position={[position[0], position[1] + 2, position[2]]} center>
-            <div style={{
-              background: 'rgba(0,0,0,0.8)',
-              color: urgencyColor,
-              padding: '5px 10px',
-              borderRadius: '10px',
-              fontSize: '0.7em',
-              border: `1px solid ${urgencyColor}`,
-              whiteSpace: 'nowrap',
-              textAlign: 'center',
-              opacity: opacity
-            }}>
-              ☄️ {asteroidData.suggestion?.action || 'AI Action'}
-              <br />
-              <div style={{ fontSize: '0.5em', marginTop: '2px' }}>
-                ⏱️ {Math.ceil(timeLeft)}초 남음
-              </div>
-            </div>
-          </Html>
         </>
       ) : (
-        // 폭발 효과
+        // v0.8.11 향상된 폭발 효과
         <>
+          {/* 메인 폭발 구체 */}
           <mesh 
             ref={explosionRef}
             position={position}
@@ -712,21 +679,52 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
             />
           </mesh>
           
-          {/* 폭발 파티클들 */}
-          {[...Array(8)].map((_, i) => (
+          {/* 폭발 링 효과 */}
+          {[1, 2, 3].map(ring => (
             <mesh 
-              key={i}
+              key={ring}
+              position={position}
+              rotation={[Math.PI / 2, 0, 0]}
+            >
+              <ringGeometry args={[explosionScale * ring * 0.5, explosionScale * ring * 0.7, 16]} />
+              <meshBasicMaterial 
+                color={ring === 1 ? "#FF0000" : ring === 2 ? "#FF6600" : "#FFAA00"}
+                transparent
+                opacity={Math.max(0, (1 - explosionScale / 8) * 0.7)}
+              />
+            </mesh>
+          ))}
+          
+          {/* 동적 폭발 파티클들 */}
+          {explosionParticles.map((particle) => (
+            <mesh 
+              key={particle.id}
+              position={particle.position}
+            >
+              <sphereGeometry args={[0.15 * particle.life, 8, 8]} />
+              <meshBasicMaterial 
+                color={particle.color}
+                transparent
+                opacity={particle.life}
+              />
+            </mesh>
+          ))}
+          
+          {/* 폭발 번개 효과 */}
+          {explosionScale < 4 && [...Array(8)].map((_, i) => (
+            <mesh 
+              key={`lightning-${i}`}
               position={[
-                position[0] + (Math.random() - 0.5) * explosionScale,
+                position[0] + Math.cos(i * Math.PI / 4) * explosionScale * 2,
                 position[1] + (Math.random() - 0.5) * explosionScale,
-                position[2] + (Math.random() - 0.5) * explosionScale
+                position[2] + Math.sin(i * Math.PI / 4) * explosionScale * 2
               ]}
             >
-              <sphereGeometry args={[0.2, 8, 8]} />
+              <cylinderGeometry args={[0.05, 0.05, explosionScale * 3, 3]} />
               <meshBasicMaterial 
-                color={['#FF4500', '#FF6600', '#FFAA00', '#FF0000'][i % 4]}
+                color="#FFFFFF"
                 transparent
-                opacity={Math.max(0, 1 - explosionScale / 5)}
+                opacity={Math.max(0, 1 - explosionScale / 4)}
               />
             </mesh>
           ))}
@@ -824,13 +822,13 @@ const Scene = ({
           focusedSystemId={focusedSystemId}
         />
         
-        {/* 조명 설정 - v0.8.10 텍스트를 위한 조명 최적화 */}
-        <ambientLight intensity={0.6} />
-        <pointLight position={[0, 0, 0]} intensity={2.5} />
-        <pointLight position={[100, 100, 100]} intensity={1.8} />
-        <pointLight position={[-100, -100, -100]} intensity={1.0} />
-        <directionalLight position={[50, 50, 50]} intensity={1.2} />
-        <directionalLight position={[-50, -50, -50]} intensity={0.8} />
+        {/* 조명 설정 - v0.8.11 표면 텍스트를 위한 조명 최적화 */}
+        <ambientLight intensity={0.8} />
+        <pointLight position={[0, 0, 0]} intensity={3} />
+        <pointLight position={[100, 100, 100]} intensity={2} />
+        <pointLight position={[-100, -100, -100]} intensity={1.5} />
+        <directionalLight position={[50, 50, 50]} intensity={1.5} />
+        <directionalLight position={[-50, -50, -50]} intensity={1} />
         
         {/* 카메라 컨트롤 */}
         <OrbitControls
@@ -860,11 +858,11 @@ const Scene = ({
           fade={true}
         />
         
-        {/* v0.8.10: 다중 태양계 렌더링 (폰트 에러 해결된 키워드 표면 달려가기) */}
+        {/* v0.8.11: 다중 태양계 렌더링 (표면 키워드만 표시) */}
         {solarSystems && solarSystems.length > 0 ? (
           solarSystems.map((system) => (
             <group key={system.id}>
-              {/* 태양 (태스크 그룹명) - v0.8.10 폰트 에러 해결된 키워드 표면 달려가기 */}
+              {/* 태양 (태스크 그룹명) - v0.8.11 표면 키워드만 표시 */}
               <Sun 
                 sunData={system.sun}
                 systemPosition={system.position}
@@ -883,7 +881,7 @@ const Scene = ({
                 }}
               />
               
-              {/* 행성들 (태스크들) - v0.8.10 모든 개선사항 적용 */}
+              {/* 행성들 (태스크들) - v0.8.11 모든 개선사항 적용 */}
               {system.planets && system.planets.map((planet) => (
                 <Planet
                   key={planet.id}
@@ -918,17 +916,18 @@ const Scene = ({
                 그룹명이 2개 이상이면 태양계도 2개 이상이 됩니다
               </div>
               <div style={{ fontSize: '0.7em', marginTop: '10px', color: '#888' }}>
-                🔧 v0.8.10 폰트 로딩 에러 해결:<br />
-                • 폰트 파일 의존성 제거<br />
-                • 기본 시스템 폰트 사용<br />
-                • 키워드 표면 달려가기 안정성 확보<br />
+                🔧 v0.8.11 키워드 표면 표시 완성:<br />
+                • 네모 박스 완전 제거<br />
+                • 천체 표면에 직접 키워드 표시<br />
+                • 시계방향 달려가기 애니메이션<br />
+                • 소행성 폭발 이펙트 향상<br />
                 • 속도: {animationSpeed?.toFixed(1)}x | 궤도: {showOrbits ? 'ON' : 'OFF'}
               </div>
             </div>
           </Html>
         )}
         
-        {/* v0.8.10: 소행성들 - 폰트 에러 해결된 키워드 표면 달려가기 */}
+        {/* v0.8.11: 소행성들 - 향상된 폭발 이펙트 + 표면 키워드 */}
         {asteroids && asteroids.map((asteroid) => (
           <Asteroid
             key={asteroid.id}
