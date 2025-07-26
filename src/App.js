@@ -9,7 +9,7 @@ import './App.css';
 // 유틸리티 함수들
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// v0.8.11: ULTIMATE FIX - 키워드 표면 표시 완성 + 소행성 폭발 이펙트
+// v0.8.12: ULTIMATE FIX - 키워드 표면 완전 표시 + 혜성 폭발 이펙트 강화
 // ULTIMATE FIX: functional_specification.md 100% 준수
 // "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 
@@ -27,7 +27,7 @@ function App() {
   
   // v0.8.0: 다중 태양계 시스템
   const [solarSystems, setSolarSystems] = useState([]);
-  const [asteroids, setAsteroids] = useState([]);
+  const [comets, setComets] = useState([]); // v0.8.12: asteroids → comets
   
   // 상세정보 모달 상태
   const [selectedTask, setSelectedTask] = useState(null);
@@ -37,10 +37,10 @@ function App() {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // v0.8.11: 키워드 정제 함수 (의존성 배열 안정화를 위해 앞으로 이동)
+  // v0.8.12: 키워드 정제 함수 (의존성 배열 안정화를 위해 앞으로 이동)
   const filterKeywords = useCallback((keywords) => {
     const excludeWords = [
-      '태양계', '행성', '위성', '소행성', '태양', '태스크', '할일',
+      '태양계', '행성', '위성', '혜성', '소행성', '태양', '태스크', '할일',
       'planet', 'satellite', 'sun', 'solar', 'system', 'task', 'todo',
       'project', 'work', 'personal', 'health', 'study', 'general',
       '프로젝트', '작업', '개인', '건강', '학습', '일반', '업무'
@@ -57,9 +57,9 @@ function App() {
   const saveTodosToStorage = useCallback((updatedTodos) => {
     try {
       dataManager.saveAllTodos(updatedTodos);
-      console.log('💾 v0.8.11: 태스크 저장 완료:', updatedTodos.length, '개');
+      console.log('💾 v0.8.12: 태스크 저장 완료:', updatedTodos.length, '개');
     } catch (error) {
-      console.error('❌ v0.8.11: 태스크 저장 실패:', error);
+      console.error('❌ v0.8.12: 태스크 저장 실패:', error);
     }
   }, []);
 
@@ -162,7 +162,7 @@ function App() {
     setTodos(defaultTasks);
     saveTodosToStorage(defaultTasks);
     
-    console.log('🌟 v0.8.11: 기본 태스크 초기화 완료 및 저장');
+    console.log('🌟 v0.8.12: 기본 태스크 초기화 완료 및 저장');
   }, [filterKeywords, saveTodosToStorage]);
 
   // v0.8.5: 설정 로드 및 저장
@@ -177,7 +177,7 @@ function App() {
       setShowOrbits(settings.showOrbits !== false);
       setCurrentView(settings.currentView);
       setFocusedSystemId(settings.focusedSystemId || null);
-      console.log('⚙️ v0.8.11: 설정 로드 완료');
+      console.log('⚙️ v0.8.12: 설정 로드 완료');
     } catch (error) {
       console.error('❌ 설정 로드 실패:', error);
     }
@@ -196,7 +196,7 @@ function App() {
         focusedSystemId
       };
       dataManager.saveSettings(settings);
-      console.log('⚙️ v0.8.11: 설정 저장 완료');
+      console.log('⚙️ v0.8.12: 설정 저장 완료');
     } catch (error) {
       console.error('❌ 설정 저장 실패:', error);
     }
@@ -206,21 +206,21 @@ function App() {
   const loadTodosFromStorage = useCallback(async () => {
     try {
       setIsDataLoading(true);
-      console.log('📋 v0.8.11: 저장된 태스크 로드 시작...');
+      console.log('📋 v0.8.12: 저장된 태스크 로드 시작...');
       
       const storedTodos = dataManager.getAllTodos();
       
       if (storedTodos && storedTodos.length > 0) {
         setTodos(storedTodos);
-        console.log('✅ v0.8.11: 저장된 태스크 로드 완료:', storedTodos.length, '개');
+        console.log('✅ v0.8.12: 저장된 태스크 로드 완료:', storedTodos.length, '개');
       } else {
-        console.log('📋 v0.8.11: 저장된 태스크 없음 - 기본 태스크 생성');
+        console.log('📋 v0.8.12: 저장된 태스크 없음 - 기본 태스크 생성');
         initializeDefaultTasks();
       }
       
       setDataLoaded(true);
     } catch (error) {
-      console.error('❌ v0.8.11: 태스크 로드 실패:', error);
+      console.error('❌ v0.8.12: 태스크 로드 실패:', error);
       initializeDefaultTasks();
     } finally {
       setIsDataLoading(false);
@@ -232,12 +232,12 @@ function App() {
     const emptyTodos = [];
     setTodos(emptyTodos);
     setSolarSystems([]);
-    setAsteroids([]);
+    setComets([]); // v0.8.12: setAsteroids → setComets
     setFocusedSystemId(null);
     
     saveTodosToStorage(emptyTodos);
     
-    console.log('🚫 v0.8.11: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
+    console.log('🚫 v0.8.12: 태스크 없음 - 모든 태양계 시스템 제거 및 저장');
   }, [saveTodosToStorage]);
 
   // 카테고리별 테마
@@ -369,26 +369,26 @@ function App() {
     };
   }, []);
 
-  // v0.8.5: 소행성 생성 (패널 없음)
-  const generateAsteroids = useCallback((systems) => {
+  // v0.8.12: 혜성 생성 (패널 없음) - 소행성 → 혜성으로 변경
+  const generateComets = useCallback((systems) => {
     if (!systems || systems.length === 0) {
-      console.log('🚫 태양계가 없으므로 소행성 생성 안함');
-      setAsteroids([]);
+      console.log('🚫 태양계가 없으므로 혜성 생성 안함');
+      setComets([]);
       return;
     }
 
-    const newAsteroids = [];
+    const newComets = [];
     
     systems.forEach(system => {
       if (!system.planets || system.planets.length === 0) {
-        console.log(`🚫 ${system.name}: 행성이 없으므로 소행성 생성 안함`);
+        console.log(`🚫 ${system.name}: 행성이 없으므로 혜성 생성 안함`);
         return;
       }
 
       system.planets.forEach(planet => {
         if (Math.random() < 0.3) {
-          const asteroid = {
-            id: `asteroid-${generateId()}`,
+          const comet = {
+            id: `comet-${generateId()}`,
             targetType: 'planet',
             targetId: planet.id,
             targetSystemId: system.id,
@@ -411,15 +411,15 @@ function App() {
             deadline: planet.task.deadline
           };
           
-          newAsteroids.push(asteroid);
-          console.log(`☄️ 소행성 생성: ${planet.task.text}를 향해 돌진 (패널 없음)`);
+          newComets.push(comet);
+          console.log(`☄️ 혜성 생성: ${planet.task.text}를 향해 돌진 (패널 없음)`);
         }
 
         if (planet.satellites && planet.satellites.length > 0) {
           planet.satellites.forEach(satellite => {
             if (Math.random() < 0.2) {
-              const asteroid = {
-                id: `asteroid-${generateId()}`,
+              const comet = {
+                id: `comet-${generateId()}`,
                 targetType: 'satellite',
                 targetId: satellite.id,
                 targetPlanetId: planet.id,
@@ -443,16 +443,16 @@ function App() {
                 deadline: satellite.subtask.deadline
               };
               
-              newAsteroids.push(asteroid);
-              console.log(`☄️ 소행성 생성: ${satellite.subtask.text} 위성을 향해 돌진 (패널 없음)`);
+              newComets.push(comet);
+              console.log(`☄️ 혜성 생성: ${satellite.subtask.text} 위성을 향해 돌진 (패널 없음)`);
             }
           });
         }
       });
     });
     
-    console.log('☄️ v0.8.11: 생성된 소행성 (패널 없음):', newAsteroids.length, '개');
-    setAsteroids(newAsteroids);
+    console.log('☄️ v0.8.12: 생성된 혜성 (패널 없음):', newComets.length, '개');
+    setComets(newComets);
   }, [calculateUrgencyColor, animationSpeed, filterKeywords]);
 
   // 천체 클릭 핸들러
@@ -478,13 +478,13 @@ function App() {
 
   // v0.8.5: 다중 태양계 생성
   const updateSolarSystems = useCallback(async () => {
-    console.log('🔄 v0.8.11: 다중 태양계 업데이트 시작');
+    console.log('🔄 v0.8.12: 다중 태양계 업데이트 시작');
     console.log('📋 현재 태스크 수:', todos.length);
 
     if (!aiGroupingActive || todos.length === 0) {
       console.log('🚫 태스크가 없으므로 모든 태양계 제거');
       setSolarSystems([]);
-      setAsteroids([]);
+      setComets([]); // v0.8.12: setAsteroids → setComets
       setFocusedSystemId(null);
       return;
     }
@@ -495,7 +495,7 @@ function App() {
       if (taskGroups.length === 0) {
         console.log('🚫 태스크 그룹이 없으므로 태양계 없음');
         setSolarSystems([]);
-        setAsteroids([]);
+        setComets([]);
         setFocusedSystemId(null);
         return;
       }
@@ -578,7 +578,7 @@ function App() {
         return solarSystem;
       });
 
-      console.log('🌌 v0.8.11: 생성된 태양계 시스템:', newSolarSystems.length, '개');
+      console.log('🌌 v0.8.12: 생성된 태양계 시스템:', newSolarSystems.length, '개');
       newSolarSystems.forEach((system, index) => {
         console.log(`  ${index + 1}. ${system.name} - ${system.planets.length}개 행성`);
       });
@@ -590,15 +590,15 @@ function App() {
         console.log('🔍 포커스된 태양계가 없어져서 포커스 해제');
       }
       
-      generateAsteroids(newSolarSystems);
+      generateComets(newSolarSystems); // v0.8.12: generateAsteroids → generateComets
       
     } catch (error) {
       console.error('태양계 생성 오류:', error);
       setSolarSystems([]);
-      setAsteroids([]);
+      setComets([]);
       setFocusedSystemId(null);
     }
-  }, [todos, aiGroupingActive, groupTasksByAI, calculateSystemPosition, calculatePlanetOrbit, calculateSatelliteOrbit, calculateOrbitSpeed, calculateUrgencyColor, handleCelestialBodyClick, generateAsteroids, focusedSystemId, filterKeywords]);
+  }, [todos, aiGroupingActive, groupTasksByAI, calculateSystemPosition, calculatePlanetOrbit, calculateSatelliteOrbit, calculateOrbitSpeed, calculateUrgencyColor, handleCelestialBodyClick, generateComets, focusedSystemId, filterKeywords]);
 
   // 모달 닫기
   const closeTaskDetail = useCallback(() => {
@@ -608,12 +608,12 @@ function App() {
 
   // v0.8.5: 앱 초기화
   useEffect(() => {
-    console.log('🚀 v0.8.11: 앱 초기화 시작...');
+    console.log('🚀 v0.8.12: 앱 초기화 시작...');
     
     const initializeApp = async () => {
       loadSettingsFromStorage();
       await loadTodosFromStorage();
-      console.log('✅ v0.8.11: 앱 초기화 완료');
+      console.log('✅ v0.8.12: 앱 초기화 완료');
     };
     
     initializeApp();
@@ -669,7 +669,7 @@ function App() {
       });
       
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.11: 태스크 업데이트 및 저장:', todoId);
+      console.log('✅ v0.8.12: 태스크 업데이트 및 저장:', todoId);
       
       return updatedTodos;
     });
@@ -682,7 +682,7 @@ function App() {
       const updatedTodos = prev.filter(todo => todo.id !== todoId);
       
       saveTodosToStorage(updatedTodos);
-      console.log('🗑️ v0.8.11: 태스크 삭제 및 저장:', deletedTodo?.text);
+      console.log('🗑️ v0.8.12: 태스크 삭제 및 저장:', deletedTodo?.text);
       
       if (updatedTodos.length === 0) {
         console.log('🚫 마지막 태스크 삭제 - 모든 태양계 제거 예정');
@@ -713,21 +713,21 @@ function App() {
       });
       
       saveTodosToStorage(updatedTodos);
-      console.log('✅ v0.8.11: 서브태스크 추가 및 저장:', subtaskData.text);
+      console.log('✅ v0.8.12: 서브태스크 추가 및 저장:', subtaskData.text);
       
       return updatedTodos;
     });
   }, [saveTodosToStorage]);
 
-  // v0.8.11: 소행성 충돌 처리 (향상된 폭발 이펙트)
-  const handleAsteroidCollision = useCallback((asteroidId, remove = false) => {
+  // v0.8.12: 혜성 충돌 처리 (향상된 폭발 이펙트) - 소행성 → 혜성으로 변경
+  const handleCometCollision = useCallback((cometId, remove = false) => {
     if (remove) {
       // 완전 제거
-      setAsteroids(prev => prev.filter(a => a.id !== asteroidId));
-      console.log('💥 v0.8.11: 소행성 완전 제거 (향상된 폭발 이펙트):', asteroidId);
+      setComets(prev => prev.filter(c => c.id !== cometId));
+      console.log('💥 v0.8.12: 혜성 완전 제거 (대폭 강화된 폭발 이펙트):', cometId);
     } else {
       // 폭발 시작만 처리 (Scene.js에서 처리)
-      console.log('💥 v0.8.11: 소행성 폭발 시작 (향상된 이펙트):', asteroidId);
+      console.log('💥 v0.8.12: 혜성 폭발 시작 (대폭 강화된 이펙트):', cometId);
     }
   }, []);
 
@@ -752,7 +752,7 @@ function App() {
       if (!newState) {
         console.log('🤖 AI 그룹핑 비활성화 - 모든 태양계 제거');
         setSolarSystems([]);
-        setAsteroids([]);
+        setComets([]);
         setFocusedSystemId(null);
       } else {
         console.log('🤖 AI 그룹핑 활성화 - 태양계 재구성 시작');
@@ -775,7 +775,7 @@ function App() {
     }
   }, [todos.length, initializeEmptyState, initializeDefaultTasks]);
 
-  // v0.8.11: 로딩 중일 때 표시할 컴포넌트
+  // v0.8.12: 로딩 중일 때 표시할 컴포넌트
   if (isDataLoading) {
     return (
       <div className="App" style={{ 
@@ -789,8 +789,8 @@ function App() {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🌌</div>
-          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.11</div>
-          <div style={{ fontSize: '1rem', opacity: 0.7 }}>키워드 표면 표시 완성 로딩중...</div>
+          <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Solar Todo v0.8.12</div>
+          <div style={{ fontSize: '1rem', opacity: 0.7 }}>키워드 표면 완전 표시 + 혜성 폭발 이펙트 강화 로딩중...</div>
         </div>
       </div>
     );
@@ -830,7 +830,7 @@ function App() {
           transform: 'rotate(0deg)',
           lineHeight: '1.2'
         }}>
-          🌌<br/>SOLAR<br/>TODO<br/>v0.8.11
+          🌌<br/>SOLAR<br/>TODO<br/>v0.8.12
         </div>
 
         {/* UI 모드 토글 */}
@@ -1038,34 +1038,34 @@ function App() {
         }}>
           T:{todos.length}<br/>
           S:{solarSystems.length}<br/>
-          A:{asteroids.length}<br/>
+          C:{comets.length}<br/> {/* v0.8.12: A:asteroids → C:comets */}
           {focusedSystemId && '🔍'}<br/>
           💾
         </div>
       </div>
 
-      {/* v0.8.11: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
+      {/* v0.8.12: 3D 씬 - 메인 메뉴를 고려한 레이아웃 */}
       <div style={{ marginLeft: '80px', width: 'calc(100vw - 80px)', height: '100vh' }}>
         <Scene 
           isAnimationPlaying={isAnimationPlaying}
           animationSpeed={animationSpeed}
           showOrbits={showOrbits}
           solarSystems={solarSystems}
-          asteroids={asteroids}
+          comets={comets} // v0.8.12: asteroids → comets
           currentView={currentView}
           focusedSystemId={focusedSystemId}
           onSolarSystemClick={handleSolarSystemClick}
           onSolarSystemFocus={handleSolarSystemFocus}
           onPlanetClick={handleCelestialBodyClick}
           onSatelliteClick={handleCelestialBodyClick}
-          onAsteroidClick={handleCelestialBodyClick}
+          onCometClick={handleCelestialBodyClick} // v0.8.12: onAsteroidClick → onCometClick
           onSunClick={handleCelestialBodyClick}
-          onAsteroidCollision={handleAsteroidCollision} // v0.8.11: 향상된 소행성 충돌 콜백
+          onCometCollision={handleCometCollision} // v0.8.12: onAsteroidCollision → onCometCollision
           data-testid="scene"
         />
       </div>
 
-      {/* 시스템 상태 표시 - v0.8.11 업데이트 */}
+      {/* 시스템 상태 표시 - v0.8.12 업데이트 */}
       <div 
         className="system-status"
         data-testid="system-status"
@@ -1082,17 +1082,17 @@ function App() {
           zIndex: 1000
         }}
       >
-        📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Asteroids: {asteroids.length}
+        📋 Tasks: {todos.length} | 🌌 Systems: {solarSystems.length} | ☄️ Comets: {comets.length} {/* v0.8.12: Asteroids → Comets */}
         {focusedSystemId && ` | 🔍 Focus: ${solarSystems.find(s => s.id === focusedSystemId)?.name || 'Unknown'}`}
         <br />
-        🔧 v0.8.11 Surface Keywords Complete - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
+        🔧 v0.8.12 Surface Keywords + Comet Explosion - Speed: {animationSpeed.toFixed(1)}x | Orbits: {showOrbits ? 'ON' : 'OFF'}
         <br />
         {/* 규칙 준수 상태 표시 */}
         <div style={{ fontSize: '12px', marginTop: '5px', color: '#aaa' }}>
           {todos.length === 0 && '🚫 No Tasks → No Planets, No Suns, No Satellites'}
           {todos.length > 0 && !aiGroupingActive && '🚫 Tasks exist but AI grouping disabled'}
           {todos.length > 0 && solarSystems.length === 0 && aiGroupingActive && '🔄 Processing...'}
-          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON | 🎯 Surface Keywords | 📦 No Box | 💥 Enhanced Explosion | ⚙️ v0.8.11 Complete`}
+          {todos.length > 0 && solarSystems.length > 0 && `✅ ${solarSystems.length} solar system${solarSystems.length > 1 ? 's' : ''} active | 💾 Auto-Save ON | 🎯 Surface Keywords | 📦 No Box | 💥 Enhanced Comet Explosion | ⚙️ v0.8.12 Complete`}
         </div>
       </div>
 
@@ -1111,7 +1111,7 @@ function App() {
         <AdvancedAnalyticsDashboard
           todos={todos}
           solarSystems={solarSystems}
-          asteroids={asteroids}
+          asteroids={comets} // v0.8.12: asteroids → comets
           isVisible={showAnalyticsDashboard}
           onClose={closeAnalyticsDashboard}
           data-testid="analytics-dashboard"

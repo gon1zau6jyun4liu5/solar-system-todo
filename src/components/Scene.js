@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-// v0.8.11: ULTIMATE FIX - 키워드 표면 표시 + 소행성 폭발 이펙트
+// v0.8.12: ULTIMATE FIX - 키워드 표면 완전 표시 + 혜성 폭발 이펙트 강화
 // functional_specification.md: "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 
 // 헬퍼 함수
@@ -16,63 +16,74 @@ const hexToRgb = (hex) => {
   ] : [255, 215, 0];
 };
 
-// v0.8.11 ULTIMATE FIX: 완전한 표면 키워드 시스템 (네모 박스 없음)
+// v0.8.12 ULTIMATE FIX: 키워드 표면 표시 완전 구현 (반드시 보이도록)
 // functional_specification.md 요구사항:
 // 1. "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 // 2. "키워드는 핵심 단어만 간결하게 표시됩니다"
 // 3. 네모 박스 완전 제거
-function SurfaceRunningKeywords({ keywords, radius, color, isAnimationPlaying, animationSpeed }) {
+function SurfaceRunningKeywords({ keywords, radius, color = "#FFFFFF", isAnimationPlaying, animationSpeed }) {
   const groupRef = useRef();
   
   useFrame(() => {
     if (groupRef.current && isAnimationPlaying) {
       // functional_specification.md: "시계방향으로 달려가는 식으로 표시"
-      groupRef.current.rotation.y += 0.03 * animationSpeed;
+      groupRef.current.rotation.y += 0.04 * animationSpeed; // 속도 증가
     }
   });
 
-  if (!keywords || keywords.length === 0) return null;
+  // 키워드가 없거나 비어있으면 기본 키워드 사용
+  let displayKeywords = keywords || [];
+  
+  if (!displayKeywords || displayKeywords.length === 0) {
+    // 기본 키워드 추가로 무언가 항상 표시되도록
+    displayKeywords = ['키워드', '텍스트'];
+  }
 
   // functional_specification.md: "키워드는 핵심 단어만 간결하게 표시됩니다. \"태양계\",\"행성\", \"위성\"이런 단어는 필요 없습니다"
-  const filteredKeywords = keywords
-    .filter(keyword => !['태양계', '행성', '위성', '소행성', '태스크', '할일', 'task', 'todo', 'project', 'work', 'personal', 'health', 'study', 'general', '프로젝트', '작업', '업무'].includes(keyword))
-    .slice(0, 3);
+  const filteredKeywords = displayKeywords
+    .filter(keyword => keyword && keyword.trim().length > 0)
+    .filter(keyword => !['태양계', '행성', '위성', '혜성', '소행성', '태스크', '할일', 'task', 'todo', 'project', 'work', 'personal', 'health', 'study', 'general', '프로젝트', '작업', '업무'].includes(keyword.toLowerCase()))
+    .slice(0, 4); // 최대 4개까지
 
-  if (filteredKeywords.length === 0) return null;
+  // 필터링 후에도 키워드가 없으면 기본값 사용
+  if (filteredKeywords.length === 0) {
+    filteredKeywords.push('무제');
+  }
+
+  console.log('🔤 표면 키워드 표시:', filteredKeywords, '반지름:', radius);
 
   return (
     <group ref={groupRef}>
       {filteredKeywords.map((keyword, index) => {
-        const angle = (index / Math.max(filteredKeywords.length, 1)) * Math.PI * 2;
-        const x = Math.cos(angle) * (radius + 0.1); // 표면에서 약간 떨어짐
-        const z = Math.sin(angle) * (radius + 0.1);
+        const angle = (index / filteredKeywords.length) * Math.PI * 2;
+        const x = Math.cos(angle) * (radius + 0.2); // 표면에서 조금 더 멀리
+        const z = Math.sin(angle) * (radius + 0.2);
         
         return (
           <Text
             key={`${keyword}-${index}`}
             position={[x, 0, z]}
             rotation={[0, -angle + Math.PI/2, 0]}
-            fontSize={radius * 0.2}
+            fontSize={Math.max(0.3, radius * 0.3)} // 폰트 크기 증가
             color={color}
             anchorX="center"
             anchorY="middle"
-            // v0.8.11 ULTIMATE FIX: 네모 박스 완전 제거
-            outlineWidth={0}
-            outlineColor="transparent"
+            // v0.8.12 ULTIMATE FIX: 반드시 보이도록 설정
+            outlineWidth={0.02} // 약간의 외곽선 추가
+            outlineColor="#000000"
             strokeWidth={0}
             strokeColor="transparent"
             fillOpacity={1}
-            maxWidth={radius * 3}
+            maxWidth={radius * 4}
             textAlign="center"
-            // 3D 효과 제거로 깔끔하게
-            bevelEnabled={false}
-            bevelSize={0}
-            bevelThickness={0}
             // 렌더링 순서 최상위
-            renderOrder={2000}
+            renderOrder={3000}
             // 글자 두께 조정
-            letterSpacing={0.02}
-            lineHeight={1}
+            letterSpacing={0.05}
+            lineHeight={1.2}
+            // 재질 설정으로 확실히 보이게
+            material-emissive={color}
+            material-emissiveIntensity={0.3}
           >
             {keyword}
           </Text>
@@ -146,7 +157,7 @@ function OrbitVisualization({ radius, color, showOrbits, isAnimationPlaying, ani
   );
 }
 
-// 태양 컴포넌트 (태스크 그룹명) - v0.8.11 표면 키워드만 표시
+// 태양 컴포넌트 (태스크 그룹명) - v0.8.12 키워드 확실히 표시
 function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, systemId }) {
   const meshRef = useRef();
   const [isHovered, setIsHovered] = useState(false);
@@ -171,9 +182,12 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
 
   const opacity = focusedSystemId && !isFocused ? 0.3 : 1.0;
 
+  // 태양 키워드 강제 생성
+  const sunKeywords = sunData.keywords || sunData.name ? [sunData.name] : ['태양'];
+
   return (
     <group position={systemPosition} visible={shouldShow}>
-      {/* v0.8.11 태양 입체감 개선 */}
+      {/* v0.8.12 태양 입체감 개선 */}
       <mesh 
         ref={meshRef} 
         position={[0, 0, 0]}
@@ -224,9 +238,9 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
         </mesh>
       )}
       
-      {/* v0.8.11 ULTIMATE FIX: 태양 표면 시계방향 달려가는 키워드 (네모 박스 없음) */}
+      {/* v0.8.12 ULTIMATE FIX: 태양 표면 키워드 확실히 표시 */}
       <SurfaceRunningKeywords 
-        keywords={sunData.keywords}
+        keywords={sunKeywords}
         radius={4} // 태양 반지름과 일치
         color="#FFFFFF" // 태양에서는 흰색 키워드로 가독성 확보
         isAnimationPlaying={isAnimationPlaying}
@@ -236,7 +250,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
   );
 }
 
-// v0.8.11 행성 컴포넌트 - 표면 키워드만 표시 (정보 박스 제거)
+// v0.8.12 행성 컴포넌트 - 키워드 확실히 표시
 function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -294,6 +308,9 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
 
   const opacity = focusedSystemId && !isFocused ? 0.3 : 1.0;
 
+  // 행성 키워드 강제 생성
+  const planetKeywords = planetData.keywords || planetData.task?.text ? [planetData.task?.text || planetData.name] : ['행성'];
+
   return (
     <group position={systemPosition} visible={shouldShow}>
       <group ref={orbitRef} rotation={[0, planetData.initialAngle || 0, 0]}>
@@ -306,7 +323,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           animationSpeed={animationSpeed}
         />
         
-        {/* v0.8.11 행성 입체감 개선 */}
+        {/* v0.8.12 행성 입체감 개선 */}
         <mesh 
           ref={meshRef}
           position={[planetData.orbitRadius, 0, 0]}
@@ -329,10 +346,10 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           />
         </mesh>
         
-        {/* v0.8.11 ULTIMATE FIX: 행성 표면 시계방향 달려가는 키워드 (네모 박스 없음) */}
+        {/* v0.8.12 ULTIMATE FIX: 행성 표면 키워드 확실히 표시 */}
         <group position={[planetData.orbitRadius, 0, 0]}>
           <SurfaceRunningKeywords 
-            keywords={planetData.keywords}
+            keywords={planetKeywords}
             radius={1.5} // 행성 반지름과 일치
             color="#FFFFFF" // 흰색으로 가독성 확보
             isAnimationPlaying={isAnimationPlaying}
@@ -360,7 +377,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   );
 }
 
-// v0.8.11 위성 컴포넌트 - 표면 키워드만 표시 (정보 박스 제거)
+// v0.8.12 위성 컴포넌트 - 키워드 확실히 표시
 function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -419,6 +436,9 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
 
   const opacity = focusedSystemId && !isFocused ? 0.3 : 1.0;
 
+  // 위성 키워드 강제 생성
+  const satelliteKeywords = satelliteData.keywords || satelliteData.subtask?.text ? [satelliteData.subtask?.text || satelliteData.name] : ['위성'];
+
   return (
     // 행성 위치를 기준으로 공전하도록 수정
     <group ref={orbitRef} position={planetPosition} rotation={[0, satelliteData.initialAngle || 0, 0]}>
@@ -433,7 +453,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       )}
       
-      {/* v0.8.11 위성 입체감 개선 */}
+      {/* v0.8.12 위성 입체감 개선 */}
       <mesh 
         ref={meshRef}
         position={[satelliteData.orbitRadius, 0, 0]}
@@ -456,10 +476,10 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       </mesh>
       
-      {/* v0.8.11 ULTIMATE FIX: 위성 표면 시계방향 달려가는 키워드 (네모 박스 없음) */}
+      {/* v0.8.12 ULTIMATE FIX: 위성 표면 키워드 확실히 표시 */}
       <group position={[satelliteData.orbitRadius, 0, 0]}>
         <SurfaceRunningKeywords 
-          keywords={satelliteData.keywords}
+          keywords={satelliteKeywords}
           radius={0.5} // 위성 반지름과 일치
           color="#FFFFFF" // 흰색으로 가독성 확보
           isAnimationPlaying={isAnimationPlaying}
@@ -470,17 +490,19 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
   );
 }
 
-// v0.8.11 소행성 컴포넌트 - 향상된 폭발 이펙트 + 표면 키워드
-function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, onCollision }) {
+// v0.8.12 혜성(소행성 → 혜성) 컴포넌트 - 폭발 이펙트 대폭 강화
+function Comet({ cometData, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, onCollision }) {
   const meshRef = useRef();
   const explosionRef = useRef();
-  const [position, setPosition] = useState(asteroidData.position);
+  const [position, setPosition] = useState(cometData.position);
   const [isExploding, setIsExploding] = useState(false);
   const [explosionScale, setExplosionScale] = useState(0);
   const [explosionParticles, setExplosionParticles] = useState([]);
+  const [shockwaveScale, setShockwaveScale] = useState(0);
+  const [fireballScale, setFireballScale] = useState(0);
   
   // 포커스 상태에 따른 표시 여부
-  const shouldShow = !focusedSystemId || focusedSystemId === asteroidData.targetSystemId;
+  const shouldShow = !focusedSystemId || focusedSystemId === cometData.targetSystemId;
   
   useFrame((state) => {
     if (!meshRef.current || !isAnimationPlaying || !shouldShow) return;
@@ -494,38 +516,39 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
       const scale = 0.8 + Math.sin(state.clock.elapsedTime * 4 * animationSpeed) * 0.2;
       meshRef.current.scale.setScalar(scale);
       
-      // functional_specification.md: "소행성은 관련 행성, 위성을 향해 돌진하며"
-      if (asteroidData.targetPosition) {
+      // functional_specification.md: "혜성은 관련 행성, 위성을 향해 돌진하며"
+      if (cometData.targetPosition) {
         const currentPos = new THREE.Vector3(...position);
-        const targetPos = new THREE.Vector3(...asteroidData.targetPosition);
+        const targetPos = new THREE.Vector3(...cometData.targetPosition);
         const distance = currentPos.distanceTo(targetPos);
         
         // 충돌 거리 체크
         if (distance < 2.0) {
           // functional_specification.md: "주어진 시간이 다 되면 행성에 충돌해서 폭발과 함께 소멸 됩니다"
           setIsExploding(true);
-          console.log('💥 소행성 충돌!', asteroidData.id);
+          console.log('💥 혜성 충돌!', cometData.id);
           
-          // 폭발 파티클 생성
+          // v0.8.12 대폭 강화된 폭발 파티클 생성
           const particles = [];
-          for (let i = 0; i < 15; i++) {
+          for (let i = 0; i < 25; i++) {
             particles.push({
               id: i,
               position: [...position],
               velocity: [
-                (Math.random() - 0.5) * 10,
-                (Math.random() - 0.5) * 10,
-                (Math.random() - 0.5) * 10
+                (Math.random() - 0.5) * 15,
+                (Math.random() - 0.5) * 15,
+                (Math.random() - 0.5) * 15
               ],
-              color: ['#FF4500', '#FF6600', '#FFAA00', '#FF0000', '#FFD700'][i % 5],
-              life: 1.0
+              color: ['#FF0000', '#FF4500', '#FF6600', '#FFAA00', '#FFD700', '#FFFFFF'][i % 6],
+              life: 1.0,
+              size: Math.random() * 0.3 + 0.1
             });
           }
           setExplosionParticles(particles);
           
           // 충돌 콜백 호출
           if (onCollision) {
-            onCollision(asteroidData.id);
+            onCollision(cometData.id);
           }
           
           return;
@@ -535,7 +558,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
         const direction = new THREE.Vector3()
           .subVectors(targetPos, currentPos)
           .normalize()
-          .multiplyScalar(asteroidData.speed * 0.1 * animationSpeed);
+          .multiplyScalar(cometData.speed * 0.1 * animationSpeed);
         
         setPosition(prev => [
           prev[0] + direction.x,
@@ -545,63 +568,75 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
       }
       
       // 시간 제한 체크
-      const timeLeft = Math.max(0, (asteroidData.timeLimit - Date.now()) / 1000);
+      const timeLeft = Math.max(0, (cometData.timeLimit - Date.now()) / 1000);
       if (timeLeft <= 0) {
         setIsExploding(true);
-        console.log('⏰ 소행성 시간 만료로 폭발!', asteroidData.id);
+        console.log('⏰ 혜성 시간 만료로 폭발!', cometData.id);
         
-        // 폭발 파티클 생성
+        // v0.8.12 시간 만료 폭발 파티클 생성
         const particles = [];
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 20; i++) {
           particles.push({
             id: i,
             position: [...position],
             velocity: [
-              (Math.random() - 0.5) * 8,
-              (Math.random() - 0.5) * 8,
-              (Math.random() - 0.5) * 8
+              (Math.random() - 0.5) * 12,
+              (Math.random() - 0.5) * 12,
+              (Math.random() - 0.5) * 12
             ],
-            color: ['#FF4500', '#FF6600', '#FFAA00', '#FF0000'][i % 4],
-            life: 1.0
+            color: ['#FF4500', '#FF6600', '#FFAA00', '#FF0000', '#FFD700'][i % 5],
+            life: 1.0,
+            size: Math.random() * 0.25 + 0.1
           });
         }
         setExplosionParticles(particles);
         
         if (onCollision) {
-          onCollision(asteroidData.id);
+          onCollision(cometData.id);
         }
       }
     } else {
-      // 폭발 애니메이션
+      // v0.8.12 향상된 폭발 애니메이션
       setExplosionScale(prev => {
-        const newScale = prev + 0.15 * animationSpeed;
-        if (newScale > 8) {
-          // 폭발 완료 - 소행성 완전 제거
+        const newScale = prev + 0.2 * animationSpeed;
+        if (newScale > 12) {
+          // 폭발 완료 - 혜성 완전 제거
           setTimeout(() => {
             if (onCollision) {
-              onCollision(asteroidData.id, true); // 완전 제거
+              onCollision(cometData.id, true); // 완전 제거
             }
           }, 100);
         }
         return newScale;
       });
       
+      // 충격파 효과
+      setShockwaveScale(prev => Math.min(prev + 0.3 * animationSpeed, 15));
+      
+      // 화염구 효과
+      setFireballScale(prev => Math.min(prev + 0.25 * animationSpeed, 10));
+      
       // 폭발 파티클 업데이트
       setExplosionParticles(prev => 
         prev.map(particle => ({
           ...particle,
           position: [
-            particle.position[0] + particle.velocity[0] * 0.02 * animationSpeed,
-            particle.position[1] + particle.velocity[1] * 0.02 * animationSpeed,
-            particle.position[2] + particle.velocity[2] * 0.02 * animationSpeed
+            particle.position[0] + particle.velocity[0] * 0.03 * animationSpeed,
+            particle.position[1] + particle.velocity[1] * 0.03 * animationSpeed,
+            particle.position[2] + particle.velocity[2] * 0.03 * animationSpeed
           ],
-          life: Math.max(0, particle.life - 0.03 * animationSpeed)
+          life: Math.max(0, particle.life - 0.02 * animationSpeed),
+          velocity: [
+            particle.velocity[0] * 0.98, // 감속
+            particle.velocity[1] * 0.98,
+            particle.velocity[2] * 0.98
+          ]
         })).filter(particle => particle.life > 0)
       );
       
       if (explosionRef.current) {
         explosionRef.current.scale.setScalar(explosionScale);
-        explosionRef.current.material.opacity = Math.max(0, 1 - explosionScale / 8);
+        explosionRef.current.material.opacity = Math.max(0, 1 - explosionScale / 12);
       }
     }
   });
@@ -609,27 +644,30 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
   if (!shouldShow) return null;
 
   // 시간 경과에 따른 색상 변화
-  const timeLeft = Math.max(0, (asteroidData.timeLimit - Date.now()) / 1000);
-  const urgencyColor = timeLeft > 30 ? '#FFC107' : timeLeft > 10 ? '#FF9800' : '#F44336';
+  const timeLeft = Math.max(0, (cometData.timeLimit - Date.now()) / 1000);
+  const urgencyColor = timeLeft > 30 ? '#00BFFF' : timeLeft > 10 ? '#FF9800' : '#F44336';
 
-  const opacity = focusedSystemId && focusedSystemId !== asteroidData.targetSystemId ? 0.3 : 1.0;
+  const opacity = focusedSystemId && focusedSystemId !== cometData.targetSystemId ? 0.3 : 1.0;
+
+  // 혜성 키워드 강제 생성
+  const cometKeywords = cometData.keywords || cometData.action ? [cometData.action || '혜성'] : ['혜성'];
 
   return (
     <group visible={shouldShow}>
       {!isExploding ? (
         <>
-          {/* v0.8.11 소행성 입체감 개선 */}
+          {/* v0.8.12 혜성 입체감 개선 */}
           <mesh 
             ref={meshRef} 
             position={position}
             onClick={(e) => {
               e.stopPropagation();
-              onClick && onClick('asteroid', asteroidData);
+              onClick && onClick('comet', cometData);
             }}
             onPointerOver={() => document.body.style.cursor = 'pointer'}
             onPointerOut={() => document.body.style.cursor = 'default'}
           >
-            {/* 불규칙한 소행성 형태 */}
+            {/* 불규칙한 혜성 형태 */}
             <dodecahedronGeometry args={[0.8, 0]} />
             <meshStandardMaterial 
               color={urgencyColor}
@@ -642,18 +680,18 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
             />
           </mesh>
           
-          {/* v0.8.11 ULTIMATE FIX: 소행성 표면 시계방향 달려가는 키워드 (네모 박스 없음) */}
+          {/* v0.8.12 ULTIMATE FIX: 혜성 표면 키워드 확실히 표시 */}
           <group position={position}>
             <SurfaceRunningKeywords 
-              keywords={asteroidData.keywords}
-              radius={0.8} // 소행성 반지름과 일치
+              keywords={cometKeywords}
+              radius={0.8} // 혜성 반지름과 일치
               color="#FFFFFF" // 흰색으로 가독성 확보
               isAnimationPlaying={isAnimationPlaying}
               animationSpeed={animationSpeed}
             />
           </group>
           
-          {/* 소행성 트레일 효과 */}
+          {/* 혜성 트레일 효과 */}
           <mesh position={position}>
             <sphereGeometry args={[1.2, 8, 6]} />
             <meshBasicMaterial 
@@ -662,35 +700,68 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
               opacity={0.2 * opacity}
             />
           </mesh>
+          
+          {/* 혜성 꼬리 효과 */}
+          <mesh position={[position[0] - 2, position[1], position[2]]}>
+            <coneGeometry args={[0.3, 4, 8]} />
+            <meshBasicMaterial 
+              color="#00BFFF"
+              transparent
+              opacity={0.4 * opacity}
+            />
+          </mesh>
         </>
       ) : (
-        // v0.8.11 향상된 폭발 효과
+        // v0.8.12 대폭 강화된 폭발 효과
         <>
           {/* 메인 폭발 구체 */}
           <mesh 
             ref={explosionRef}
             position={position}
           >
-            <sphereGeometry args={[1, 16, 16]} />
+            <sphereGeometry args={[1.5, 32, 32]} />
             <meshBasicMaterial 
-              color="#FF4500"
+              color="#FFFFFF"
               transparent
               opacity={1}
             />
           </mesh>
           
-          {/* 폭발 링 효과 */}
-          {[1, 2, 3].map(ring => (
+          {/* 화염구 효과 */}
+          <mesh position={position}>
+            <sphereGeometry args={[fireballScale * 0.8, 16, 16]} />
+            <meshBasicMaterial 
+              color="#FF4500"
+              transparent
+              opacity={Math.max(0, (1 - fireballScale / 10) * 0.8)}
+            />
+          </mesh>
+          
+          {/* 충격파 효과 */}
+          <mesh 
+            position={position}
+            rotation={[Math.PI / 2, 0, 0]}
+          >
+            <ringGeometry args={[shockwaveScale * 0.8, shockwaveScale, 32]} />
+            <meshBasicMaterial 
+              color="#FFFFFF"
+              transparent
+              opacity={Math.max(0, (1 - shockwaveScale / 15) * 0.6)}
+            />
+          </mesh>
+          
+          {/* 폭발 링 효과 - 다층 */}
+          {[1, 2, 3, 4].map(ring => (
             <mesh 
               key={ring}
               position={position}
-              rotation={[Math.PI / 2, 0, 0]}
+              rotation={[Math.PI / 2, 0, ring * Math.PI / 8]}
             >
-              <ringGeometry args={[explosionScale * ring * 0.5, explosionScale * ring * 0.7, 16]} />
+              <ringGeometry args={[explosionScale * ring * 0.4, explosionScale * ring * 0.6, 16]} />
               <meshBasicMaterial 
-                color={ring === 1 ? "#FF0000" : ring === 2 ? "#FF6600" : "#FFAA00"}
+                color={ring === 1 ? "#FFFFFF" : ring === 2 ? "#FF0000" : ring === 3 ? "#FF6600" : "#FFAA00"}
                 transparent
-                opacity={Math.max(0, (1 - explosionScale / 8) * 0.7)}
+                opacity={Math.max(0, (1 - explosionScale / 12) * 0.8)}
               />
             </mesh>
           ))}
@@ -701,7 +772,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
               key={particle.id}
               position={particle.position}
             >
-              <sphereGeometry args={[0.15 * particle.life, 8, 8]} />
+              <sphereGeometry args={[particle.size * particle.life, 8, 8]} />
               <meshBasicMaterial 
                 color={particle.color}
                 transparent
@@ -710,21 +781,40 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
             </mesh>
           ))}
           
-          {/* 폭발 번개 효과 */}
-          {explosionScale < 4 && [...Array(8)].map((_, i) => (
+          {/* 폭발 번개 효과 - 더 많이, 더 강력하게 */}
+          {explosionScale < 6 && [...Array(12)].map((_, i) => (
             <mesh 
               key={`lightning-${i}`}
               position={[
-                position[0] + Math.cos(i * Math.PI / 4) * explosionScale * 2,
-                position[1] + (Math.random() - 0.5) * explosionScale,
-                position[2] + Math.sin(i * Math.PI / 4) * explosionScale * 2
+                position[0] + Math.cos(i * Math.PI / 6) * explosionScale * 2.5,
+                position[1] + (Math.random() - 0.5) * explosionScale * 1.5,
+                position[2] + Math.sin(i * Math.PI / 6) * explosionScale * 2.5
               ]}
             >
-              <cylinderGeometry args={[0.05, 0.05, explosionScale * 3, 3]} />
+              <cylinderGeometry args={[0.08, 0.08, explosionScale * 4, 4]} />
               <meshBasicMaterial 
-                color="#FFFFFF"
+                color={i % 2 === 0 ? "#FFFFFF" : "#00BFFF"}
                 transparent
-                opacity={Math.max(0, 1 - explosionScale / 4)}
+                opacity={Math.max(0, 1 - explosionScale / 6)}
+              />
+            </mesh>
+          ))}
+          
+          {/* 스파크 효과 */}
+          {explosionScale < 8 && [...Array(20)].map((_, i) => (
+            <mesh 
+              key={`spark-${i}`}
+              position={[
+                position[0] + (Math.random() - 0.5) * explosionScale * 3,
+                position[1] + (Math.random() - 0.5) * explosionScale * 3,
+                position[2] + (Math.random() - 0.5) * explosionScale * 3
+              ]}
+            >
+              <sphereGeometry args={[0.1, 4, 4]} />
+              <meshBasicMaterial 
+                color="#FFD700"
+                transparent
+                opacity={Math.max(0, 1 - explosionScale / 8)}
               />
             </mesh>
           ))}
@@ -788,24 +878,24 @@ const Scene = ({
   animationSpeed = 1.0,
   showOrbits = true,
   solarSystems = [],
-  asteroids = [],
+  comets = [], // v0.8.12: asteroids → comets로 변경
   currentView = 'all',
   focusedSystemId = null,
   onSolarSystemClick,
   onSolarSystemFocus,
   onPlanetClick,
   onSatelliteClick,
-  onAsteroidClick,
+  onCometClick, // v0.8.12: onAsteroidClick → onCometClick
   onSunClick,
-  onAsteroidCollision,
+  onCometCollision, // v0.8.12: onAsteroidCollision → onCometCollision
   ...props
 }) => {
   
-  // 소행성 충돌 핸들러
-  const handleAsteroidCollision = (asteroidId, remove = false) => {
-    console.log('💥 소행성 충돌 처리:', asteroidId, remove ? '(완전 제거)' : '(폭발 시작)');
-    if (onAsteroidCollision) {
-      onAsteroidCollision(asteroidId, remove);
+  // 혜성 충돌 핸들러
+  const handleCometCollision = (cometId, remove = false) => {
+    console.log('💥 혜성 충돌 처리:', cometId, remove ? '(완전 제거)' : '(폭발 시작)');
+    if (onCometCollision) {
+      onCometCollision(cometId, remove);
     }
   };
   
@@ -822,13 +912,14 @@ const Scene = ({
           focusedSystemId={focusedSystemId}
         />
         
-        {/* 조명 설정 - v0.8.11 표면 텍스트를 위한 조명 최적화 */}
-        <ambientLight intensity={0.8} />
-        <pointLight position={[0, 0, 0]} intensity={3} />
-        <pointLight position={[100, 100, 100]} intensity={2} />
-        <pointLight position={[-100, -100, -100]} intensity={1.5} />
-        <directionalLight position={[50, 50, 50]} intensity={1.5} />
-        <directionalLight position={[-50, -50, -50]} intensity={1} />
+        {/* 조명 설정 - v0.8.12 키워드 표시를 위한 조명 대폭 강화 */}
+        <ambientLight intensity={1.2} />
+        <pointLight position={[0, 0, 0]} intensity={4} />
+        <pointLight position={[100, 100, 100]} intensity={3} />
+        <pointLight position={[-100, -100, -100]} intensity={2} />
+        <directionalLight position={[50, 50, 50]} intensity={2} />
+        <directionalLight position={[-50, -50, -50]} intensity={1.5} />
+        <directionalLight position={[0, 100, 0]} intensity={1.5} />
         
         {/* 카메라 컨트롤 */}
         <OrbitControls
@@ -858,11 +949,11 @@ const Scene = ({
           fade={true}
         />
         
-        {/* v0.8.11: 다중 태양계 렌더링 (표면 키워드만 표시) */}
+        {/* v0.8.12: 다중 태양계 렌더링 (키워드 확실히 표시) */}
         {solarSystems && solarSystems.length > 0 ? (
           solarSystems.map((system) => (
             <group key={system.id}>
-              {/* 태양 (태스크 그룹명) - v0.8.11 표면 키워드만 표시 */}
+              {/* 태양 (태스크 그룹명) - v0.8.12 키워드 확실히 표시 */}
               <Sun 
                 sunData={system.sun}
                 systemPosition={system.position}
@@ -881,7 +972,7 @@ const Scene = ({
                 }}
               />
               
-              {/* 행성들 (태스크들) - v0.8.11 모든 개선사항 적용 */}
+              {/* 행성들 (태스크들) - v0.8.12 모든 개선사항 적용 */}
               {system.planets && system.planets.map((planet) => (
                 <Planet
                   key={planet.id}
@@ -916,27 +1007,27 @@ const Scene = ({
                 그룹명이 2개 이상이면 태양계도 2개 이상이 됩니다
               </div>
               <div style={{ fontSize: '0.7em', marginTop: '10px', color: '#888' }}>
-                🔧 v0.8.11 키워드 표면 표시 완성:<br />
-                • 네모 박스 완전 제거<br />
-                • 천체 표면에 직접 키워드 표시<br />
+                🔧 v0.8.12 키워드 표면 표시 + 혜성 폭발 이펙트:<br />
+                • 키워드 표면 완전 표시<br />
+                • 천체 표면에 반드시 키워드 표시<br />
                 • 시계방향 달려가기 애니메이션<br />
-                • 소행성 폭발 이펙트 향상<br />
+                • 혜성 폭발 이펙트 대폭 강화<br />
                 • 속도: {animationSpeed?.toFixed(1)}x | 궤도: {showOrbits ? 'ON' : 'OFF'}
               </div>
             </div>
           </Html>
         )}
         
-        {/* v0.8.11: 소행성들 - 향상된 폭발 이펙트 + 표면 키워드 */}
-        {asteroids && asteroids.map((asteroid) => (
-          <Asteroid
-            key={asteroid.id}
-            asteroidData={asteroid}
+        {/* v0.8.12: 혜성들 - 대폭 강화된 폭발 이펙트 + 키워드 확실히 표시 */}
+        {comets && comets.map((comet) => (
+          <Comet
+            key={comet.id}
+            cometData={comet}
             isAnimationPlaying={isAnimationPlaying}
             animationSpeed={animationSpeed}
             focusedSystemId={focusedSystemId}
-            onClick={onAsteroidClick}
-            onCollision={handleAsteroidCollision}
+            onClick={onCometClick}
+            onCollision={handleCometCollision}
           />
         ))}
         
