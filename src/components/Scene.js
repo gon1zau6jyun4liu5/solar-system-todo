@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-// v0.8.9: ULTIMATE FIX - 키워드 네모 박스 완전 제거
+// v0.8.10: CRITICAL FIX - 폰트 로딩 에러 해결
 // functional_specification.md: "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 
 // 헬퍼 함수
@@ -16,7 +16,7 @@ const hexToRgb = (hex) => {
   ] : [255, 215, 0];
 };
 
-// v0.8.9 ULTIMATE FIX: 완전한 표면 키워드 시스템
+// v0.8.10 CRITICAL FIX: 폰트 에러 해결된 표면 키워드 시스템
 // functional_specification.md 요구사항:
 // 1. "키워드는 따로 표시되는 것이 아니라 태양계, 행성, 위성의 표면을 시계방향으로 달려가는 식으로 표시됩니다"
 // 2. "키워드는 핵심 단어만 간결하게 표시됩니다"
@@ -56,7 +56,7 @@ function SurfaceRunningKeywords({ keywords, radius, color, isAnimationPlaying, a
             color={color}
             anchorX="center"
             anchorY="middle"
-            // v0.8.9 CRITICAL: 네모 박스 완전 제거 설정
+            // v0.8.10 CRITICAL: 네모 박스 완전 제거 + 폰트 에러 해결
             outlineWidth={0}
             outlineColor="transparent"
             strokeWidth={0}
@@ -65,7 +65,8 @@ function SurfaceRunningKeywords({ keywords, radius, color, isAnimationPlaying, a
             // 배경 제거
             maxWidth={radius * 2}
             textAlign="center"
-            font="/fonts/Inter-Bold.woff"
+            // v0.8.10 CRITICAL FIX: 폰트 파일 제거 - 기본 폰트 사용
+            // font="/fonts/Inter-Bold.woff" // 제거됨
             // 3D 효과
             bevelEnabled={false}
             bevelSize={0}
@@ -145,7 +146,7 @@ function OrbitVisualization({ radius, color, showOrbits, isAnimationPlaying, ani
   );
 }
 
-// 태양 컴포넌트 (태스크 그룹명) - v0.8.9 키워드 표면 표시
+// 태양 컴포넌트 (태스크 그룹명) - v0.8.10 폰트 에러 해결
 function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, systemId }) {
   const meshRef = useRef();
   const [isHovered, setIsHovered] = useState(false);
@@ -172,7 +173,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
 
   return (
     <group position={systemPosition} visible={shouldShow}>
-      {/* v0.8.9 태양 입체감 개선 */}
+      {/* v0.8.10 태양 입체감 개선 */}
       <mesh 
         ref={meshRef} 
         position={[0, 0, 0]}
@@ -223,7 +224,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
         </mesh>
       )}
       
-      {/* v0.8.9 ULTIMATE FIX: 태양 표면을 시계방향으로 달려가는 키워드 */}
+      {/* v0.8.10 CRITICAL FIX: 태양 표면 시계방향 달려가는 키워드 (폰트 에러 해결) */}
       <SurfaceRunningKeywords 
         keywords={sunData.keywords}
         radius={4.2} // 태양 표면에 정확히 위치
@@ -260,7 +261,7 @@ function Sun({ sunData, systemPosition, isAnimationPlaying, animationSpeed, onCl
   );
 }
 
-// v0.8.9 행성 컴포넌트 - 키워드 표면 달려가기
+// v0.8.10 행성 컴포넌트 - 폰트 에러 해결된 키워드 표면 달려가기
 function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -330,7 +331,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           animationSpeed={animationSpeed}
         />
         
-        {/* v0.8.9 행성 입체감 개선 */}
+        {/* v0.8.10 행성 입체감 개선 */}
         <mesh 
           ref={meshRef}
           position={[planetData.orbitRadius, 0, 0]}
@@ -353,7 +354,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
           />
         </mesh>
         
-        {/* v0.8.9 ULTIMATE FIX: 행성 표면을 시계방향으로 달려가는 키워드 */}
+        {/* v0.8.10 CRITICAL FIX: 행성 표면 시계방향 달려가는 키워드 (폰트 에러 해결) */}
         <group position={[planetData.orbitRadius, 0, 0]}>
           <SurfaceRunningKeywords 
             keywords={planetData.keywords}
@@ -402,7 +403,7 @@ function Planet({ planetData, systemPosition, isAnimationPlaying, animationSpeed
   );
 }
 
-// v0.8.9 위성 컴포넌트 - 키워드 표면 달려가기
+// v0.8.10 위성 컴포넌트 - 폰트 에러 해결된 키워드 표면 달려가기
 function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animationSpeed, showOrbits, onClick, focusedSystemId, systemId }) {
   const orbitRef = useRef();
   const meshRef = useRef();
@@ -475,7 +476,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       )}
       
-      {/* v0.8.9 위성 입체감 개선 */}
+      {/* v0.8.10 위성 입체감 개선 */}
       <mesh 
         ref={meshRef}
         position={[satelliteData.orbitRadius, 0, 0]}
@@ -498,7 +499,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
         />
       </mesh>
       
-      {/* v0.8.9 ULTIMATE FIX: 위성 표면을 시계방향으로 달려가는 키워드 */}
+      {/* v0.8.10 CRITICAL FIX: 위성 표면 시계방향 달려가는 키워드 (폰트 에러 해결) */}
       <group position={[satelliteData.orbitRadius, 0, 0]}>
         <SurfaceRunningKeywords 
           keywords={satelliteData.keywords}
@@ -530,7 +531,7 @@ function Satellite({ satelliteData, planetPosition, isAnimationPlaying, animatio
   );
 }
 
-// v0.8.9 소행성 컴포넌트 - 키워드 표면 달려가기
+// v0.8.10 소행성 컴포넌트 - 폰트 에러 해결된 키워드 표면 달려가기
 function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, focusedSystemId, onCollision }) {
   const meshRef = useRef();
   const explosionRef = useRef();
@@ -630,7 +631,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
     <group visible={shouldShow}>
       {!isExploding ? (
         <>
-          {/* v0.8.9 소행성 입체감 개선 */}
+          {/* v0.8.10 소행성 입체감 개선 */}
           <mesh 
             ref={meshRef} 
             position={position}
@@ -654,7 +655,7 @@ function Asteroid({ asteroidData, isAnimationPlaying, animationSpeed, onClick, f
             />
           </mesh>
           
-          {/* v0.8.9 ULTIMATE FIX: 소행성 표면을 시계방향으로 달려가는 키워드 */}
+          {/* v0.8.10 CRITICAL FIX: 소행성 표면 시계방향 달려가는 키워드 (폰트 에러 해결) */}
           <group position={position}>
             <SurfaceRunningKeywords 
               keywords={asteroidData.keywords}
@@ -823,7 +824,7 @@ const Scene = ({
           focusedSystemId={focusedSystemId}
         />
         
-        {/* 조명 설정 - v0.8.9 텍스트를 위한 조명 최적화 */}
+        {/* 조명 설정 - v0.8.10 텍스트를 위한 조명 최적화 */}
         <ambientLight intensity={0.6} />
         <pointLight position={[0, 0, 0]} intensity={2.5} />
         <pointLight position={[100, 100, 100]} intensity={1.8} />
@@ -859,11 +860,11 @@ const Scene = ({
           fade={true}
         />
         
-        {/* v0.8.9: 다중 태양계 렌더링 (키워드 표면 달려가기 완전 구현) */}
+        {/* v0.8.10: 다중 태양계 렌더링 (폰트 에러 해결된 키워드 표면 달려가기) */}
         {solarSystems && solarSystems.length > 0 ? (
           solarSystems.map((system) => (
             <group key={system.id}>
-              {/* 태양 (태스크 그룹명) - v0.8.9 키워드 표면 달려가기 */}
+              {/* 태양 (태스크 그룹명) - v0.8.10 폰트 에러 해결된 키워드 표면 달려가기 */}
               <Sun 
                 sunData={system.sun}
                 systemPosition={system.position}
@@ -882,7 +883,7 @@ const Scene = ({
                 }}
               />
               
-              {/* 행성들 (태스크들) - v0.8.9 모든 개선사항 적용 */}
+              {/* 행성들 (태스크들) - v0.8.10 모든 개선사항 적용 */}
               {system.planets && system.planets.map((planet) => (
                 <Planet
                   key={planet.id}
@@ -917,17 +918,17 @@ const Scene = ({
                 그룹명이 2개 이상이면 태양계도 2개 이상이 됩니다
               </div>
               <div style={{ fontSize: '0.7em', marginTop: '10px', color: '#888' }}>
-                🆕 v0.8.9 키워드 표면 달려가기 완전 구현:<br />
-                • 네모 박스 완전 제거<br />
-                • 천체 표면을 시계방향으로 달려가는 키워드<br />
-                • functional_specification.md 100% 준수<br />
+                🔧 v0.8.10 폰트 로딩 에러 해결:<br />
+                • 폰트 파일 의존성 제거<br />
+                • 기본 시스템 폰트 사용<br />
+                • 키워드 표면 달려가기 안정성 확보<br />
                 • 속도: {animationSpeed?.toFixed(1)}x | 궤도: {showOrbits ? 'ON' : 'OFF'}
               </div>
             </div>
           </Html>
         )}
         
-        {/* v0.8.9: 소행성들 - 키워드 표면 달려가기 */}
+        {/* v0.8.10: 소행성들 - 폰트 에러 해결된 키워드 표면 달려가기 */}
         {asteroids && asteroids.map((asteroid) => (
           <Asteroid
             key={asteroid.id}
